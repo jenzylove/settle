@@ -4,7 +4,7 @@ const APP_CSS = `
 main { padding: 48px 0 96px; }
 textarea, input { font: inherit; color: var(--fg); background: transparent; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 10px 0; width: 100%; resize: vertical; }
 textarea:disabled, input:disabled { color: var(--fg); -webkit-text-fill-color: var(--fg); opacity: 1; border-bottom-color: transparent; resize: none; }
-.q { font: 800 clamp(30px, 4.6vw, 56px)/1.06 var(--sans); letter-spacing: -0.035em; margin: 14px 0 6px; }
+.q { resize: none; font: 800 clamp(30px, 4.6vw, 56px)/1.06 var(--sans); letter-spacing: -0.035em; margin: 14px 0 6px; }
 .ctx { color: var(--muted); font-size: 17px; max-width: 80ch; }
 .grid2 { display: grid; grid-template-columns: 1.6fr 1fr; gap: 56px; margin-top: 48px; }
 .grid2 .eyebrow { margin-bottom: 8px; }

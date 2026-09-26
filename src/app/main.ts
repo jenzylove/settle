@@ -96,7 +96,7 @@ async function debateView() {
   const ro = src.mode === "static";
   const dis = ro ? "disabled" : "";
   const optRow = (o: Opt, i: number) => `
-    <div class="opt-row" data-i="${i}">
+    <div class="opt-row" data-i="${i}" data-id="${esc(o.id)}">
       <span class="opt-n mono">${String.fromCharCode(65 + i)}</span>
       <input class="opt-name" value="${esc(o.name)}" placeholder="Option name" aria-label="Option name" ${dis}>
       <input class="opt-desc" value="${esc(o.description)}" placeholder="What Bob should build, in one sentence" aria-label="Option description" ${dis}>
@@ -137,8 +137,9 @@ async function debateView() {
     context: (document.getElementById("ctx") as HTMLTextAreaElement).value.trim(),
     options: [...document.querySelectorAll<HTMLElement>(".opt-row")].map((row) => {
       const name = (row.querySelector(".opt-name") as HTMLInputElement).value.trim();
+      // Keep an existing option id so branches and past runs stay comparable.
       return {
-        id: name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "option",
+        id: row.dataset.id || name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "option",
         name,
         description: (row.querySelector(".opt-desc") as HTMLInputElement).value.trim(),
       };
@@ -281,7 +282,10 @@ function runView(id: string) {
     const order = ["build", "measure", "done"];
     const at = order.indexOf(st.phase);
     document.getElementById("phases")!.innerHTML = ["Bob builds", "Measure", "Verdict"]
-      .map((label, i) => `<span class="ph ${i < at || st.phase === "done" ? "past" : i === at ? "now" : ""}">${label}</span>`)
+      .map((label, i) => {
+        const cur = st.phase === "done" ? 2 : at;
+        return `<span class="ph ${i < cur ? "past" : i === cur ? "now" : ""}">${label}</span>`;
+      })
       .join(`<span class="ph-sep"></span>`);
 
     const elapsed = st.t0 ? (st.now - st.t0) / 1000 : 0;
