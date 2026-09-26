@@ -1,68 +1,103 @@
-# IBM Hackathon GitHub Project Template
+# Settle
 
-This GitHub project template is for IBM Hackathon projects. It includes pre-configured security files to help prevent accidental credential commits and potential account suspension during the hackathon.
+**When your team argues about how to build something, Settle builds each option and shows you the numbers.**
 
-## 🚀 Quick Start
+Live results from a real run: **https://settle-blush.vercel.app**
 
-1. **Use this template to create your project:**
-   - Click "Use this template" button above and select "Create a new repository"
-   - Name your repository
-   - Click "Create repository"
+Teams make design calls every week. Cache or materialized view. Queue or direct call. Library A or library B. Today those calls are settled by whoever argues best, or by one engineer spending days on a throwaway version of one option. The numbers that would end the argument only exist once every option is actually built, in your codebase, on your data.
 
-2. **Clone your new repository:**
+Settle gets you those numbers in minutes:
 
-   ```bash
-   git clone https://github.com/HACKATHON-ORG/your-repo-name.git
-   cd your-repo-name
-   ```
+1. You write the question, the options and your constraints in `settle.yml`.
+2. Settle gives every option its own git worktree and starts one **IBM Bob Shell** session per option, all in parallel. Each Bob builds a working version of its option.
+3. The same load test and the same freshness probe run against every branch.
+4. A rule based verdict picks the option that meets every constraint with the smallest change, and a results page shows why.
 
-3. **Set up environment variables:**
+Nothing is merged. Every option stays on its own branch for review.
 
-   ```bash
-   # Copy the example file
-   cp .env.example .env
+## The demo run
 
-   # Edit .env with your actual credentials
-   # Use your preferred editor (nano, vim, code, etc.)
-   nano .env
-   ```
+The question: *How do we make the top customers endpoint fast?* on a small orders API ([demo/orders-api](demo/orders-api)) that aggregates 200,000 orders on every call.
 
-4. **Verify .gitignore is working:**
+| | Today | Cache | Materialized view | Index and rewrite |
+|---|---|---|---|---|
+| p95 latency | 1.01 s | 3 ms | 7 ms | 409 ms |
+| Throughput | 11 req/s | 4,955 req/s | 1,704 req/s | 24.5 req/s |
+| Staleness (worst) | instant | 60.1 s | 10 s | instant |
+| Code changed | | +45 −2 | +45 −13 | +10 −0 |
+| Built by Bob in | | 2m 13s | 2m 22s | 2m 4s |
 
-   ```bash
-   # This should NOT show .env file
-   git status
+The fastest option is not automatically the right one. With the recorded limits (p95 at most 50 ms, results at most 15 s stale) the materialized view wins. Allow 90 seconds of staleness and the cache wins with less code. Accept 500 ms and the index wins with ten lines. The results page lets you move those limits and watch the pick change; the measurements never change.
 
-   # This should confirm .env is ignored
-   git check-ignore -v .env
-   ```
+## Run it
 
-5. **Start developing!**
+Requirements: Node 24, git, and [IBM Bob Shell](https://bob.ibm.com/docs/shell/getting-started/install-and-setup) with a `BOB_API_KEY` (Inference scope).
 
-## 🔒 Security Features
+```bash
+npm install
+cd demo/orders-api && npm install
+node ../../bin/settle.mjs run            # build every option with Bob, measure, decide
+node ../../bin/settle.mjs run --baseline-only   # measure today's code only, no Bob calls
+node ../../bin/settle.mjs report ../../runs/<id> --set max_staleness_seconds=90
+```
 
-This template includes:
+Each run writes `runs/<id>/results.json`, `index.html` (the results page), `appendix.md` (paste into your design doc) and one log per Bob session.
 
-- **`.gitignore`** - Prevents committing credentials and live session files
-- **`.bobignore`** - Prevents AI assistants from logging credentials
-- **`.env.example`** - Template for your environment variables
+## settle.yml
 
-## 📋 Before Every Commit
+```yaml
+question: How do we make the top customers endpoint fast?
+app:
+  start: npm start            # must listen on $PORT
+  test: npm test
+load:
+  request: { method: GET, path: /stats/top-customers?limit=10 }
+  duration_seconds: 15
+  concurrency: 8
+freshness:                    # optional: how long until a write is visible
+  write: { method: POST, path: /orders, body: { customer_id: "{{random 1 5000}}", amount_cents: "{{increasing}}" } }
+  read: { method: GET, path: /stats/top-customers?limit=1 }
+  read_field: 0.customer_id
+  equals: customer_id
+constraints:
+  max_p95_ms: 50
+  max_staleness_seconds: 15
+  tests_must_pass: true
+options:
+  - { id: cache, name: Cache, description: Cache the response in memory with a 60 second TTL. }
+  - { id: matview, name: Materialized view, description: Precompute the ranking and refresh it on a schedule. }
+  - { id: index, name: Index and rewrite, description: Add the right index and rewrite the query. }
+```
 
-Always run this checklist:
+The full example is [demo/orders-api/settle.yml](demo/orders-api/settle.yml).
 
-- [ ] Reviewed `git diff` for sensitive data
-- [ ] No hardcoded API keys or passwords
-- [ ] `.env` file is NOT in staged changes
-- [ ] No files with "credential" or "secret" in name
-- [ ] Used environment variables for all credentials
+## How it works
 
-## 🆘 Need Help?
+| Part | File |
+|---|---|
+| Config parsing and validation | [src/config.ts](src/config.ts) |
+| Worktrees, commits, diff stats | [src/git.ts](src/git.ts) |
+| Bob Shell runner (headless, parallel) | [src/bob.ts](src/bob.ts) |
+| Load test, freshness probe, tests, dependency diff | [src/measure.ts](src/measure.ts) |
+| Verdict rules | [src/verdict.ts](src/verdict.ts) |
+| Results page and appendix | [src/view.ts](src/view.ts), [src/report.ts](src/report.ts), [src/client.ts](src/client.ts) |
+| Orchestration | [src/cli.ts](src/cli.ts) |
 
-- Read [SECURITY.md](SECURITY.MD) for detailed guidelines
-- Contact hackathon support through mentor channel
-- Ask in the hackathon Slack workspace
+**Fair comparison.** Every option starts from the same commit. Options are measured one at a time so they never compete for CPU. The same seeded data, load and probe apply to every branch. Tests are counted apart from application code so an option is never penalised for being better tested.
 
----
+**Repeatable verdict.** The verdict is rules, not a model call: an option qualifies if it meets every constraint, and the smallest change among qualifying options wins, ties going to lower p95. The results page runs the same verdict code in the browser.
 
-**Remember:** Security is everyone's responsibility. When in doubt, ask for help!
+**Honest failure.** If Bob cannot build an option, times out, or the app fails to start, the page says so instead of hiding the option.
+
+## How IBM Bob is used
+
+- **Inside the product:** every option is built by its own Bob Shell session (`bob run`, headless) in its own worktree, in parallel. Session stats (duration, tool calls, cost) are saved with each run.
+- **Building Settle:** Bob IDE sessions wrote the verdict tests, the Settle custom mode and a fairness review of the harness. Session summaries are in [bob_sessions/](bob_sessions/).
+
+## Limits
+
+- Measurement ships for HTTP services. Other kinds of debate (background jobs, frontend bundles) need their own probe.
+- Numbers are from the machine Settle runs on. They are for comparing options with each other, not for capacity planning.
+- Settle runs locally, next to your code. There is no hosted service.
+
+Built for the IBM Bob 2.0 Hackathon.
