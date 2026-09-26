@@ -43,7 +43,7 @@ options:
     description: Cache the endpoint's response in memory with a 60 second time to live.
   - id: matview
     name: Materialized view
-    description: Precompute the ranking in a Postgres materialized view and refresh it on a short schedule in the background.
+    description: Precompute the ranking in a Postgres materialized view and refresh it in the background every 5 seconds.
   - id: index
     name: Index and rewrite
     description: Add the right index or indexes and rewrite the query so Postgres does less work. No caching and no precomputed tables.
