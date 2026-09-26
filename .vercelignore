@@ -1,0 +1,6 @@
+.settle/
+node_modules/
+demo/
+src/
+runs/
+docs/

@@ -52,6 +52,8 @@ export function renderReport(data: RunFile): string {
 body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
 .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
 header.bar { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.tagline { margin-left: 10px; }
+@media (max-width: 720px) { .tagline { display: none; } }
 .brand { font-weight: 800; letter-spacing: -0.02em; font-size: 18px; }
 .muted { color: var(--muted); }
 .hero { text-align: center; padding: 72px 0 40px; }
@@ -111,7 +113,7 @@ button.ghost { background: transparent; color: var(--fg); border: 1px solid var(
 <body>
 <div class="wrap">
   <header class="bar">
-    <span class="brand">Settle</span>
+    <span><span class="brand">Settle</span> <span class="muted tagline">builds every option with IBM Bob, then measures them</span></span>
     <span class="muted">${esc(data.created_at.slice(0, 16).replace("T", " "))} UTC · base <code>${esc(data.base_commit.slice(0, 7))}</code></span>
   </header>
 

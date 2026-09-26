@@ -121,3 +121,5 @@ build/
 # Settle
 node_modules/
 .settle/
+
+.vercel
