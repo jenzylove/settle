@@ -36,24 +36,35 @@ export function commitAll(dir: string, message: string): boolean {
 }
 
 export interface DiffStats {
+  // Application code only. Tests are counted separately so an option is not
+  // penalised for being better tested.
   added: number;
   removed: number;
   files: string[];
+  test_added: number;
+  test_files: string[];
+}
+
+export function isTestFile(file: string): boolean {
+  return /(^|\/)(test|tests|__tests__|spec)\//.test(file) || /\.(test|spec)\.[cm]?[jt]sx?$/.test(file);
 }
 
 export function diffStats(dir: string, base: string, path: string): DiffStats {
   const numstat = git(dir, ["diff", "--numstat", base, "HEAD", "--", path]);
-  let added = 0;
-  let removed = 0;
-  const files: string[] = [];
+  const stats: DiffStats = { added: 0, removed: 0, files: [], test_added: 0, test_files: [] };
   for (const line of numstat.split("\n").filter(Boolean)) {
     const [a, r, file] = line.split("\t");
     if (file.endsWith("package-lock.json")) continue;
-    added += Number(a) || 0;
-    removed += Number(r) || 0;
-    files.push(file);
+    if (isTestFile(file)) {
+      stats.test_added += Number(a) || 0;
+      stats.test_files.push(file);
+      continue;
+    }
+    stats.added += Number(a) || 0;
+    stats.removed += Number(r) || 0;
+    stats.files.push(file);
   }
-  return { added, removed, files };
+  return stats;
 }
 
 export function showFile(dir: string, rev: string, file: string): string | null {

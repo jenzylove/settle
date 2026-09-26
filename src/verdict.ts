@@ -15,7 +15,7 @@ export interface OptionResult {
   load?: LoadResult;
   freshness?: FreshnessResult;
   tests?: TestResult;
-  diff?: { added: number; removed: number; files: string[] };
+  diff?: { added: number; removed: number; files: string[]; test_added?: number; test_files?: string[] };
   new_dependencies?: string[];
   measure_error?: string;
 }
@@ -92,7 +92,7 @@ export function decide(results: OptionResult[], c: Constraints): Verdict {
     return {
       winner: w.id,
       headline: `${w.name} meets every constraint with the smallest change.`,
-      reason: `${w.name}: p95 ${w.load!.p95_ms} ms, ${size(w)} lines changed, ${w.new_dependencies?.length ?? 0} new dependencies. ${why}.`,
+      reason: `${w.name}: p95 ${w.load!.p95_ms} ms, ${size(w)} lines of code changed, ${w.new_dependencies?.length ?? 0} new dependencies. ${why}.`,
       checks,
     };
   }

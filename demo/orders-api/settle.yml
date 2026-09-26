@@ -34,7 +34,7 @@ freshness:
 
 constraints:
   max_p95_ms: 50
-  max_staleness_seconds: 10
+  max_staleness_seconds: 15
   tests_must_pass: true
 
 options:

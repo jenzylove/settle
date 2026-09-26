@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settle Results</title>
+<meta name="description" content="How do we make the top customers endpoint fast?">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #ffffff; --fg: #0b0b0c; --muted: #6b6b70; --line: #e4e4e7; --soft: #f5f5f6; --strong: #0b0b0c;
+  --sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #0b0b0c; --fg: #f4f4f5; --muted: #9a9aa2; --line: #26262b; --soft: #141417; --strong: #f4f4f5; }
+}
+:root[data-theme="dark"] { --bg: #0b0b0c; --fg: #f4f4f5; --muted: #9a9aa2; --line: #26262b; --soft: #141417; --strong: #f4f4f5; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+header.bar { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.brand { font-weight: 800; letter-spacing: -0.02em; font-size: 18px; }
+.muted { color: var(--muted); }
+.hero { text-align: center; padding: 72px 0 40px; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+h1 { font-size: clamp(32px, 5.4vw, 64px); line-height: 1.04; letter-spacing: -0.035em; font-weight: 800; margin: 18px auto 18px; max-width: 16ch; }
+.sub { color: var(--muted); max-width: 60ch; margin: 0 auto; }
+.verdict { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 36px 0; display: grid; grid-template-columns: 200px 1fr; gap: 24px; }
+.verdict .k { font: 500 12px/1.4 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); padding-top: 8px; }
+.verdict p { margin: 0; color: var(--muted); max-width: 80ch; }
+.verdict .h { font-size: clamp(22px, 3vw, 32px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; margin: 0 0 10px; color: var(--fg); }
+.tablewrap { overflow-x: auto; margin: 40px 0 8px; }
+table { border-collapse: collapse; width: 100%; min-width: 720px; }
+th, td { text-align: left; padding: 16px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+thead th { border-bottom: 2px solid var(--strong); font-weight: 600; font-size: 15px; padding-top: 0; }
+thead th.win { border-bottom-width: 4px; }
+tbody th { font-weight: 500; width: 210px; }
+.rl { display: block; }
+.rn { display: block; font: 400 12px/1.4 var(--mono); color: var(--muted); margin-top: 2px; }
+td { font: 500 15px/1.4 var(--mono); white-space: nowrap; }
+td.base { color: var(--muted); }
+td.win { font-weight: 600; background: var(--soft); }
+th.win { background: var(--soft); }
+.mk { display: inline-block; margin-left: 8px; font-family: var(--sans); font-weight: 800; }
+.mk.no { color: var(--muted); }
+.tag { display: inline-block; font: 600 10px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid var(--strong); padding: 4px 6px; margin-right: 8px; vertical-align: 2px; }
+.oname { white-space: nowrap; }
+.legend { font: 400 12px/1.5 var(--mono); color: var(--muted); }
+h2 { font-size: 13px; font: 500 12px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin: 64px 0 8px; }
+.opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0 32px; border-top: 1px solid var(--line); }
+.opt { padding: 24px 0; border-bottom: 1px solid var(--line); }
+.opt h3 { margin: 0 0 8px; font-size: 20px; letter-spacing: -0.01em; }
+.opt p { margin: 0 0 10px; color: var(--muted); }
+.opt .err { color: var(--fg); font-weight: 600; }
+.meta { font-size: 13px; }
+code { font-family: var(--mono); font-size: 0.86em; }
+.files { list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--muted); }
+.appx { position: relative; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.appx pre { margin: 0; padding: 24px 0; overflow-x: auto; font: 13px/1.6 var(--mono); color: var(--muted); white-space: pre; }
+button { font: 600 14px/1 var(--sans); background: var(--fg); color: var(--bg); border: 0; padding: 12px 18px; cursor: pointer; margin-top: 16px; }
+button:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
+footer { padding: 56px 0 40px; font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+@media (max-width: 720px) {
+  .verdict { grid-template-columns: 1fr; gap: 8px; }
+  .hero { padding: 48px 0 28px; }
+}
+.controls { display: grid; grid-template-columns: 200px 1fr; gap: 24px; padding: 28px 0; border-bottom: 1px solid var(--line); }
+.controls .k { font: 500 12px/1.4 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); padding-top: 6px; }
+.ctls { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px 40px; align-items: center; }
+.ctl { display: grid; grid-template-columns: 110px 1fr 88px; align-items: center; gap: 14px; font-size: 15px; }
+.ctl output { font: 600 14px/1 var(--mono); text-align: right; }
+input[type=range] { width: 100%; accent-color: var(--fg); }
+.hint { grid-column: 2; font: 400 12px/1.5 var(--mono); color: var(--muted); margin: 0; }
+button.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); margin: 0; padding: 8px 12px; font-size: 13px; }
+@media (max-width: 720px) { .controls { grid-template-columns: 1fr; gap: 8px; } .hint { grid-column: 1; } .ctl { grid-template-columns: 90px 1fr 72px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="bar">
+    <span class="brand">Settle</span>
+    <span class="muted">2026-09-26 23:06 UTC · base <code>c5ea5df</code></span>
+  </header>
+
+  <section class="hero">
+    <div class="eyebrow">The question</div>
+    <h1>How do we make the top customers endpoint fast?</h1>
+    <p class="sub">3 of 3 options built by IBM Bob in parallel, each in its own branch, then measured with the same 15 second load test at concurrency 8.</p>
+  </section>
+
+  <section class="verdict" id="verdict" aria-live="polite">
+<div class="k">Verdict</div>
+<div>
+  <p class="h">Materialized view meets every constraint with the smallest change.</p>
+  <p>Materialized view: p95 7 ms, 58 lines of code changed, 0 new dependencies. Cache fails staleness (60.1 s, needs ≤ 10 s); Index and rewrite fails p95 latency (408.6 ms, needs ≤ 50 ms).</p>
+</div>
+  </section>
+
+  <section class="controls">
+    <div class="k">Your constraints</div>
+    <div>
+      <div class="ctls">
+<label class="ctl">
+  <span class="cl">p95 latency</span>
+  <input type="range" min="0" max="7" step="1" value="2" data-key="max_p95_ms" data-steps="10,25,50,100,250,500,1000,2000" aria-label="p95 latency">
+  <output data-for="max_p95_ms">≤ 50 ms</output>
+</label>
+<label class="ctl">
+  <span class="cl">Staleness</span>
+  <input type="range" min="0" max="8" step="1" value="3" data-key="max_staleness_seconds" data-steps="0,1,5,10,15,30,60,90,120" aria-label="Staleness">
+  <output data-for="max_staleness_seconds">≤ 10 s</output>
+</label>
+      </div>
+      <p class="hint">Move a limit to see which option your team should pick. The measurements stay the same. <button type="button" class="ghost" id="reset" hidden>Back to recorded limits</button></p>
+    </div>
+  </section>
+
+  <div class="tablewrap" id="table">
+<table>
+  <thead><tr><th scope="col"><span class="muted">Measured</span></th><th class="base" scope="col"><span class="oname">Today (no change)</span></th><th class="" scope="col"><span class="oname">Cache</span></th><th class="win" scope="col"><span class="tag">Pick</span><span class="oname">Materialized view</span></th><th class="" scope="col"><span class="oname">Index and rewrite</span></th></tr></thead>
+  <tbody>
+<tr>
+  <th scope="row"><span class="rl">p95 latency</span><span class="rn">needs ≤ 50 ms</span></th>
+  <td class="base">1.01 s</td><td class="">3 ms<span class="mk ok" title="meets constraint">✓</span></td><td class="win">7 ms<span class="mk ok" title="meets constraint">✓</span></td><td class="">409 ms<span class="mk no" title="misses constraint">✕</span></td>
+</tr>
+<tr>
+  <th scope="row"><span class="rl">Median latency</span></th>
+  <td class="base">752 ms</td><td class="">1 ms</td><td class="win">4 ms</td><td class="">330 ms</td>
+</tr>
+<tr>
+  <th scope="row"><span class="rl">Throughput</span></th>
+  <td class="base">11 req/s</td><td class="">4954.7 req/s</td><td class="win">1704.3 req/s</td><td class="">24.5 req/s</td>
+</tr>
+<tr>
+  <th scope="row"><span class="rl">Staleness</span><span class="rn">needs ≤ 10 s</span></th>
+  <td class="base">instant</td><td class="">60.1 s<span class="mk no" title="misses constraint">✕</span></td><td class="win">10 s<span class="mk ok" title="meets constraint">✓</span></td><td class="">instant<span class="mk ok" title="meets constraint">✓</span></td>
+</tr>
+<tr>
+  <th scope="row"><span class="rl">Code changed</span><span class="rn">application code, tests excluded</span></th>
+  <td class="base">+0 −0</td><td class="">+45 −2</td><td class="win">+45 −13</td><td class="">+10 −0</td>
+</tr>
+<tr>
+  <th scope="row"><span class="rl">Tests added</span></th>
+  <td class="base">+0 lines</td><td class="">+105 lines</td><td class="win">+124 lines</td><td class="">+45 lines</td>
+</tr>
+<tr>
+  <th scope="row"><span class="rl">Files touched</span></th>
+  <td class="base">0</td><td class="">2</td><td class="win">2</td><td class="">1</td>
+</tr>
+<tr>
+  <th scope="row"><span class="rl">New dependencies</span></th>
+  <td class="base">none</td><td class="">none</td><td class="win">none</td><td class="">none</td>
+</tr>
+<tr>
+  <th scope="row"><span class="rl">Tests</span></th>
+  <td class="base">pass · 3</td><td class="">pass · 11<span class="mk ok" title="meets constraint">✓</span></td><td class="win">pass · 7<span class="mk ok" title="meets constraint">✓</span></td><td class="">pass · 5<span class="mk ok" title="meets constraint">✓</span></td>
+</tr>
+<tr>
+  <th scope="row"><span class="rl">Built by Bob in</span></th>
+  <td class="base">—</td><td class="">2m 13s</td><td class="win">2m 22s</td><td class="">2m 4s</td>
+</tr>
+  </tbody>
+</table>
+  </div>
+  <p class="legend">✓ meets the constraint · ✕ misses it · first column is today's code, for reference</p>
+
+  <h2>The options</h2>
+  <div class="opts" id="options">
+<section class="opt">
+  <h3>Cache</h3>
+  <p>Cache the endpoint&#39;s response in memory with a 60 second time to live.</p>
+  
+  
+  <p class="meta">Branch <code>settle/2026-09-26T22-58-48/cache</code></p>
+  <ul class="files"><li><code>demo/orders-api/src/cache.ts</code></li><li><code>demo/orders-api/src/server.ts</code></li></ul>
+  <ul class="files"><li><code>demo/orders-api/test/cache.test.ts</code> <span class="muted">test</span></li></ul>
+</section>
+<section class="opt">
+  <h3>Materialized view <span class="tag">Pick</span></h3>
+  <p>Precompute the ranking in a Postgres materialized view and refresh it on a short schedule in the background.</p>
+  
+  
+  <p class="meta">Branch <code>settle/2026-09-26T22-58-48/matview</code></p>
+  <ul class="files"><li><code>demo/orders-api/src/db.ts</code></li><li><code>demo/orders-api/src/server.ts</code></li></ul>
+  <ul class="files"><li><code>demo/orders-api/test/matview.test.ts</code> <span class="muted">test</span></li></ul>
+</section>
+<section class="opt">
+  <h3>Index and rewrite</h3>
+  <p>Add the right index or indexes and rewrite the query so Postgres does less work. No caching and no precomputed tables.</p>
+  
+  
+  <p class="meta">Branch <code>settle/2026-09-26T22-58-48/index</code></p>
+  <ul class="files"><li><code>demo/orders-api/src/db.ts</code></li></ul>
+  <ul class="files"><li><code>demo/orders-api/test/index.test.ts</code> <span class="muted">test</span></li></ul>
+</section>
+  </div>
+
+  <h2>Design doc appendix</h2>
+  <div class="appx"><pre id="appendix">## Appendix: measured comparison
+
+**Question:** How do we make the top customers endpoint fast?
+
+Each option was built by IBM Bob in its own branch from `c5ea5df`, then measured with the same load test (15 s at concurrency 8) and the same staleness probe.
+
+| | Today (no change) | Cache | Materialized view | Index and rewrite |
+|---|---|---|---|---|
+| p95 latency | 1.01 s | 3 ms | 7 ms | 409 ms |
+| Median latency | 752 ms | 1 ms | 4 ms | 330 ms |
+| Throughput | 11 req/s | 4954.7 req/s | 1704.3 req/s | 24.5 req/s |
+| Staleness | instant | 60.1 s | 10 s | instant |
+| Code changed | +0 −0 | +45 −2 | +45 −13 | +10 −0 |
+| Tests added | +0 lines | +105 lines | +124 lines | +45 lines |
+| Files touched | 0 | 2 | 2 | 1 |
+| New dependencies | none | none | none | none |
+| Tests | pass · 3 | pass · 11 | pass · 7 | pass · 5 |
+| Built by Bob in | — | 2m 13s | 2m 22s | 2m 4s |
+
+**Constraints:** `max_p95_ms: 50`, `max_staleness_seconds: 10`, `tests_must_pass: true`
+
+**Verdict:** Materialized view meets every constraint with the smallest change. Materialized view: p95 7 ms, 58 lines of code changed, 0 new dependencies. Cache fails staleness (60.1 s, needs ≤ 10 s); Index and rewrite fails p95 latency (408.6 ms, needs ≤ 50 ms).
+
+**Branches:**
+- Cache: `settle/2026-09-26T22-58-48/cache`
+- Materialized view: `settle/2026-09-26T22-58-48/matview`
+- Index and rewrite: `settle/2026-09-26T22-58-48/index`
+
+_Generated by Settle on 2026-09-26._
+</pre></div>
+  <button id="copy" type="button">Copy appendix</button>
+
+  <footer>
+    <span>Settle · options built with IBM Bob</span>
+    <span>Numbers from this machine, this data, this run.</span>
+  </footer>
+</div>
+<script type="application/json" id="run-data">{"question":"How do we make the top customers endpoint fast?","context":"GET /stats/top-customers ranks customers by paid revenue over the last 30 days. It scans about 200,000 orders on every call and is slow under load. The sales dashboard polls it, and account managers use it right after closing large orders, so results must not lag far behind new orders.\n","created_at":"2026-09-26T23:06:40.858Z","base_commit":"c5ea5dfcf314ffe8acd44cef9a51984c02b5f5ad","app_path":"demo/orders-api","constraints":{"max_p95_ms":50,"max_staleness_seconds":10,"tests_must_pass":true},"load":{"request":{"method":"GET","path":"/stats/top-customers?limit=10"},"duration_seconds":15,"concurrency":8,"warmup_seconds":3},"baseline":{"id":"baseline","name":"Today (no change)","description":"The code as it is now.","branch":"settle/2026-09-26T22-58-48/baseline","built":true,"diff":{"added":0,"removed":0,"files":[],"test_added":0,"test_files":[]},"new_dependencies":[],"tests":{"ok":true,"passed":3,"failed":0},"load":{"requests":165,"errors":0,"rps":11,"p50_ms":751.7,"p95_ms":1006.7,"p99_ms":1030.2},"freshness":{"probes":3,"lags_seconds":[0.1,0.1,0.1],"max_seconds":0.1,"median_seconds":0.1,"timed_out":0}},"options":[{"id":"cache","name":"Cache","description":"Cache the endpoint's response in memory with a 60 second time to live.","branch":"settle/2026-09-26T22-58-48/cache","built":true,"bob":{"duration_seconds":133,"summary":{"type":"result","timestamp":"2026-09-26T23:01:02.320Z","status":"success","stats":{"task_id":"6799490f18133391ce9d71fff3b6dafb","duration_ms":130874,"session_costs":0.719266,"max_cost":0,"tool_calls":18},"last_message":"---\n\n## Summary\n\n### What was changed\n\n**New file — [`src/cache.ts`](demo/orders-api/src/cache.ts)**  \nA tiny generic `TtlCache\u003cK, V>` class backed by a `Map`. Stores each entry with an `expiresAt` timestamp and evicts on read. No external dependencies.\n\n**Modified — [`src/server.ts`](demo/orders-api/src/server.ts)**  \n- Imported `TtlCache`.\n- Exported `TOP_CUSTOMERS_TTL_MS = 60_000` (60 s) as a named constant so tests and future config can override it.\n- `buildServer` now accepts an optional `ttlMs` parameter (defaults to the constant) and creates one `TtlCache\u003cnumber, TopCustomer[]>` per server instance, keyed on the `limit` value.\n- The `GET /stats/top-customers` handler does a cache lookup before querying Postgres; on a miss it queries, stores, and returns. HTTP shape is unchanged.\n\n**New file — [`test/cache.test.ts`](demo/orders-api/test/cache.test.ts)**  \n5 unit tests for `TtlCache` (hit, miss, expiry, delete, purge) and 3 integration tests via HTTP (cache hit returns identical payload, independent per-limit keys, fresh result after expiry). The existing [`test/api.test.ts`](demo/orders-api/test/api.test.ts) was not touched.\n\n### Tradeoffs\n\n| Concern | Decision |\n|---|---|\n| **TTL length** | 60 s — matches the requirement. An account manager closing a big order will see the result reflected within 60 s; the load on Postgres drops by roughly `RPS × 60`. |\n| **Per-limit cache keys** | Different `limit` values produce different result sets, so they are cached independently. In practice the dashboard always uses the same limit, so there is effectively one entry. |\n| **Process-local only** | This is a single-process in-memory cache. In a horizontally scaled deployment each instance has its own cache, which is fine — each independently avoids the DB storm during its own TTL window. A Redis cache would provide cross-instance consistency but was out of scope. |\n| **No explicit invalidation** | Orders written via `POST /orders` do not evict the cache. The 60 s TTL is the stated acceptable lag. Explicit invalidation would tighten freshness at the cost of more code. |\n| **No external dependency** | `TtlCache` is ~30 lines of plain TypeScript — no `node-cache` / `lru-cache` needed for this simple single-entry use case. `package.json` did not change. |"}},"diff":{"added":45,"removed":2,"files":["demo/orders-api/src/cache.ts","demo/orders-api/src/server.ts"],"test_added":105,"test_files":["demo/orders-api/test/cache.test.ts"]},"new_dependencies":[],"tests":{"ok":true,"passed":11,"failed":0},"load":{"requests":74321,"errors":0,"rps":4954.7,"p50_ms":1.4,"p95_ms":2.8,"p99_ms":4.7},"freshness":{"probes":3,"lags_seconds":[0.1,60.1,60.1],"max_seconds":60.1,"median_seconds":60.1,"timed_out":0}},{"id":"matview","name":"Materialized view","description":"Precompute the ranking in a Postgres materialized view and refresh it on a short schedule in the background.","branch":"settle/2026-09-26T22-58-48/matview","built":true,"bob":{"duration_seconds":142,"summary":{"type":"result","timestamp":"2026-09-26T23:01:10.894Z","status":"success","stats":{"task_id":"1bfd907f755a21f6a0784a4474464e4f","duration_ms":138911,"session_costs":0.672398,"max_cost":0,"tool_calls":17},"last_message":"---\n\n## What changed and why\n\n### Files modified\n\n**[`demo/orders-api/src/db.ts`](demo/orders-api/src/db.ts)**\n\n- **`CREATE MATERIALIZED VIEW mv_top_customers`** — added at the end of the seed script so the view is fully populated the moment the DB is ready. It runs the same GROUP BY/ORDER BY logic that the old hot path ran on every request, but only once on startup (and once per refresh interval thereafter).\n- **`CREATE INDEX ON mv_top_customers (revenue_cents DESC)`** — the endpoint always `ORDER BY revenue_cents DESC LIMIT N`. With this index, Postgres can satisfy it as a single forward index scan touching exactly *N* index pages — O(limit), not O(customers-in-view).\n- **`startMatviewRefresher(db, intervalMs)`** — exported helper that calls `REFRESH MATERIALIZED VIEW` on a `setInterval`. Returns a cancel function so the test can stop it, and the production server can stop it on close. `timer.unref()` prevents the timer from keeping the process alive.\n\n**[`demo/orders-api/src/server.ts`](demo/orders-api/src/server.ts)**\n\n- **`topCustomers`** — replaced the 200 k-row aggregation with a straight `SELECT … FROM mv_top_customers ORDER BY revenue_cents DESC LIMIT $1`. Same return type, same column names — the HTTP response shape is identical.\n- **`buildServer`** — gains an optional `refreshIntervalMs` parameter (default 10 s). It calls `startMatviewRefresher` on startup and hooks `stopRefresh` onto the server's `close` event so the timer is cleaned up properly.\n\n**[`demo/orders-api/test/matview.test.ts`](demo/orders-api/test/matview.test.ts)** *(new)*\n\n- Verifies the view exists and is populated after `openDb`.\n- Verifies the view rows are already sorted by `revenue_cents DESC`.\n- Verifies a `REFRESH` picks up a newly inserted order.\n- Verifies the HTTP endpoint returns exactly the top rows from the view.\n\n### Tradeoffs chosen\n\n| Decision | Reasoning |\n|---|---|\n| **10 s refresh interval** | Dashboard polls frequently; account managers want results within seconds of closing a deal. 10 s lag is acceptable and keeps CPU cost low. Could be made env-configurable if needed. |\n| **Non-concurrent refresh** | `REFRESH MATERIALIZED VIEW` (without `CONCURRENTLY`) briefly locks the view for reads. For this workload that's fine: the lock is very short (milliseconds) and avoids the extra unique-index requirement that `CONCURRENTLY` needs. If read availability during refresh becomes a concern, add `CONCURRENTLY` and a unique index on `customer_id`. |\n| **Index on the view** | The index makes `ORDER BY revenue_cents DESC LIMIT N` a pure index scan on the view — completely decoupled from orders table size. |\n| **No cache layer** | This option deliberately avoids caching. Freshness comes from the 10 s refresh, not from a TTL. |"}},"diff":{"added":45,"removed":13,"files":["demo/orders-api/src/db.ts","demo/orders-api/src/server.ts"],"test_added":124,"test_files":["demo/orders-api/test/matview.test.ts"]},"new_dependencies":[],"tests":{"ok":true,"passed":7,"failed":0},"load":{"requests":25564,"errors":0,"rps":1704.3,"p50_ms":4.3,"p95_ms":7,"p99_ms":10.1},"freshness":{"probes":3,"lags_seconds":[2.2,9.8,10],"max_seconds":10,"median_seconds":9.8,"timed_out":0}},{"id":"index","name":"Index and rewrite","description":"Add the right index or indexes and rewrite the query so Postgres does less work. No caching and no precomputed tables.","branch":"settle/2026-09-26T22-58-48/index","built":true,"bob":{"duration_seconds":124,"summary":{"type":"result","timestamp":"2026-09-26T23:00:53.451Z","status":"success","stats":{"task_id":"fe3624bf63d7097c9c11dcf09571ba0f","duration_ms":120983,"session_costs":0.6063459999999999,"max_cost":0,"tool_calls":17},"last_message":"---\n\n## Summary\n\n### What changed\n\n**[`demo/orders-api/src/db.ts`](demo/orders-api/src/db.ts:39)** — Added one index after the seed data inserts:\n\n```sql\nCREATE INDEX orders_paid_date_covering\n  ON orders (created_at, customer_id, amount_cents)\n  WHERE status = 'paid';\n```\n\n**[`demo/orders-api/test/index.test.ts`](demo/orders-api/test/index.test.ts)** — Two new tests: one checks the index exists in `pg_indexes`; the other runs `EXPLAIN` on the exact query and asserts the plan references `orders_paid_date_covering`.\n\nNo other files were modified. Routes, request shapes, and response shapes are identical.\n\n---\n\n### Why this index\n\n| Property | Effect |\n|---|---|\n| **Partial** (`WHERE status = 'paid'`) | Index holds only ~75% of the 200k rows (paid orders). The planner can skip the index entirely for any non-paid query and doesn't waste memory or I/O on refunded rows. |\n| **`created_at` first** | Postgres performs an index range scan — it reads only the leaf pages for the 30-day window rather than the entire index. At ~25% of 150k paid rows that is roughly 37k rows touched vs. 200k with a seq scan. |\n| **`customer_id, amount_cents` included** | All three columns needed for `GROUP BY c.id` and `SUM(amount_cents)` are in the index, so Postgres can use an **index-only scan** — zero heap fetches — to build the aggregate. The join to `customers` is a small nested-loop over at most ~5k primary-key lookups. |\n\n### Tradeoffs\n\n- **Write overhead:** Every `INSERT`/`UPDATE` to `orders` maintains an extra B-tree entry. For this workload (append-mostly orders) the overhead is negligible compared to the read gain.\n- **No caching / no precomputed state:** Results always reflect the latest committed orders, which satisfies the \"must not lag far behind new orders\" requirement directly — account managers closing large orders see them immediately.\n- **No schema migration needed** for the query itself: the SQL in [`topCustomers()`](demo/orders-api/src/server.ts:13) is unchanged; only the planner's execution path changes."}},"diff":{"added":10,"removed":0,"files":["demo/orders-api/src/db.ts"],"test_added":45,"test_files":["demo/orders-api/test/index.test.ts"]},"new_dependencies":[],"tests":{"ok":true,"passed":5,"failed":0},"load":{"requests":367,"errors":0,"rps":24.5,"p50_ms":329.5,"p95_ms":408.6,"p99_ms":437.2},"freshness":{"probes":3,"lags_seconds":[0,0,0],"max_seconds":0,"median_seconds":0,"timed_out":0}}],"verdict":{"winner":"matview","headline":"Materialized view meets every constraint with the smallest change.","reason":"Materialized view: p95 7 ms, 58 lines of code changed, 0 new dependencies. Cache fails staleness (60.1 s, needs ≤ 10 s); Index and rewrite fails p95 latency (408.6 ms, needs ≤ 50 ms).","checks":{"cache":[{"label":"p95 latency","limit":"≤ 50 ms","actual":"2.8 ms","pass":true},{"label":"Staleness","limit":"≤ 10 s","actual":"60.1 s","pass":false},{"label":"Tests","limit":"pass","actual":"pass","pass":true}],"matview":[{"label":"p95 latency","limit":"≤ 50 ms","actual":"7 ms","pass":true},{"label":"Staleness","limit":"≤ 10 s","actual":"10 s","pass":true},{"label":"Tests","limit":"pass","actual":"pass","pass":true}],"index":[{"label":"p95 latency","limit":"≤ 50 ms","actual":"408.6 ms","pass":false},{"label":"Staleness","limit":"≤ 10 s","actual":"0 s","pass":true},{"label":"Tests","limit":"pass","actual":"pass","pass":true}]}}}</script>
+<script>"use strict";(()=>{function R(e,t){let n=[];if(!e.built||!e.load)return n.push({label:"Built and measured",limit:"yes",actual:"no",pass:!1}),n;if(t.max_p95_ms!==void 0&&n.push({label:"p95 latency",limit:`\u2264 ${t.max_p95_ms} ms`,actual:`${e.load.p95_ms} ms`,pass:e.load.p95_ms<=t.max_p95_ms}),t.max_staleness_seconds!==void 0&&e.freshness&&n.push({label:"Staleness",limit:`\u2264 ${t.max_staleness_seconds} s`,actual:e.freshness.timed_out>0?`over ${e.freshness.max_seconds} s`:`${e.freshness.max_seconds} s`,pass:e.freshness.timed_out===0&&e.freshness.max_seconds<=t.max_staleness_seconds}),t.max_new_dependencies!==void 0){let i=e.new_dependencies?.length??0;n.push({label:"New dependencies",limit:`\u2264 ${t.max_new_dependencies}`,actual:String(i),pass:i<=t.max_new_dependencies})}return t.tests_must_pass&&n.push({label:"Tests",limit:"pass",actual:e.tests?.ok?"pass":"fail",pass:!!e.tests?.ok}),n}var m=e=>e.diff?e.diff.added+e.diff.removed:1/0;function $(e,t){let n={};for(let s of e)n[s.id]=R(s,t);let i=s=>n[s.id].filter(o=>!o.pass).length,c=(s,o)=>m(s)-m(o)||(s.new_dependencies?.length??0)-(o.new_dependencies?.length??0)||(s.load?.p95_ms??1/0)-(o.load?.p95_ms??1/0),r=e.filter(s=>i(s)===0).sort(c);if(r.length>0){let s=r[0],k=e.filter(p=>p.id!==s.id).map(p=>{let h=n[p.id].filter(u=>!u.pass);return h.length?`${p.name} fails ${h.map(u=>`${u.label.toLowerCase()} (${u.actual}, needs ${u.limit})`).join(" and ")}`:`${p.name} also qualifies but changes ${m(p)} lines against ${m(s)}`}).join("; ");return{winner:s.id,headline:`${s.name} meets every constraint with the smallest change.`,reason:`${s.name}: p95 ${s.load.p95_ms} ms, ${m(s)} lines of code changed, ${s.new_dependencies?.length??0} new dependencies. ${k}.`,checks:n}}let a=[...e].sort((s,o)=>i(s)-i(o)||c(s,o))[0];return{winner:null,headline:"No option meets every constraint.",reason:a?`Closest is ${a.name}, which misses ${n[a.id].filter(s=>!s.pass).map(s=>s.label.toLowerCase()).join(" and ")}. Relax a constraint or add an option.`:"Nothing was built.",checks:n}}var d=e=>String(e??"").replace(/[&<>"']/g,t=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[t]);var _=e=>e===void 0?"\u2014":e>=1e3?`${(e/1e3).toFixed(2)} s`:`${Math.round(e)} ms`,C=e=>{let t=e.freshness;return t?t.timed_out?`over ${t.max_seconds} s`:t.max_seconds<1?"instant":`${t.max_seconds} s`:"\u2014"},S=e=>e.diff?`+${e.diff.added} \u2212${e.diff.removed}`:"\u2014";function b(e){let t=e.constraints;return[{label:"p95 latency",note:t.max_p95_ms!==void 0?`needs \u2264 ${t.max_p95_ms} ms`:void 0,value:n=>_(n.load?.p95_ms),check:"p95 latency"},{label:"Median latency",value:n=>_(n.load?.p50_ms)},{label:"Throughput",value:n=>n.load?`${n.load.rps} req/s`:"\u2014"},{label:"Staleness",note:t.max_staleness_seconds!==void 0?`needs \u2264 ${t.max_staleness_seconds} s`:"time until a new write shows up",value:C,check:"Staleness"},{label:"Code changed",note:"application code, tests excluded",value:S},{label:"Tests added",value:n=>n.diff?.test_added!==void 0?`+${n.diff.test_added} lines`:"\u2014"},{label:"Files touched",value:n=>n.diff?String(n.diff.files.length):"\u2014"},{label:"New dependencies",note:t.max_new_dependencies!==void 0?`needs \u2264 ${t.max_new_dependencies}`:void 0,value:n=>n.new_dependencies?n.new_dependencies.length?n.new_dependencies.join(", "):"none":"\u2014",check:"New dependencies"},{label:"Tests",value:n=>n.tests?`${n.tests.ok?"pass":"fail"}${n.tests.passed!==null?` \xB7 ${n.tests.passed}`:""}`:"\u2014",check:"Tests"},{label:"Built by Bob in",value:n=>n.bob?`${Math.floor(n.bob.duration_seconds/60)}m ${n.bob.duration_seconds%60}s`:"\u2014"}]}function O(e,t){if(!e||!t)return"";let n=e.find(i=>i.label===t);return n?n.pass?'<span class="mk ok" title="meets constraint">\u2713</span>':'<span class="mk no" title="misses constraint">\u2715</span>':""}function g(e){let t=[e.baseline,...e.options],n=b(e),i=`| | ${t.map(s=>s.name).join(" | ")} |
+|---|${t.map(()=>"---").join("|")}|`,c=n.map(s=>`| ${s.label} | ${t.map(o=>s.value(o)).join(" | ")} |`).join(`
+`),r=Object.entries(e.constraints).map(([s,o])=>`\`${s}: ${o}\``).join(", "),a=e.options.map(s=>`- ${s.name}: \`${s.branch}\`${s.build_error?` (not built: ${s.build_error})`:""}`).join(`
+`);return`## Appendix: measured comparison
+
+**Question:** ${e.question}
+
+Each option was built by IBM Bob in its own branch from \`${e.base_commit.slice(0,7)}\`, then measured with the same load test (${e.load.duration_seconds} s at concurrency ${e.load.concurrency}) and the same staleness probe.
+
+${i}
+${c}
+
+**Constraints:** ${r||"none"}
+
+**Verdict:** ${e.verdict.headline} ${e.verdict.reason}
+
+**Branches:**
+${a}
+
+_Generated by Settle on ${e.created_at.slice(0,10)}._
+`}function x(e){return`<div class="k">Verdict</div>
+<div>
+  <p class="h">${d(e.verdict.headline)}</p>
+  <p>${d(e.verdict.reason)}</p>
+</div>`}function y(e){let t=[e.baseline,...e.options],n=e.verdict.winner,i=a=>a.id===n?"win":a.id==="baseline"?"base":"",c=t.map(a=>`<th class="${i(a)}" scope="col">${a.id===n?'<span class="tag">Pick</span>':""}<span class="oname">${d(a.name)}</span></th>`).join(""),r=b(e).map(a=>`<tr>
+  <th scope="row"><span class="rl">${d(a.label)}</span>${a.note?`<span class="rn">${d(a.note)}</span>`:""}</th>
+  ${t.map(s=>{let o=s.built?a.value(s):"not built";return`<td class="${i(s)}">${d(o)}${s.id==="baseline"?"":O(e.verdict.checks[s.id],a.check)}</td>`}).join("")}
+</tr>`).join(`
+`);return`<table>
+  <thead><tr><th scope="col"><span class="muted">Measured</span></th>${c}</tr></thead>
+  <tbody>
+${r}
+  </tbody>
+</table>`}function v(e){let t=e.verdict.winner;return e.options.map(n=>`<section class="opt">
+  <h3>${d(n.name)}${n.id===t?' <span class="tag">Pick</span>':""}</h3>
+  <p>${d(n.description)}</p>
+  ${n.build_error?`<p class="err">Not built: ${d(n.build_error)}</p>`:""}
+  ${n.measure_error?`<p class="err">Measurement failed: ${d(n.measure_error.split(`
+`)[0])}</p>`:""}
+  <p class="meta">Branch <code>${d(n.branch)}</code></p>
+  ${n.diff?.files.length?`<ul class="files">${n.diff.files.map(i=>`<li><code>${d(i)}</code></li>`).join("")}</ul>`:""}
+  ${n.diff?.test_files?.length?`<ul class="files">${n.diff.test_files.map(i=>`<li><code>${d(i)}</code> <span class="muted">test</span></li>`).join("")}</ul>`:""}
+</section>`).join(`
+`)}var l=JSON.parse(document.getElementById("run-data").textContent),f={...l.constraints};function w(){l.verdict=$(l.options,l.constraints),document.getElementById("verdict").innerHTML=x(l),document.getElementById("table").innerHTML=y(l),document.getElementById("options").innerHTML=v(l),document.getElementById("appendix").textContent=g(l);let e=JSON.stringify(f)!==JSON.stringify(l.constraints);document.getElementById("reset").hidden=!e}for(let e of document.querySelectorAll("input[type=range][data-key]")){let t=e.dataset.key,n=e.dataset.steps.split(",").map(Number),i=t==="max_p95_ms"?"ms":"s",c=document.querySelector(`output[data-for="${t}"]`);e.addEventListener("input",()=>{let r=n[Number(e.value)];l.constraints[t]=r,c.textContent=`\u2264 ${r} ${i}`,w()})}document.getElementById("reset").addEventListener("click",()=>{Object.assign(l.constraints,f);for(let e of document.querySelectorAll("input[type=range][data-key]")){let t=e.dataset.key,n=e.dataset.steps.split(",").map(Number);e.value=String(n.indexOf(f[t]));let i=t==="max_p95_ms"?"ms":"s";document.querySelector(`output[data-for="${t}"]`).textContent=`\u2264 ${f[t]} ${i}`}w()});document.getElementById("copy").addEventListener("click",async e=>{let t=e.currentTarget,n=document.getElementById("appendix").textContent??"";try{await navigator.clipboard.writeText(n),t.textContent="Copied"}catch{t.textContent="Select the text above to copy"}setTimeout(()=>t.textContent="Copy appendix",1800)});})();
+</script>
+</body>
+</html>
