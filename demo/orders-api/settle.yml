@@ -1,0 +1,53 @@
+question: How do we make the top customers endpoint fast?
+context: >
+  GET /stats/top-customers ranks customers by paid revenue over the last 30
+  days. It scans about 200,000 orders on every call and is slow under load.
+  The sales dashboard polls it, and account managers use it right after
+  closing large orders, so results must not lag far behind new orders.
+
+app:
+  install: npm install --no-audit --no-fund
+  start: npm start
+  test: npm test
+  health: /health
+  port_env: PORT
+  ready_timeout_seconds: 90
+
+load:
+  request: { method: GET, path: /stats/top-customers?limit=10 }
+  duration_seconds: 15
+  concurrency: 8
+  warmup_seconds: 3
+
+# Writes a large order for a random customer, then polls the endpoint until
+# that customer shows up at the top.
+freshness:
+  write:
+    method: POST
+    path: /orders
+    body: { customer_id: "{{random 1 5000}}", amount_cents: "{{increasing}}" }
+  read: { method: GET, path: /stats/top-customers?limit=1 }
+  read_field: 0.customer_id
+  equals: customer_id
+  probes: 3
+  timeout_seconds: 75
+
+constraints:
+  max_p95_ms: 50
+  max_staleness_seconds: 10
+  tests_must_pass: true
+
+options:
+  - id: cache
+    name: Cache
+    description: Cache the endpoint's response in memory with a 60 second time to live.
+  - id: matview
+    name: Materialized view
+    description: Precompute the ranking in a Postgres materialized view and refresh it on a short schedule in the background.
+  - id: index
+    name: Index and rewrite
+    description: Add the right index or indexes and rewrite the query so Postgres does less work. No caching and no precomputed tables.
+
+bob:
+  max_turns: 30
+  timeout_minutes: 20
