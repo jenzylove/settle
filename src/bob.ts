@@ -82,7 +82,9 @@ export async function runBob(
 
   const started = Date.now();
   return new Promise((resolve) => {
-    const child = spawn(process.execPath, args, { cwd: workspace, env: process.env });
+    // stdin must be closed: with a pipe attached Bob Shell waits to read piped
+    // input and never starts the task.
+    const child = spawn(process.execPath, args, { cwd: workspace, env: process.env, stdio: ["ignore", "pipe", "pipe"] });
     let stdout = "";
     let stderr = "";
     child.stdout.on("data", (d) => (stdout += d));
