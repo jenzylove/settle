@@ -1,7 +1,7 @@
 import { buildSync } from "esbuild";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { RunFile } from "./cli.ts";
+import type { RunFile } from "./engine.ts";
 import { esc, renderAppendix, renderControls, renderOptions, renderTable, renderVerdict } from "./view.ts";
 
 export { renderAppendix };

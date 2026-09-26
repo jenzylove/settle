@@ -1,7 +1,7 @@
 // HTML and Markdown builders for a run. Pure string functions with no Node
 // imports, so the same code renders the page at build time and re-renders it
 // in the browser when a reader changes a constraint.
-import type { RunFile } from "./cli.ts";
+import type { RunFile } from "./engine.ts";
 import type { Check, OptionResult } from "./verdict.ts";
 
 export const esc = (s: unknown) =>

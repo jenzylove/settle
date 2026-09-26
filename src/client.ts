@@ -1,7 +1,7 @@
 // Runs in the results page. Re-decides the run with the same verdict code the
 // CLI uses whenever the reader moves a constraint slider. Measurements never
 // change; only the constraints do.
-import type { RunFile } from "./cli.ts";
+import type { RunFile } from "./engine.ts";
 import { decide } from "./verdict.ts";
 import { renderAppendix, renderOptions, renderTable, renderVerdict } from "./view.ts";
 

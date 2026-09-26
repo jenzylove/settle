@@ -8,14 +8,19 @@ export interface BobResult {
   exitCode: number | null;
   durationMs: number;
   timedOut: boolean;
-  // The JSON object Bob Shell prints at the end of a `--format json` run:
-  // token counts, cost, tool calls and the final message.
+  // The final `result` event Bob Shell emits: duration, tool calls, cost.
   summary: Record<string, unknown> | null;
   error?: string;
 }
 
+export interface BobToolCall {
+  tool: string;
+  params: Record<string, any>;
+}
+
 // Runs Bob Shell's entry point with node directly, so the prompt travels as
 // one argv element and never passes through a shell's quoting rules.
+// SETTLE_BOB_JS points at a different script (the test suite's stand in).
 function bobEntry(): string {
   if (process.env.SETTLE_BOB_JS) return process.env.SETTLE_BOB_JS;
   const root = execSync("npm root -g", { encoding: "utf8" }).trim();
@@ -53,9 +58,7 @@ export function buildPrompt(config: SettleConfig, option: Option, appPath: strin
     `5. When done, run \`${config.app.test}\` and make sure it passes.`,
     `6. Do not start long running servers and do not run load tests; measurement happens after you finish.`,
     `7. Do not commit. Finish with a short summary of what you changed and any tradeoff you chose.`,
-  ]
-    .filter((l) => l !== undefined)
-    .join("\n");
+  ].join("\n");
 }
 
 export async function runBob(
@@ -64,6 +67,7 @@ export async function runBob(
   workspace: string,
   appPath: string,
   logFile: string,
+  onTool: (call: BobToolCall) => void = () => {},
 ): Promise<BobResult> {
   const prompt = buildPrompt(config, option, appPath);
   const args = [
@@ -72,7 +76,7 @@ export async function runBob(
     "--accept-license",
     "--trust",
     "--format",
-    "json",
+    "stream-json",
     "--max-turns",
     String(config.bob.max_turns),
     "--workspace",
@@ -87,7 +91,26 @@ export async function runBob(
     const child = spawn(process.execPath, args, { cwd: workspace, env: process.env, stdio: ["ignore", "pipe", "pipe"] });
     let stdout = "";
     let stderr = "";
-    child.stdout.on("data", (d) => (stdout += d));
+    let pending = "";
+    let summary: Record<string, unknown> | null = null;
+
+    // stream-json is one JSON object per line: tool calls as they happen,
+    // then a final `result` with the session stats.
+    child.stdout.on("data", (d) => {
+      stdout += d;
+      pending += d;
+      let nl: number;
+      while ((nl = pending.indexOf("\n")) >= 0) {
+        const line = pending.slice(0, nl).trim();
+        pending = pending.slice(nl + 1);
+        if (!line.startsWith("{")) continue;
+        try {
+          const ev = JSON.parse(line);
+          if (ev.type === "tool_use") onTool({ tool: ev.tool_name, params: ev.parameters ?? {} });
+          else if (ev.type === "result") summary = ev;
+        } catch {}
+      }
+    });
     child.stderr.on("data", (d) => (stderr += d));
 
     let timedOut = false;
@@ -99,14 +122,14 @@ export async function runBob(
     child.on("close", (code) => {
       clearTimeout(timer);
       writeFileSync(logFile, `# prompt\n${prompt}\n\n# stdout\n${stdout}\n\n# stderr\n${stderr}\n`);
-      const summary = lastJsonObject(stdout);
+      const failed = summary && (summary as any).status && (summary as any).status !== "success";
       resolve({
-        ok: code === 0 && !timedOut,
+        ok: code === 0 && !timedOut && !failed,
         exitCode: code,
         durationMs: Date.now() - started,
         timedOut,
         summary,
-        error: code === 0 ? undefined : (stderr.trim().split("\n").pop() ?? `exit ${code}`),
+        error: code === 0 && !failed ? undefined : (stderr.trim().split("\n").pop() || `exit ${code}`),
       });
     });
     child.on("error", (err) => {
@@ -114,23 +137,4 @@ export async function runBob(
       resolve({ ok: false, exitCode: null, durationMs: Date.now() - started, timedOut, summary: null, error: err.message });
     });
   });
-}
-
-// `--format json` prints one JSON object once the session completes; logs
-// may precede it, so take the last line that parses as an object.
-export function lastJsonObject(text: string): Record<string, unknown> | null {
-  const trimmed = text.trim();
-  try {
-    const whole = JSON.parse(trimmed);
-    if (whole && typeof whole === "object") return whole;
-  } catch {}
-  const lines = trimmed.split("\n").reverse();
-  for (const line of lines) {
-    const s = line.trim();
-    if (!s.startsWith("{")) continue;
-    try {
-      return JSON.parse(s);
-    } catch {}
-  }
-  return null;
 }
