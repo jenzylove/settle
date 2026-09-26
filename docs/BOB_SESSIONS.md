@@ -1,6 +1,8 @@
 # Bob IDE sessions
 
-The submission needs screenshots of Bob IDE task session summaries. Run each session below in Bob IDE with the `settle` folder open, in Agent mode. When a session finishes, screenshot its task summary and save it to `bob-sessions/` as `01-tests.png`, `02-mode.png`, and so on.
+The submission needs screenshots of Bob IDE task session summaries. Run each session below in Bob IDE with the `settle` folder open, in Agent mode. When a session finishes, screenshot its task summary and save it to `bob_sessions/` as a PNG named like `settle_task01_verdict_tests_summary.png`.
+
+To get the summary: in the Bob chat panel select **Tasks**, open the task, then click the **task header**. The consumption summary appears; screenshot that.
 
 Keep each session to one prompt. Bobcoins are limited (40 per person).
 

@@ -144,7 +144,7 @@ Report  runs/2026-09-27T08-12/index.html
 
 | Where | What Bob does | Evidence |
 |---|---|---|
-| Building Settle | Bob IDE sessions build the orchestrator, harness and results page | IDE task session summary screenshots in `bob-sessions/` |
+| Building Settle | Bob IDE sessions build the orchestrator, harness and results page | IDE task session summary screenshots in `bob_sessions/` |
 | Inside the product | Bob Shell builds each competing option in parallel | JSON session stats saved per run in `runs/` |
 | Starting a run | The Settle custom mode in Bob IDE drafts `settle.yml` from a design doc and starts the run | Mode definition in `.bob/` |
 
