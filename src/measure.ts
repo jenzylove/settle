@@ -32,12 +32,23 @@ function sh(command: string, cwd: string, env: NodeJS.ProcessEnv = process.env):
 
 // npm start → tsx → node: killing only the shell leaves the server alive and
 // holding the port, so kill the whole tree.
-function killTree(child: ChildProcess): void {
-  if (child.pid === undefined || child.exitCode !== null) return;
-  try {
-    if (process.platform === "win32") execSync(`taskkill /pid ${child.pid} /T /F`, { stdio: "ignore" });
-    else process.kill(-child.pid, "SIGKILL");
-  } catch {}
+// Returns a Promise that resolves once the process has actually exited, so the
+// caller can be sure the port and file handles are free before starting the
+// next option.
+function killTree(child: ChildProcess): Promise<void> {
+  return new Promise((resolve) => {
+    if (child.pid === undefined || child.exitCode !== null) {
+      resolve();
+      return;
+    }
+    child.once("exit", () => resolve());
+    try {
+      if (process.platform === "win32") execSync(`taskkill /pid ${child.pid} /T /F`, { stdio: "ignore" });
+      else process.kill(-child.pid, "SIGKILL");
+    } catch {
+      // Process may have already exited; the "exit" event will fire regardless.
+    }
+  });
 }
 
 export function run(command: string, cwd: string): Promise<{ code: number; output: string }> {
@@ -54,7 +65,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export interface App {
   base: string;
-  stop(): void;
+  stop(): Promise<void>;
   log(): string;
 }
 
@@ -73,7 +84,7 @@ export async function startApp(config: SettleConfig, appDir: string, port: numbe
     } catch {}
     await sleep(250);
   }
-  killTree(child);
+  await killTree(child);
   throw new Error(`app did not become healthy within ${config.app.ready_timeout_seconds}s:\n${log.slice(-2000)}`);
 }
 
@@ -179,7 +190,14 @@ export async function freshnessTest(base: string, f: Freshness): Promise<Freshne
       await sleep(100);
     }
     const lag = seen ? (Date.now() - written) / 1000 : f.timeout_seconds;
-    if (!seen) timedOut++;
+    if (!seen) {
+      timedOut++;
+      // Wait one full timeout before the next probe so the previous write's
+      // side-effects (queue processing, cache invalidation, background refresh)
+      // have fully resolved and cannot make the next probe appear faster than
+      // it really is.
+      await sleep(f.timeout_seconds * 1000);
+    }
     lags.push(Math.round(lag * 10) / 10);
   }
   const sorted = [...lags].sort((a, b) => a - b);

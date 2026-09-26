@@ -43,6 +43,31 @@ node ../../bin/settle.mjs report ../../runs/<id> --set max_staleness_seconds=90
 
 Each run writes `runs/<id>/results.json`, `index.html` (the results page), `appendix.md` (paste into your design doc) and one log per Bob session.
 
+## Settle mode (Bob IDE)
+
+The repo ships a **Settle custom mode** at [`.bob/custom_modes.yaml`](.bob/custom_modes.yaml).
+Open this workspace in Bob, pick **Settle** from the mode picker, and paste in a design question
+or a section of a design doc. The mode will:
+
+1. Ask one follow-up question at most (e.g. which endpoint to probe) if something essential is missing.
+2. Write a `settle.yml` next to your app that is valid against the schema in [`src/config.ts`](src/config.ts).
+3. List the options and constraints it chose and ask you to confirm or adjust them.
+4. Tell you how to start the run from that folder.
+
+The mode is scoped to this workspace and may **only edit `settle.yml` files** -- it cannot touch
+application source, tests, or any other file. Use a normal Agent session if you need code changes.
+
+```
+# quick start
+# 1. Open this repo in Bob
+# 2. Switch to Settle mode (mode picker, top-right)
+# 3. Paste your design question:
+#      "GET /reports/monthly scans 500 k rows. Options: add an index, or
+#       materialise into a summary table. p95 must be under 100 ms."
+# 4. Confirm the generated settle.yml
+# 5. cd <your-app> && node <path-to-settle>/bin/settle.mjs run
+```
+
 ## settle.yml
 
 ```yaml

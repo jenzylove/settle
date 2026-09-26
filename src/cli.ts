@@ -79,7 +79,7 @@ async function measureOption(
   } catch (err) {
     result.measure_error = (err as Error).message;
   } finally {
-    app.stop();
+    await app.stop();
   }
 }
 
