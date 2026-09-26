@@ -61,7 +61,9 @@ export function prepareRun(configPath: string, opts: RunOptions = {}): Prepared 
   const appDirAbs = dirname(configPath);
   const root = repoRoot(appDirAbs);
   const appRel = relative(root, appDirAbs);
-  const dirty = dirtyFiles(root, appDirAbs);
+  // settle.yml itself may be edited (the UI saves it); options are built from
+  // the parsed config, not from the file in the worktree.
+  const dirty = dirtyFiles(root, appDirAbs).filter((l) => !l.trim().endsWith("settle.yml"));
   if (dirty.length) throw new Error(`commit your changes first; these would be missing from every option:\n${dirty.join("\n")}`);
   const id = stamp();
   const out = opts.outRoot ?? root;

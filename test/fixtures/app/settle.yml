@@ -1,0 +1,32 @@
+question: How do we make the value endpoint fast?
+app:
+  install: npm install --no-audit --no-fund
+  start: npm start
+  test: npm test
+  health: /health
+  ready_timeout_seconds: 30
+load:
+  request: { method: GET, path: /value }
+  duration_seconds: 2
+  concurrency: 4
+  warmup_seconds: 0
+freshness:
+  write: { method: POST, path: /value, body: { value: "{{increasing}}" } }
+  read: { method: GET, path: /value }
+  read_field: value
+  equals: value
+  probes: 1
+  timeout_seconds: 3
+constraints:
+  max_p95_ms: 15
+  tests_must_pass: true
+options:
+  - id: fast
+    name: Remove the delay
+    description: Remove the artificial delay.
+  - id: note
+    name: Leave a note
+    description: Only document the delay.
+bob:
+  max_turns: 5
+  timeout_minutes: 1
