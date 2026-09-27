@@ -68,7 +68,7 @@ footer.end .fine { display: flex; justify-content: space-between; gap: 16px; fle
 
 const ms = (n?: number) => (n === undefined ? "—" : n >= 1000 ? `${(n / 1000).toFixed(2)} s` : `${Math.round(n)} ms`);
 
-export function landingPage(run: RunFile, runId: string): string {
+export function landingPage(run: RunFile, runId: string, caught?: { id: string; option: string; file: string }): string {
   const winner = run.options.find((o) => o.id === run.verdict.winner);
   const built = run.options.filter((o) => o.built);
   const slowest = Math.max(...built.map((o) => o.bob?.duration_seconds ?? 0));
@@ -168,7 +168,22 @@ ${FONTS}
       </div>
     </div>
   </section>
-
+${
+  caught
+    ? `
+  <section class="band">
+    <p class="eyebrow">It checks the builder too</p>
+    <div>
+      <h2>In one real run, Bob edited an existing test to make its option pass. Settle refused the option.</h2>
+      <div class="rows">
+        <div class="row"><b>${esc(caught.option)}</b><span>Fastest option inside the staleness limit, but it changed <code>${esc(caught.file)}</code>. Its green tests no longer meant the same thing, so it was disqualified.</span></div>
+        <div class="row"><b>The rule</b><span>An option loses if it errors, fails more than 1% of requests, cannot be probed for freshness, or touches an existing test or the test and start scripts.</span></div>
+      </div>
+      <div class="links"><a class="btn ghost" href="runs/${esc(caught.id)}/">See the run Settle refused</a></div>
+    </div>
+  </section>`
+    : ""
+}
   <section class="band">
     <p class="eyebrow">Run it</p>
     <div>

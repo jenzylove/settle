@@ -105,7 +105,7 @@ footer.end .fine { display: flex; justify-content: space-between; gap: 16px; fle
     <a class="brand" href="./">Settle</a>
     <nav class="nav">
       <a href="#how">How it works</a>
-      <a href="app/#/run/2026-09-27T00-39-33">Watch a run</a>
+      <a href="app/#/run/2026-09-27T03-47-21">Watch a run</a>
       <a href="https://github.com/jenzylove/settle">GitHub</a>
     </nav>
   </header>
@@ -115,8 +115,8 @@ footer.end .fine { display: flex; justify-content: space-between; gap: 16px; fle
     <h1>Build every option. Then decide.</h1>
     <p class="sub">When your team argues about how to build something, Settle has IBM Bob build every option at once, measures them all the same way, and shows you which one fits your limits.</p>
     <div class="ctas">
-      <a class="btn" href="app/#/run/2026-09-27T00-39-33">Watch a real run</a>
-      <a class="btn ghost" href="runs/2026-09-27T00-39-33/">See the results</a>
+      <a class="btn" href="app/#/run/2026-09-27T03-47-21">Watch a real run</a>
+      <a class="btn ghost" href="runs/2026-09-27T03-47-21/">See the results</a>
     </div>
     <p class="by">Built with IBM Bob</p>
   </section>
@@ -157,26 +157,37 @@ footer.end .fine { display: flex; justify-content: space-between; gap: 16px; fle
     <div>
       <h2>How do we make the top customers endpoint fast?</h2>
       <div class="stats">
-        <div class="stat"><strong>3 of 3</strong><span>options built by Bob in parallel, in 2m 27s</span></div>
-        <div class="stat"><strong>42×</strong><span>faster at p95 with the picked option</span></div>
+        <div class="stat"><strong>3 of 3</strong><span>options built by Bob in parallel, in 2m 23s</span></div>
+        <div class="stat"><strong>46×</strong><span>faster at p95 with the picked option</span></div>
         <div class="stat"><strong>Materialized view</strong><span>Materialized view meets every constraint with the smallest change.</span></div>
       </div>
       <div class="tablewrap">
         <table class="mini">
           <thead><tr><th></th><th>p95 latency</th><th>Staleness</th><th>Code changed</th></tr></thead>
           <tbody>
-            <tr class=""><th>Today (no change)</th><td>1.98 s</td><td>instant</td><td>—</td></tr><tr class=""><th>Cache</th><td>7 ms</td><td>60 s</td><td>+20 −0</td></tr><tr class="win"><th>Materialized view</th><td>47 ms</td><td>5 s</td><td>+48 −13</td></tr><tr class=""><th>Index and rewrite</th><td>236 ms</td><td>instant</td><td>+9 −0</td></tr>
+            <tr class=""><th>Today (no change)</th><td>695 ms</td><td>instant</td><td>—</td></tr><tr class=""><th>Cache</th><td>2 ms</td><td>60.2 s</td><td>+48 −1</td></tr><tr class="win"><th>Materialized view</th><td>15 ms</td><td>5.2 s</td><td>+47 −9</td></tr><tr class=""><th>Index and rewrite</th><td>198 ms</td><td>instant</td><td>+32 −10</td></tr>
           </tbody>
         </table>
       </div>
       <div class="links">
-        <a class="btn" href="app/#/run/2026-09-27T00-39-33">Watch Bob build it</a>
-        <a class="btn ghost" href="runs/2026-09-27T00-39-33/">Open the results</a>
+        <a class="btn" href="app/#/run/2026-09-27T03-47-21">Watch Bob build it</a>
+        <a class="btn ghost" href="runs/2026-09-27T03-47-21/">Open the results</a>
         <a class="btn ghost" href="app/#/runs">All recorded runs</a>
       </div>
     </div>
   </section>
 
+  <section class="band">
+    <p class="eyebrow">It checks the builder too</p>
+    <div>
+      <h2>In one real run, Bob edited an existing test to make its option pass. Settle refused the option.</h2>
+      <div class="rows">
+        <div class="row"><b>Materialized view</b><span>Fastest option inside the staleness limit, but it changed <code>test/api.test.ts</code>. Its green tests no longer meant the same thing, so it was disqualified.</span></div>
+        <div class="row"><b>The rule</b><span>An option loses if it errors, fails more than 1% of requests, cannot be probed for freshness, or touches an existing test or the test and start scripts.</span></div>
+      </div>
+      <div class="links"><a class="btn ghost" href="runs/2026-09-27T03-36-05/">See the run Settle refused</a></div>
+    </div>
+  </section>
   <section class="band">
     <p class="eyebrow">Run it</p>
     <div>
@@ -192,7 +203,7 @@ settle run                       # or straight from the terminal</pre>
 
   <footer class="end">
     <p class="big">Stop arguing.<br>Build them all.</p>
-    <a class="btn" href="app/#/run/2026-09-27T00-39-33">Watch a real run</a>
+    <a class="btn" href="app/#/run/2026-09-27T03-47-21">Watch a real run</a>
     <div class="fine"><span>Settle · built with IBM Bob for the IBM Bob 2.0 Hackathon</span><span><a href="https://github.com/jenzylove/settle">github.com/jenzylove/settle</a></span></div>
   </footer>
 </div>
@@ -204,7 +215,7 @@ settle run                       # or straight from the terminal</pre>
   var SPEED = 30, MAXGAP = 900;
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
   function label(e) { return e.label === "update todo list" ? "Updated its plan" : e.label; }
-  fetch("runs/2026-09-27T00-39-33/events.jsonl").then(function (r) { return r.text(); }).then(function (text) {
+  fetch("runs/2026-09-27T03-47-21/events.jsonl").then(function (r) { return r.text(); }).then(function (text) {
     var events = text.split("\n").filter(Boolean).map(function (l) { return JSON.parse(l); });
     var start = events[0];
     if (!start || start.kind !== "start") return;

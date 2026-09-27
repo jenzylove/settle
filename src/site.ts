@@ -59,7 +59,14 @@ export async function build(args: string[]) {
   }
 
   const featuredRun: RunFile = JSON.parse(readFileSync(join(runsDir, featured, "results.json"), "utf8"));
-  writeFileSync(join(tmp, "index.html"), landingPage(featuredRun, featured));
+  // The newest run where an option was refused for touching existing tests.
+  let caught: { id: string; option: string; file: string } | undefined;
+  for (const r of runs) {
+    const d: RunFile = JSON.parse(readFileSync(join(runsDir, r.id, "results.json"), "utf8"));
+    const o = d.options.find((x) => x.integrity?.touched.length);
+    if (o) { caught = { id: r.id, option: o.name, file: o.integrity!.touched[0].split("/").slice(-2).join("/") }; break; }
+  }
+  writeFileSync(join(tmp, "index.html"), landingPage(featuredRun, featured, caught));
   writeFileSync(join(tmp, "app", "index.html"), appPage({ mode: "static", script: bundleApp(), home: "../" }));
   writeFileSync(join(tmp, "app", "data", "debate.json"), JSON.stringify(readDebate(config)));
   // Only replayable runs are listed in the app; the rest stay reachable by URL.

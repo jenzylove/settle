@@ -7,6 +7,7 @@ Each option was built by IBM Bob in its own branch from `9ec6b19`, then measured
 | | Today (no change) | Cache | Materialized view | Index and rewrite |
 |---|---|---|---|---|
 | p95 latency | 617 ms | 2 ms | 12 ms | 394 ms |
+| Requests | 213 · 0 failed | 105,169 · 0 failed | 15,664 · 0 failed | 426 · 0 failed |
 | Median latency | 584 ms | 1 ms | 7 ms | 275 ms |
 | Throughput | 14.2 req/s | 7011.3 req/s | 1044.3 req/s | 28.4 req/s |
 | Staleness | instant | 60.1 s | 5.3 s | instant |
@@ -15,6 +16,7 @@ Each option was built by IBM Bob in its own branch from `9ec6b19`, then measured
 | Files touched | 0 | 1 | 3 | 1 |
 | New dependencies | none | none | none | none |
 | Tests | pass · 3 | pass · 6 | pass · 4 | pass · 5 |
+| Existing tests | — | not checked | not checked | not checked |
 | Built by Bob in | — | 1m 56s | 2m 13s | 2m 11s |
 
 **Constraints:** `max_p95_ms: 50`, `max_staleness_seconds: 15`, `tests_must_pass: true`

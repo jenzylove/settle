@@ -7,6 +7,7 @@ Each option was built by IBM Bob in its own branch from `563d25c`, then measured
 | | Today (no change) | Cache | Materialized view | Index and rewrite |
 |---|---|---|---|---|
 | p95 latency | 1.98 s | 7 ms | 47 ms | 236 ms |
+| Requests | 103 · 0 failed | 25,262 · 0 failed | 4,932 · 0 failed | 564 · 0 failed |
 | Median latency | 813 ms | 5 ms | 16 ms | 213 ms |
 | Throughput | 6.9 req/s | 1684.1 req/s | 328.8 req/s | 37.6 req/s |
 | Staleness | instant | 60 s | 5 s | instant |
@@ -15,6 +16,7 @@ Each option was built by IBM Bob in its own branch from `563d25c`, then measured
 | Files touched | 0 | 1 | 2 | 1 |
 | New dependencies | none | none | none | none |
 | Tests | pass · 3 | pass · 6 | pass · 5 | pass · 4 |
+| Existing tests | — | not checked | not checked | not checked |
 | Built by Bob in | — | 2m 2s | 2m 27s | 2m 2s |
 
 **Constraints:** `max_p95_ms: 50`, `max_staleness_seconds: 15`, `tests_must_pass: true`

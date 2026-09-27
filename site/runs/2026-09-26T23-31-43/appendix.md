@@ -7,6 +7,7 @@ Each option was built by IBM Bob in its own branch from `42641a2`, then measured
 | | Today (no change) | Cache | Materialized view | Index and rewrite |
 |---|---|---|---|---|
 | p95 latency | 889 ms | 3 ms | 7 ms | 244 ms |
+| Requests | 174 · 0 failed | 86,335 · 0 failed | 25,396 · 0 failed | 555 · 0 failed |
 | Median latency | 686 ms | 1 ms | 4 ms | 215 ms |
 | Throughput | 11.6 req/s | 5755.7 req/s | 1693.1 req/s | 37 req/s |
 | Staleness | instant | 60.2 s | 30 s | instant |
@@ -15,6 +16,7 @@ Each option was built by IBM Bob in its own branch from `42641a2`, then measured
 | Files touched | 0 | 1 | 3 | 1 |
 | New dependencies | none | none | none | none |
 | Tests | pass · 3 | pass · 8 | pass · 3 | pass · 5 |
+| Existing tests | — | not checked | not checked | not checked |
 | Built by Bob in | — | 2m 0s | 2m 3s | 1m 49s |
 
 **Constraints:** `max_p95_ms: 50`, `max_staleness_seconds: 15`, `tests_must_pass: true`

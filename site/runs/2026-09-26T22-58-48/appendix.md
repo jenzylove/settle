@@ -7,6 +7,7 @@ Each option was built by IBM Bob in its own branch from `c5ea5df`, then measured
 | | Today (no change) | Cache | Materialized view | Index and rewrite |
 |---|---|---|---|---|
 | p95 latency | 1.01 s | 3 ms | 7 ms | 409 ms |
+| Requests | 165 · 0 failed | 74,321 · 0 failed | 25,564 · 0 failed | 367 · 0 failed |
 | Median latency | 752 ms | 1 ms | 4 ms | 330 ms |
 | Throughput | 11 req/s | 4954.7 req/s | 1704.3 req/s | 24.5 req/s |
 | Staleness | instant | 60.1 s | 10 s | instant |
@@ -15,6 +16,7 @@ Each option was built by IBM Bob in its own branch from `c5ea5df`, then measured
 | Files touched | 0 | 2 | 2 | 1 |
 | New dependencies | none | none | none | none |
 | Tests | pass · 3 | pass · 11 | pass · 7 | pass · 5 |
+| Existing tests | — | not checked | not checked | not checked |
 | Built by Bob in | — | 2m 13s | 2m 22s | 2m 4s |
 
 **Constraints:** `max_p95_ms: 50`, `max_staleness_seconds: 10`, `tests_must_pass: true`
