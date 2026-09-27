@@ -7,83 +7,87 @@
 <meta name="description" content="Let customers pay in their own currency (USD, EUR, JPY and IDR), and keep the top customers ranking correct.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #ffffff; --fg: #0b0b0c; --muted: #6b6b70; --faint: #a1a1a6; --line: #e4e4e7; --soft: #f5f5f6; --strong: #0b0b0c;
-  --sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) { --bg: #0b0b0c; --fg: #f4f4f5; --muted: #9a9aa2; --faint: #5c5c62; --line: #26262b; --soft: #141417; --strong: #f4f4f5; }
-}
-:root[data-theme="dark"] { --bg: #0b0b0c; --fg: #f4f4f5; --muted: #9a9aa2; --faint: #5c5c62; --line: #26262b; --soft: #141417; --strong: #f4f4f5; }
+:root { --bg: #f4f4f3; --card: #ffffff; --soft: #ececea; --ink: #0d0d0e; --muted: #6d6d72; --faint: #a3a3a8; --line: #e2e2df; --dark: #111113; --dark2: #1b1b1e; --dline: #2b2b2f;
+  --serif: "Instrument Serif", Georgia, serif; --sans: "Inter", ui-sans-serif, system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace; }
 * { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
-body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 var(--sans); -webkit-font-smoothing: antialiased; }
 a { color: inherit; }
-.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
-.bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
-.brand { font-weight: 800; letter-spacing: -0.02em; font-size: 18px; text-decoration: none; }
-.nav { display: flex; gap: 22px; align-items: center; }
-.nav a { text-decoration: none; color: var(--muted); }
-.nav a:hover, .nav a.on { color: var(--fg); }
-.muted { color: var(--muted); }
-.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
-code, .mono { font-family: var(--mono); font-size: 0.9em; }
-.btn { display: inline-flex; align-items: center; gap: 10px; font: 600 15px/1 var(--sans); background: var(--fg); color: var(--bg); border: 1px solid var(--fg); padding: 14px 20px; cursor: pointer; text-decoration: none; }
-.btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); }
-.btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
-.rule { border: 0; border-top: 1px solid var(--line); margin: 0; }
+code { font-family: var(--mono); font-size: 0.88em; }
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 16px; }
+.pill-btn { display: inline-flex; align-items: center; gap: 10px; background: var(--ink); color: #fff; text-decoration: none; font: 600 14px var(--sans); padding: 12px 14px 12px 20px; border-radius: 999px; border: 0; cursor: pointer; }
+.pill-btn .arr { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(255,255,255,.16); font-size: 12px; }
+.pill-btn.light { background: #fff; color: var(--ink); box-shadow: 0 0 0 1px var(--line) inset; }
+.pill-btn.light .arr { background: var(--soft); }
+.tag { display: inline-block; font: 500 12px var(--sans); padding: 5px 12px; border-radius: 999px; background: #fff; box-shadow: 0 0 0 1px var(--line) inset; color: var(--ink); }
+nav.top { display: flex; justify-content: space-between; align-items: center; padding: 22px 0; }
+.logo { font: italic 400 30px var(--serif); text-decoration: none; letter-spacing: -0.01em; }
+.links { display: flex; gap: 26px; align-items: center; font-size: 14px; }
+.links a { text-decoration: none; color: var(--muted); }
+.links a:hover { color: var(--ink); }
+.links a.pill-btn { color: #fff; }
+.st { justify-self: start; display: inline-block; font: 600 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; padding: 5px 10px; border-radius: 999px; background: #fff; color: var(--ink); }
+.st.proven { background: #dff5e7; color: #14532d; }
+.st.unknown { background: #e8e8ec; color: #52525b; }
+@media (max-width: 760px) { .links a:not(.pill-btn) { display: none; } }
 
-main { padding: 56px 0 96px; }
-.req { font: 800 clamp(30px, 4.6vw, 54px)/1.06 var(--sans); letter-spacing: -0.035em; margin: 14px 0 18px; max-width: 24ch; }
-.sub { color: var(--muted); max-width: 70ch; margin: 0 0 36px; }
-.score { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 2px solid var(--strong); border-bottom: 1px solid var(--line); }
-.score div { padding: 22px 20px 22px 0; }
-.score div + div { border-left: 1px solid var(--line); padding-left: 20px; }
-.score strong { display: block; font: 800 56px/1 var(--sans); letter-spacing: -0.04em; }
+.eyebrow { font: 500 12px var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.muted { color: var(--muted); }
+.meta-top { font-size: 13px; color: var(--muted); }
+main { padding: 40px 0 96px; }
+.req { font: 400 clamp(38px, 5.4vw, 70px)/1.04 var(--serif); letter-spacing: -0.015em; margin: 14px 0 18px; max-width: 22ch; }
+.sub { color: var(--muted); max-width: 64ch; margin: 0 0 32px; }
+.score { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.score div { background: var(--card); border-radius: 22px; padding: 24px; box-shadow: 0 0 0 1px var(--line) inset; }
+.score div.hot { background: var(--dark); color: #fff; box-shadow: none; }
+.score div.hot span { color: #a9a9b0; }
+.score strong { display: block; font: 400 64px/1 var(--serif); }
 .score span { color: var(--muted); font-size: 14px; }
-.headline { font: 700 clamp(22px, 2.8vw, 32px)/1.2 var(--sans); letter-spacing: -0.02em; margin: 34px 0 8px; max-width: 34ch; }
-.cards { display: grid; gap: 0; margin-top: 28px; border-top: 1px solid var(--line); }
-.card { padding: 30px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 1fr; }
-.head { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
-.n { font: 500 13px var(--mono); color: var(--muted); }
-.badge { font: 700 12px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; padding: 5px 9px; border: 1.5px solid var(--fg); }
-.badge.proven { background: transparent; }
-.badge.blocked { background: var(--fg); color: var(--bg); }
-.badge.unknown { border-style: dashed; color: var(--muted); border-color: var(--muted); }
-.card h3 { font: 700 24px/1.25 var(--sans); letter-spacing: -0.02em; margin: 0 0 6px; max-width: 46ch; }
-.tech { font: 13px/1.5 var(--mono); color: var(--muted); margin: 0 0 14px; max-width: 90ch; }
+.headline { font: 400 clamp(26px, 3.2vw, 38px)/1.2 var(--serif); margin: 40px 0 8px; max-width: 30ch; }
+.headline em { font-style: italic; color: #75757a; }
+.cards { display: grid; gap: 16px; margin-top: 28px; }
+.card { background: var(--card); border-radius: 26px; padding: 30px; box-shadow: 0 0 0 1px var(--line) inset; }
+.head { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.n { font: 500 13px var(--mono); color: var(--faint); }
+.badge { font: 600 11px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; padding: 6px 12px; border-radius: 999px; background: var(--soft); }
+.badge.blocked { background: var(--ink); color: #fff; }
+.badge.proven { background: #dff5e7; color: #14532d; }
+.badge.unknown { background: #e8e8ec; color: #52525b; }
+.card h3 { font: 600 21px/1.35 var(--sans); letter-spacing: -0.01em; margin: 0 0 8px; max-width: 60ch; }
+.tech { font: 12.5px/1.55 var(--mono); color: var(--muted); margin: 0 0 14px; max-width: 100ch; }
+.plainp { margin: 0 0 14px; font-size: 16px; color: #3a3a3f; max-width: 80ch; }
 .why, .means { margin: 0 0 8px; max-width: 80ch; }
 .means { color: var(--muted); }
-.ev { margin-top: 14px; border-left: 3px solid var(--fg); padding: 4px 0 4px 18px; }
-.card.proven .ev { border-left-color: var(--line); }
-.evk { font: 500 12px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
-.ev pre { margin: 0; font: 13px/1.55 var(--mono); white-space: pre-wrap; word-break: break-word; }
-.claim { font-size: 14px; color: var(--muted); margin: 10px 0 0; }
+.ev { margin-top: 18px; background: var(--dark); color: #e6e6e8; border-radius: 18px; padding: 18px 20px; }
+.evk { font: 500 10.5px var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: #7c7c83; margin: 0 0 8px; }
+.ev pre { margin: 0; font: 13px/1.6 var(--mono); white-space: pre-wrap; word-break: break-word; color: #f1f1f3; }
+.claim { font-size: 13.5px; color: #a9a9b0; margin: 12px 0 0; }
+.claim b { color: #fff; }
 details { margin-top: 16px; }
 summary { cursor: pointer; font: 500 12px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-pre.code { font: 12.5px/1.55 var(--mono); background: var(--soft); padding: 16px; overflow: auto; max-height: 420px; white-space: pre; margin: 10px 0 0; }
-.meta { font-size: 13px; color: var(--muted); margin: 14px 0 0; }
-h2 { font: 500 12px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin: 64px 0 12px; }
-.plan { border-top: 1px solid var(--line); padding-top: 12px; max-width: 80ch; }
-.plan h4 { font: 700 18px var(--sans); margin: 22px 0 8px; }
+pre.code { font: 12.5px/1.55 var(--mono); background: var(--soft); border-radius: 14px; padding: 16px; overflow: auto; max-height: 420px; white-space: pre; margin: 10px 0 0; }
+.meta { font-size: 13px; color: var(--muted); margin: 16px 0 0; }
+h2 { font: 400 clamp(32px, 4vw, 48px)/1.1 var(--serif); margin: 72px 0 16px; }
+h2 em { font-style: italic; color: #75757a; }
+.plan { background: var(--card); border-radius: 26px; padding: 12px 32px 28px; box-shadow: 0 0 0 1px var(--line) inset; max-width: 900px; }
+.plan h4 { font: 600 18px var(--sans); margin: 24px 0 8px; }
 .plan li { margin: 6px 0; }
-.foot { padding: 40px 0; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 56px; }
-@media (max-width: 720px) { .score { grid-template-columns: 1fr; } .score div + div { border-left: 0; border-top: 1px solid var(--line); padding-left: 0; } }
+.plan p, .plan li { color: #3a3a3f; }
+.foot { padding: 40px 0; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 64px; }
+@media (max-width: 720px) { .score { grid-template-columns: minmax(0, 1fr); } .card { padding: 22px; } .plan { padding: 8px 20px 22px; } }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header class="bar"><a class="brand" href="../../">Settle</a><span class="muted">Proved 2026-09-27 11:33 UTC · base <code>cc274a5</code></span></header>
+  <nav class="top"><a class="logo" href="../../">Settle</a><span class="meta-top">Proved 2026-09-27 11:33 UTC · base <code>cc274a5</code></span></nav>
   <main>
     <p class="eyebrow">The feature request</p>
     <h1 class="req">Let customers pay in their own currency (USD, EUR, JPY and IDR), and keep the top customers ranking correct.</h1>
     <p class="sub">Before anyone estimated it, IBM Bob named the assumptions most likely to make the estimate wrong, built a small experiment for each against the real code, and Settle reran every experiment itself.</p>
     <div class="score">
       <div><strong>0</strong><span>proven, safe to build on</span></div>
-      <div><strong>3</strong><span>blocked, landmines found</span></div>
+      <div class="hot"><strong>3</strong><span>blocked, landmines found</span></div>
       <div><strong>0</strong><span>unknown, still a risk</span></div>
     </div>
     <p class="headline">3 of 3 assumptions are false today. Fix them before you estimate.</p>
@@ -93,7 +97,8 @@ h2 { font: 500 12px/1 var(--mono); letter-spacing: 0.12em; text-transform: upper
     <span class="n">01</span>
     <span class="badge blocked">Blocked</span>
   </div>
-  <h3>The database money column uses a data type that can only hold numbers up to about 2 billion. A single large order in Indonesian rupiah (e.g. Rp 15,000,000 stored as 1,500,000,000 units) nearly maxes it out, and the running total across several orders will silently wrap around to a wrong number, breaking the leaderboard.</h3>
+  <h3>The amount_cents column and the sum::int cast in the ranking query can hold IDR-sized amounts without…</h3>
+  <p class="plainp">The database money column uses a data type that can only hold numbers up to about 2 billion. A single large order in Indonesian rupiah (e.g. Rp 15,000,000 stored as 1,500,000,000 units) nearly maxes it out, and the running total across several orders will silently wrap around to a wrong number, breaking the leaderboard.</p>
   <p class="tech">The `amount_cents` column (PostgreSQL `integer`, 32-bit, max 2,147,483,647) and the `sum(o.amount_cents)::int` cast in the ranking query can hold IDR-sized amounts without overflowing.</p>
   <p class="why"><b>Why it matters.</b> A single IDR order of 15,000,000 IDR stored as minor units (1,500,000,000) is already close to the 32-bit limit; any customer with multiple large IDR orders causes a silent integer overflow in the SUM, corrupting the ranking. Fixing it requires a schema migration to `bigint`, changes to the TypeScript type, the API response type, and any downstream consumer that reads `revenue_cents`.</p>
   <p class="means">A landmine. The experiment failed against today's code; this needs work before the feature.</p>
@@ -206,7 +211,8 @@ test(&quot;sum(amount_cents)::int overflows when IDR orders exceed INT_MAX&quot;
     <span class="n">02</span>
     <span class="badge blocked">Blocked</span>
   </div>
-  <h3>Right now each order record stores only an amount number, with no label for which currency it is. To support four currencies the database needs a new &#39;currency&#39; field on every order. That field does not exist today, so every order ever placed would need to be labelled retroactively and every piece of code that writes or reads orders must be updated.</h3>
+  <h3>The orders table already has a currency column so each row knows which currency its amount_cents is…</h3>
+  <p class="plainp">Right now each order record stores only an amount number, with no label for which currency it is. To support four currencies the database needs a new &#39;currency&#39; field on every order. That field does not exist today, so every order ever placed would need to be labelled retroactively and every piece of code that writes or reads orders must be updated.</p>
   <p class="tech">The `orders` table already has a `currency` column (or equivalent) so each row knows which currency its `amount_cents` is denominated in.</p>
   <p class="why"><b>Why it matters.</b> Without a currency column there is no way to know whether a stored amount is USD cents, EUR cents, JPY yen, or IDR rupiah. Every existing row becomes ambiguous. Adding the column requires a schema migration on a live table, a backfill strategy for the 200k existing rows, updates to `createOrder`, the POST `/orders` handler, input validation, and all tests — before any FX logic can even start.</p>
   <p class="means">A landmine. The experiment failed against today's code; this needs work before the feature.</p>
@@ -271,7 +277,8 @@ describe(&quot;schema-has-currency-column&quot;, () =&gt; {
     <span class="n">03</span>
     <span class="badge blocked">Blocked</span>
   </div>
-  <h3>The leaderboard is built by adding up order amounts. If those amounts are in different currencies — dollars, euros, yen, rupiah — you cannot just add them together; 10,000 yen is not the same as 10,000 dollars. Today there is no currency-conversion logic anywhere in the code, so the leaderboard would rank customers by a meaningless mixed-currency total the moment the first non-USD order is saved.</h3>
+  <h3>The top-customers ranking query produces a correct result when orders contain mixed currencies, because it…</h3>
+  <p class="plainp">The leaderboard is built by adding up order amounts. If those amounts are in different currencies — dollars, euros, yen, rupiah — you cannot just add them together; 10,000 yen is not the same as 10,000 dollars. Today there is no currency-conversion logic anywhere in the code, so the leaderboard would rank customers by a meaningless mixed-currency total the moment the first non-USD order is saved.</p>
   <p class="tech">The top-customers ranking query (`topCustomers`) produces a correct result when orders contain mixed currencies, because it normalises amounts to a common unit before summing.</p>
   <p class="why"><b>Why it matters.</b> The current query does `SUM(o.amount_cents)` with no currency conversion. If a customer has one USD order (10,000 cents = $100) and one JPY order (10,000 yen = ~$67), the query adds 10,000 + 10,000 = 20,000 and treats it as $200 — ranking them above a customer with a genuine $150 order. Correct ranking requires an FX rates table, a conversion step in the query or application layer, and a strategy for stale rates — none of which exist in the codebase today.</p>
   <p class="means">A landmine. The experiment failed against today's code; this needs work before the feature.</p>
@@ -405,7 +412,7 @@ test(&quot;topCustomers ranks correctly when orders have mixed currencies&quot;,
   <p class="meta">Branch <code>settle/prove-2026-09-27T11-29-37/ranking-query-normalises-currenc</code> · built by Bob in 2m 7s · 0.67 Bobcoins</p>
 </article>
     </div>
-    <h2>The plan Bob wrote from the evidence</h2><div class="plan"><h4>Multi-currency feature — implementation plan</h4>
+    <h2>The plan Bob wrote <em>from the evidence.</em></h2><div class="plan"><h4>Multi-currency feature — implementation plan</h4>
 <h4>What we now know</h4>
 <ul>
 <li><b>INTEGER overflow is real (BLOCKED).</b> The <code>amount_cents</code> column and the <code>::int</code> cast in the ranking query cannot hold IDR-sized amounts; they will silently corrupt data at scale.</li>
