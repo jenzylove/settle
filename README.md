@@ -96,11 +96,11 @@ Settle also includes `settle run`, which builds competing designs for the same c
 
 `npm test` runs 73 tests, including end to end runs of `settle prove` (proven, blocked, and an experiment that edits an existing file being distrusted even though Bob claimed it held) and of the comparison pipeline, both on a fixture app with a stand in for Bob Shell. GitHub Actions runs typecheck and tests on every push.
 
-## Limits
+## Good to know
 
-- Experiments run against the code as it is today; Settle proves or disproves assumptions, it does not build the feature.
-- A failing experiment is reported as blocked. If Bob's experiment itself is wrong, that shows up as a false blocker, which is why every card shows the rerun output, Bob's own read and the test code for the team to check.
-- Bob chooses the assumptions. The plan is only as good as the risks it names, so the evidence board shows each one for the team to challenge.
-- Settle runs locally, next to your code. There is no hosted service.
+- **It checks, it does not build.** Settle tests what a feature depends on in today's code. Writing the feature is still your team's job, now with the blockers known up front.
+- **Every result can be checked.** Each finding shows the test Bob wrote and Settle's rerun output, so a badly written test is easy to spot rather than silently trusted. Tests that never touch your app or change existing files are marked unsure.
+- **Bob picks what to check.** The results page lists exactly what was tested, so the team can add anything Bob missed.
+- **It runs next to your code.** Locally, in Bob IDE or in CI, with your Bob. There is no hosted service that takes your repository.
 
 Built for the IBM Bob 2.0 Hackathon. MIT license.
