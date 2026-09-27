@@ -4,147 +4,241 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Settle</title>
-<meta name="description" content="Before you estimate a feature, Settle has IBM Bob test the assumptions most likely to make your estimate wrong, against your real code.">
+<meta name="description" content="Find the landmines before you estimate. Settle has IBM Bob test the risky assumptions behind a feature against your real code.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #ffffff; --fg: #0b0b0c; --muted: #6b6b70; --faint: #a1a1a6; --line: #e4e4e7; --soft: #f5f5f6; --strong: #0b0b0c;
-  --sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) { --bg: #0b0b0c; --fg: #f4f4f5; --muted: #9a9aa2; --faint: #5c5c62; --line: #26262b; --soft: #141417; --strong: #f4f4f5; }
-}
-:root[data-theme="dark"] { --bg: #0b0b0c; --fg: #f4f4f5; --muted: #9a9aa2; --faint: #5c5c62; --line: #26262b; --soft: #141417; --strong: #f4f4f5; }
+:root { --bg: #f4f4f3; --card: #ffffff; --soft: #ececea; --ink: #0d0d0e; --muted: #6d6d72; --faint: #a3a3a8; --line: #e2e2df; --dark: #111113; --dark2: #1b1b1e; --dline: #2b2b2f;
+  --serif: "Instrument Serif", Georgia, serif; --sans: "Inter", ui-sans-serif, system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace; }
 * { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
-body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 var(--sans); -webkit-font-smoothing: antialiased; }
 a { color: inherit; }
-.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
-.bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
-.brand { font-weight: 800; letter-spacing: -0.02em; font-size: 18px; text-decoration: none; }
-.nav { display: flex; gap: 22px; align-items: center; }
-.nav a { text-decoration: none; color: var(--muted); }
-.nav a:hover, .nav a.on { color: var(--fg); }
-.muted { color: var(--muted); }
-.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
-code, .mono { font-family: var(--mono); font-size: 0.9em; }
-.btn { display: inline-flex; align-items: center; gap: 10px; font: 600 15px/1 var(--sans); background: var(--fg); color: var(--bg); border: 1px solid var(--fg); padding: 14px 20px; cursor: pointer; text-decoration: none; }
-.btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); }
-.btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
-.rule { border: 0; border-top: 1px solid var(--line); margin: 0; }
+code { font-family: var(--mono); font-size: 0.88em; }
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 16px; }
+.pill-btn { display: inline-flex; align-items: center; gap: 10px; background: var(--ink); color: #fff; text-decoration: none; font: 600 14px var(--sans); padding: 12px 14px 12px 20px; border-radius: 999px; border: 0; cursor: pointer; }
+.pill-btn .arr { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(255,255,255,.16); font-size: 12px; }
+.pill-btn.light { background: #fff; color: var(--ink); box-shadow: 0 0 0 1px var(--line) inset; }
+.pill-btn.light .arr { background: var(--soft); }
+.tag { display: inline-block; font: 500 12px var(--sans); padding: 5px 12px; border-radius: 999px; background: #fff; box-shadow: 0 0 0 1px var(--line) inset; color: var(--ink); }
+nav.top { display: flex; justify-content: space-between; align-items: center; padding: 22px 0; }
+.logo { font: italic 400 30px var(--serif); text-decoration: none; letter-spacing: -0.01em; }
+.links { display: flex; gap: 26px; align-items: center; font-size: 14px; }
+.links a { text-decoration: none; color: var(--muted); }
+.links a:hover { color: var(--ink); }
+.links a.pill-btn { color: #fff; }
+.st { justify-self: start; display: inline-block; font: 600 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; padding: 5px 10px; border-radius: 999px; background: #fff; color: var(--ink); }
+.st.proven { background: #dff5e7; color: #14532d; }
+.st.unknown { background: #e8e8ec; color: #52525b; }
+@media (max-width: 760px) { .links a:not(.pill-btn) { display: none; } }
 
-.hero { text-align: center; padding: 104px 0 72px; }
-.hero h1 { font: 800 clamp(42px, 7.4vw, 96px)/0.98 var(--sans); letter-spacing: -0.05em; margin: 22px auto 26px; max-width: 13ch; }
-.hero .sub { color: var(--muted); font-size: clamp(17px, 2vw, 21px); max-width: 60ch; margin: 0 auto 34px; }
-.ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-.by { margin-top: 22px; font: 500 12px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); }
-section.band { border-top: 1px solid var(--line); padding: 64px 0; display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 40px; }
-section.band > .eyebrow { padding-top: 8px; }
-.band h2 { font: 700 clamp(26px, 3.4vw, 40px)/1.1 var(--sans); letter-spacing: -0.03em; margin: 0 0 26px; max-width: 26ch; }
-.story { font-size: 19px; line-height: 1.6; max-width: 62ch; margin: 0 0 18px; }
-.steps { counter-reset: s; border-top: 1px solid var(--line); }
-.step { display: grid; grid-template-columns: 56px 220px 1fr; gap: 24px; padding: 22px 0; border-bottom: 1px solid var(--line); }
-.step::before { counter-increment: s; content: "0" counter(s); font: 500 14px var(--mono); color: var(--muted); padding-top: 3px; }
-.step b { font-weight: 600; }
-.step span { color: var(--muted); }
-.req { font: 700 clamp(22px, 2.6vw, 30px)/1.25 var(--sans); letter-spacing: -0.02em; margin: 0 0 22px; max-width: 34ch; }
-.board { border-top: 2px solid var(--strong); }
-.item { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 24px; padding: 20px 0; border-bottom: 1px solid var(--line); align-items: start; }
-.badge { justify-self: start; font: 700 12px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; padding: 5px 9px; border: 1.5px solid var(--fg); }
-.badge.blocked { background: var(--fg); color: var(--bg); }
-.badge.unknown { border-style: dashed; color: var(--muted); border-color: var(--muted); }
-.item h3 { margin: 0 0 6px; font-size: 19px; letter-spacing: -0.01em; }
-.item p { margin: 0; color: var(--muted); font-size: 15px; }
-.item pre { margin: 10px 0 0; font: 12.5px/1.5 var(--mono); white-space: pre-wrap; word-break: break-word; color: var(--fg); border-left: 3px solid var(--fg); padding-left: 14px; }
-.links { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
-.not { border-top: 1px solid var(--line); }
-.not div { display: grid; grid-template-columns: 220px 1fr; gap: 24px; padding: 18px 0; border-bottom: 1px solid var(--line); }
-.not b { font-weight: 600; }
-.not span { color: var(--muted); }
-pre.code { font: 14px/1.7 var(--mono); background: var(--soft); padding: 22px 24px; overflow-x: auto; margin: 0 0 16px; }
-footer.end { border-top: 1px solid var(--line); padding: 72px 0 40px; }
-footer.end .big { font: 800 clamp(32px, 5vw, 64px)/1 var(--sans); letter-spacing: -0.04em; margin: 0 0 28px; }
-footer.end .fine { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 56px; font-size: 13px; color: var(--muted); }
-@media (max-width: 820px) {
-  section.band { grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 48px 0; }
-  .step, .not div, .item { grid-template-columns: 1fr; gap: 6px; }
+.hero-shell { background: radial-gradient(120% 90% at 50% 0%, #ffffff 0%, #f1f1ef 55%, #e4e4e1 100%); border-radius: 0 0 36px 36px; padding-bottom: 64px; }
+.hero { text-align: center; padding: 64px 0 40px; }
+.hero h1 { font: 400 clamp(48px, 8.4vw, 108px)/1.0 var(--serif); letter-spacing: -0.02em; margin: 20px auto 26px; max-width: 13.5ch; }
+.hero h1 em { font-style: italic; color: #75757a; }
+.chip { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; height: 0.72em; width: 1.35em; border-radius: 999px; margin: -0.16em 0.05em 0; box-shadow: 0 10px 24px rgba(0,0,0,.22), inset 0 0 0 3px rgba(255,255,255,.8); }
+.chip span { font: 600 0.26em/1 var(--mono); letter-spacing: 0.02em; font-style: normal; }
+.chip.dark { background: #0d0d0e; color: #fff; }
+.chip.blue { background: linear-gradient(135deg, #3a64ff, #1b3fd6); color: #fff; }
+.hero p.sub { color: var(--muted); max-width: 52ch; margin: 0 auto 30px; }
+.hero .ctas { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.frame { margin: 16px auto 0; max-width: 980px; background: var(--dark); border-radius: 30px; padding: 14px; box-shadow: 0 50px 90px -40px rgba(0,0,0,.55); }
+.screen { background: var(--dark2); border-radius: 20px; padding: 26px 28px 12px; color: #eaeaea; text-align: left; }
+.screen .bar2 { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font: 500 12px var(--mono); color: #8e8e94; margin-bottom: 16px; }
+.screen .q { font: 400 clamp(22px, 2.8vw, 32px)/1.2 var(--serif); margin: 0 0 18px; color: #fff; }
+.srow { display: grid; grid-template-columns: 100px minmax(0, 1fr); gap: 18px; padding: 14px 0; border-top: 1px solid var(--dline); align-items: start; }
+.srow b { display: block; font: 600 15px var(--sans); color: #fff; margin-bottom: 4px; }
+.srow code { font: 12.5px/1.5 var(--mono); color: #a9a9b0; white-space: pre-wrap; word-break: break-word; }
+.strip { display: flex; justify-content: center; gap: 36px; flex-wrap: wrap; padding: 28px 0 0; color: var(--muted); font-size: 14px; }
+.strip span::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--ink); margin-right: 10px; vertical-align: 2px; }
+section.sec { padding: 96px 0 0; }
+.shead { display: flex; justify-content: space-between; align-items: end; gap: 24px; flex-wrap: wrap; margin-bottom: 34px; }
+.shead h2 { font: 400 clamp(36px, 4.8vw, 58px)/1.04 var(--serif); letter-spacing: -0.015em; margin: 14px 0 0; max-width: 17ch; }
+.shead h2 em { font-style: italic; color: #75757a; }
+.shead p { color: var(--muted); max-width: 38ch; margin: 0; font-size: 15px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.grid4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.card { background: var(--card); border-radius: 22px; padding: 26px; min-height: 230px; display: flex; flex-direction: column; box-shadow: 0 0 0 1px var(--line) inset; }
+.card .num { font: 500 12px var(--mono); color: var(--faint); margin-bottom: 18px; }
+.ico { width: 40px; height: 40px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; margin-bottom: 18px; }
+.ico svg { width: 18px; height: 18px; }
+.card h3 { font: 600 18px var(--sans); letter-spacing: -0.01em; margin: 0 0 8px; }
+.card p { color: var(--muted); margin: 0; font-size: 14.5px; }
+.card.dark { background: var(--dark); color: #fff; box-shadow: none; }
+.card.dark p { color: #a9a9b0; }
+.card.dark .ico { background: #fff; color: var(--ink); }
+.card .art { margin-top: auto; padding-top: 22px; }
+.art-est { display: flex; gap: 8px; align-items: end; height: 56px; }
+.art-est i { flex: 1; background: var(--soft); border-radius: 6px; }
+.art-slip { font: 400 40px var(--serif); color: #b8b8bc; }
+.art-slip b { color: var(--ink); font-weight: 400; font-style: italic; }
+.proof-sec { margin-top: 96px; background: var(--dark); color: #fff; border-radius: 36px; padding: 72px 0; }
+.proof-sec .shead h2 em { color: #9d9da3; }
+.proof-sec .shead p { color: #a9a9b0; }
+.proof-sec .tag { background: #1b1b1e; color: #d8d8dc; box-shadow: 0 0 0 1px var(--dline) inset; }
+.req { font: 400 clamp(24px, 3vw, 36px)/1.2 var(--serif); margin: 0 0 28px; max-width: 30ch; }
+.pgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.pcard { background: var(--dark2); border-radius: 22px; padding: 24px; box-shadow: 0 0 0 1px var(--dline) inset; display: flex; flex-direction: column; gap: 14px; }
+.pcard h3 { font: 600 17px/1.35 var(--sans); margin: 0; }
+.pcard p { color: #a9a9b0; font-size: 14px; margin: 0; }
+.pcard .evi { margin-top: auto; background: #0b0b0c; border-radius: 14px; padding: 14px; font: 12.5px/1.55 var(--mono); color: #e3e3e6; white-space: pre-wrap; word-break: break-word; }
+.pcard .evi::before { content: "Settle's rerun"; display: block; font: 500 10.5px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: #7c7c83; margin-bottom: 6px; }
+.proof-cta { margin-top: 30px; }
+.proof-cta .pill-btn { background: #fff; color: var(--ink); }
+.proof-cta .pill-btn .arr { background: var(--soft); }
+.vs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.vs .card { min-height: 0; }
+.vs .quote { font: 400 28px/1.25 var(--serif); margin: 6px 0 14px; color: var(--ink); }
+.vs .card.dark .quote { font: 13.5px/1.6 var(--mono); color: #e3e3e6; background: #1b1b1e; border-radius: 12px; padding: 14px; }
+.steps-run { background: var(--card); border-radius: 22px; box-shadow: 0 0 0 1px var(--line) inset; padding: 26px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 28px; align-items: center; }
+.steps-run h3 { font: 600 20px var(--sans); margin: 0 0 10px; }
+.steps-run p { color: var(--muted); margin: 0; }
+.steps-run pre { margin: 0; background: var(--dark); color: #e6e6e8; border-radius: 16px; padding: 20px 22px; font: 13.5px/1.75 var(--mono); overflow-x: auto; }
+.steps-run pre .c { color: #7d7d84; }
+.faq { max-width: 820px; }
+.faq details { background: var(--card); border-radius: 16px; box-shadow: 0 0 0 1px var(--line) inset; margin-bottom: 10px; }
+.faq summary { list-style: none; cursor: pointer; padding: 20px 24px; font: 500 15.5px var(--sans); display: flex; justify-content: space-between; gap: 16px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; font: 400 22px/1 var(--sans); color: var(--muted); }
+.faq details[open] summary::after { content: "–"; }
+.faq details p { margin: 0; padding: 0 24px 22px; color: var(--muted); font-size: 15px; }
+.cta-big { margin-top: 96px; color: #fff; border-radius: 36px; padding: 88px 24px; text-align: center; background: radial-gradient(80% 120% at 50% 0%, #2a2a31 0%, #111113 62%); }
+.cta-big h2 { font: 400 clamp(42px, 6.4vw, 80px)/1.0 var(--serif); margin: 0 0 16px; }
+.cta-big h2 em { font-style: italic; color: #9d9da3; }
+.cta-big p { color: #a9a9b0; margin: 0 auto 30px; max-width: 46ch; }
+.cta-big .pill-btn { background: #fff; color: var(--ink); }
+.cta-big .pill-btn .arr { background: var(--soft); }
+footer.foot { padding: 64px 0 0; }
+.fcols { display: flex; justify-content: space-between; gap: 32px; flex-wrap: wrap; font-size: 14px; color: var(--muted); }
+.fcols b { display: block; color: var(--ink); font-weight: 600; margin-bottom: 10px; }
+.fcols a { display: block; text-decoration: none; margin: 6px 0; }
+.wordmark { font: italic 400 clamp(110px, 27vw, 340px)/0.82 var(--serif); letter-spacing: -0.03em; margin: 48px 0 0; text-align: center; overflow: hidden; }
+.fine { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 12.5px; color: var(--faint); padding: 18px 0 28px; border-top: 1px solid var(--line); }
+@media (max-width: 900px) { .grid4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 760px) {
+  .grid3, .grid4, .pgrid, .vs, .steps-run { grid-template-columns: minmax(0, 1fr); }
+  .srow { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .card { min-height: 0; }
 }
 </style>
 </head>
 <body>
+<div class="hero-shell">
+  <div class="wrap">
+    <nav class="top">
+      <a class="logo" href="./">Settle</a>
+      <div class="links"><a href="#how">How it works</a><a href="#proof">Real proof</a><a href="#faq">FAQ</a><a class="pill-btn" href="runs/prove-2026-09-27T11-29-37/">See a proof <span class="arr">↗</span></a></div>
+    </nav>
+    <section class="hero">
+      <span class="tag">Built with IBM Bob</span>
+      <h1>Find the <span class="chip dark"><span>✕</span></span> <em>landmines</em> before you <span class="chip blue"><span>{ }</span></span> <em>estimate.</em></h1>
+      <p class="sub">A "two day" feature becomes two weeks because of something nobody knew was in the code. Settle has IBM Bob test the risky parts against your real code first.</p>
+      <div class="ctas">
+        <a class="pill-btn" href="runs/prove-2026-09-27T11-29-37/">See a real proof <span class="arr">↗</span></a>
+        <a class="pill-btn light" href="#how">How it works <span class="arr">↓</span></a>
+      </div>
+    </section>
+    <div class="frame">
+      <div class="screen">
+        <div class="bar2"><span>settle prove</span><span>0 proven · 3 blocked · 0 unknown</span></div>
+        <p class="q">"Let customers pay in their own currency (USD, EUR, JPY and IDR), and keep the top customers ranking correct."</p>
+        <div class="srow"><span class="st blocked">blocked</span><div><b>The amount_cents column and the sum::int cast in the ranking query can hold IDR-sized…</b><code>error: integer out of range</code></div></div><div class="srow"><span class="st blocked">blocked</span><div><b>The orders table already has a currency column so each row knows which currency its…</b><code>AssertionError [ERR_ASSERTION]: Assumption BROKEN: orders table has no &#39;currency&#39; column.</code></div></div><div class="srow"><span class="st blocked">blocked</span><div><b>The top-customers ranking query produces a correct result when orders contain mixed…</b><code>AssertionError [ERR_ASSERTION]: Expected Bob (id=2, true USD $150) to rank first, but got customer_id=1 (Alice) with revenue_cents=16700. Second plac…</code></div></div>
+      </div>
+    </div>
+    <div class="strip"><span>Four minute proofs</span><span>Runs on your code, on your machine</span><span>Every result rerun by Settle</span><span>Nothing is merged</span></div>
+  </div>
+</div>
+
 <div class="wrap">
-  <header class="bar">
-    <a class="brand" href="./">Settle</a>
-    <nav class="nav"><a href="#how">How it works</a><a href="runs/prove-2026-09-27T11-29-37/">See a real proof</a><a href="https://github.com/jenzylove/settle">GitHub</a></nav>
-  </header>
-
-  <section class="hero">
-    <p class="eyebrow">For teams about to estimate a feature</p>
-    <h1>Find the landmines before you estimate.</h1>
-    <p class="sub">A "two day" feature turns into two weeks because of something nobody knew was in the code. Settle has IBM Bob test the risky parts against your real code first, and shows you what is proven, what is blocked, and why.</p>
-    <div class="ctas">
-      <a class="btn" href="runs/prove-2026-09-27T11-29-37/">See a real proof</a>
-      <a class="btn ghost" href="#how">How it works</a>
+  <section class="sec">
+    <div class="shead">
+      <div><span class="tag">The problem</span><h2>Estimating a feature is <em>guesswork.</em></h2></div>
+      <p>The landmines are only found by building, so they are found after the date is promised.</p>
     </div>
-    <p class="by">Built with IBM Bob</p>
-  </section>
-
-  <section class="band">
-    <p class="eyebrow">A real example</p>
-    <div>
-      <p class="req">"Let customers pay in their own currency (USD, EUR, JPY and IDR), and keep the top customers ranking correct."</p>
-      <p class="story">Before anyone estimated this, Bob picked the 3 assumptions most likely to blow up the estimate, wrote a small experiment for each, and Settle ran every experiment against the real code.</p>
-      <div class="board">
-        <div class="item"><span class="badge blocked">blocked</span><div><h3>The database money column uses a data type that can only hold numbers up to about 2 billion. A single large order in Indonesian rupiah (e.g. Rp 15,000,000 stored as 1,500,000,000 units) nearly maxes it out, and the running total across several orders will silently wrap around to a wrong number, breaking the leaderboard.</h3><p>A single IDR order of 15,000,000 IDR stored as minor units (1,500,000,000) is already close to the 32-bit limit; any customer with multiple large IDR orders causes a silent integer overflow in the SUM, corrupting the ranking. Fixing it requires a schema migration to `bigint`, changes to the TypeScript type, the API response type, and any downstream consumer that reads `revenue_cents`.</p><pre>✖ sum(amount_cents)::int overflows when IDR orders exceed INT_MAX (5448.3609ms)</pre></div></div><div class="item"><span class="badge blocked">blocked</span><div><h3>Right now each order record stores only an amount number, with no label for which currency it is. To support four currencies the database needs a new &#39;currency&#39; field on every order. That field does not exist today, so every order ever placed would need to be labelled retroactively and every piece of code that writes or reads orders must be updated.</h3><p>Without a currency column there is no way to know whether a stored amount is USD cents, EUR cents, JPY yen, or IDR rupiah. Every existing row becomes ambiguous. Adding the column requires a schema migration on a live table, a backfill strategy for the 200k existing rows, updates to `createOrder`, the POST `/orders` handler, input validation, and all tests — before any FX logic can even start.</p><pre>  ✖ orders table has a currency column (5432.2573ms)</pre></div></div><div class="item"><span class="badge blocked">blocked</span><div><h3>The leaderboard is built by adding up order amounts. If those amounts are in different currencies — dollars, euros, yen, rupiah — you cannot just add them together; 10,000 yen is not the same as 10,000 dollars. Today there is no currency-conversion logic anywhere in the code, so the leaderboard would rank customers by a meaningless mixed-currency total the moment the first non-USD order is saved.</h3><p>The current query does `SUM(o.amount_cents)` with no currency conversion. If a customer has one USD order (10,000 cents = $100) and one JPY order (10,000 yen = ~$67), the query adds 10,000 + 10,000 = 20,000 and treats it as $200 — ranking them above a customer with a genuine $150 order. Correct ranking requires an FX rates table, a conversion step in the query or application layer, and a strategy for stale rates — none of which exist in the codebase today.</p><pre>✖ topCustomers ranks correctly when orders have mixed currencies (2383.5933ms)</pre></div></div>
-      </div>
-      <div class="links"><a class="btn" href="runs/prove-2026-09-27T11-29-37/">Open the full evidence and plan</a></div>
+    <div class="grid3">
+      <div class="card"><span class="num">/01</span><h3>Estimate</h3><p>Engineers read the code and guess the size. "About two days."</p><div class="art"><div class="art-est"><i style="height:40%"></i><i style="height:55%"></i><i style="height:35%"></i><i style="height:60%"></i></div></div></div>
+      <div class="card"><span class="num">/02</span><h3>Build</h3><p>Days in: a column too small, a query that gives wrong answers, a cache shared across customers.</p><div class="art"><div class="art-est"><i style="height:40%"></i><i style="height:55%"></i><i style="height:100%;background:#0d0d0e"></i><i style="height:60%"></i></div></div></div>
+      <div class="card"><span class="num">/03</span><h3>Slip</h3><p>The date moves, and the team trusts its next estimate a little less.</p><div class="art"><div class="art-slip"><s>2 days</s> <b>2 weeks</b></div></div></div>
     </div>
   </section>
 
-  <section class="band" id="how">
-    <p class="eyebrow">How you use it</p>
-    <div>
-      <h2>One sentence in, evidence out. On your code, on your machine.</h2>
-      <div class="steps">
-        <div class="step"><b>Write the feature</b><span>One sentence in <code>prove.yml</code>, like "let customers pay in their own currency".</span></div>
-        <div class="step"><b>Bob finds the risks</b><span>Bob reads your code and names the assumptions the feature silently depends on, the ones that cost days if they are wrong.</span></div>
-        <div class="step"><b>Bob runs experiments</b><span>One Bob per assumption, all at once, each in its own copy of your repo, writes the smallest test that proves or disproves it.</span></div>
-        <div class="step"><b>Settle checks the work</b><span>Settle reruns every experiment itself instead of trusting Bob's word, then Bob writes the plan from what was actually found.</span></div>
-      </div>
+  <section class="sec" id="how">
+    <div class="shead">
+      <div><span class="tag">How it works</span><h2>One sentence in. <em>Evidence</em> out.</h2></div>
+      <p>Bob investigates, Settle checks. On your repository, with your Bob, in about four minutes.</p>
+    </div>
+    <div class="grid4">
+      <div class="card"><span class="num">/01</span><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4-4"/></svg></div><h3>Bob finds the risks</h3><p>Bob reads the code the feature touches and names what must be true for it to be as easy as it looks.</p></div>
+      <div class="card"><span class="num">/02</span><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V3"/><path d="M7.5 15h9"/></svg></div><h3>Bob runs experiments</h3><p>One Bob per assumption, all at once, each in its own copy of your repo, writes a real test.</p></div>
+      <div class="card dark"><span class="num">/03</span><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4" stroke-linecap="round"/></svg></div><h3>Settle checks the work</h3><p>Every experiment is rerun by Settle, not taken on Bob's word. Experiments may only add files.</p></div>
+      <div class="card"><span class="num">/04</span><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M9 4l6 2 5-2v14l-5 2-6-2-5 2V6z"/><path d="M9 4v14M15 6v14"/></svg></div><h3>Bob plans from facts</h3><p>The plan is written from what was found, with the landmines first.</p></div>
+    </div>
+  </section>
+</div>
+
+<section class="proof-sec" id="proof">
+  <div class="wrap">
+    <div class="shead">
+      <div><span class="tag">A real proof</span><h2>3 landmines, found <em>before</em> anyone estimated.</h2></div>
+      <p>Real output from Settle rerunning the experiments Bob wrote against the demo orders API.</p>
+    </div>
+    <p class="req">"Let customers pay in their own currency (USD, EUR, JPY and IDR), and keep the top customers ranking correct."</p>
+    <div class="pgrid">
+      <div class="pcard"><span class="st blocked">blocked</span><h3>The amount_cents column and the sum::int cast in the ranking query can hold IDR-sized…</h3><p>A single IDR order of 15,000,000 IDR stored as minor units (1,500,000,000) is already close to the 32-bit limit; any customer with multiple large IDR orders causes a silent inte…</p><div class="evi">error: integer out of range</div></div><div class="pcard"><span class="st blocked">blocked</span><h3>The orders table already has a currency column so each row knows which currency its…</h3><p>Without a currency column there is no way to know whether a stored amount is USD cents, EUR cents, JPY yen, or IDR rupiah. Every existing row becomes ambiguous. Adding the colum…</p><div class="evi">AssertionError [ERR_ASSERTION]: Assumption BROKEN: orders table has no &#39;currency&#39; column.</div></div><div class="pcard"><span class="st blocked">blocked</span><h3>The top-customers ranking query produces a correct result when orders contain mixed…</h3><p>The current query does `SUM(o.amount_cents)` with no currency conversion. If a customer has one USD order (10,000 cents = $100) and one JPY order (10,000 yen = ~$67), the query …</p><div class="evi">AssertionError [ERR_ASSERTION]: Expected Bob (id=2, true USD $150) to rank first, but got customer_id=1 (Alice) with revenue_cents=16700. Second plac…</div></div>
+    </div>
+    <div class="proof-cta"><a class="pill-btn" href="runs/prove-2026-09-27T11-29-37/">Open the full evidence and plan <span class="arr">↗</span></a></div>
+  </div>
+</section>
+
+<div class="wrap">
+  <section class="sec">
+    <div class="shead">
+      <div><span class="tag">Why not just ask an AI</span><h2>A guess, or a <em>failing test.</em></h2></div>
+      <p>An AI can tell you what might go wrong. Settle shows you what does, in your code, today.</p>
+    </div>
+    <div class="vs">
+      <div class="card"><h3>Asking an AI</h3><p class="quote">"Mixed currencies might affect your ranking."</p><p>Maybe. How much, and where? Nobody knows until someone builds it.</p></div>
+      <div class="card dark"><h3>Settle</h3><p class="quote">✕ topCustomers ranks correctly when orders have mixed currencies<br>Expected Bob ($150) first, got Alice ($100 + ¥6,700)</p><p>A real test against real code, rerun by Settle, on a branch you can open.</p></div>
     </div>
   </section>
 
-  <section class="band">
-    <p class="eyebrow">Why not just ask an AI</p>
-    <div>
-      <h2>An AI can guess what might go wrong. Settle shows you, with a failing test.</h2>
-      <div class="not">
-        <div><b>A guess</b><span>"Mixed currencies might affect your ranking." Maybe. How much? Nobody knows until someone builds it.</span></div>
-        <div><b>Evidence</b><span>A real test against your real code, the exact error or wrong number it produced, and the branch you can open.</span></div>
-        <div><b>A checked result</b><span>Bob builds the experiments; Settle reruns them. Experiments may only add files; one that changes any existing file is not trusted.</span></div>
-      </div>
+  <section class="sec">
+    <div class="shead">
+      <div><span class="tag">Run it</span><h2>On your repo, <em>with your Bob.</em></h2></div>
+      <p>Settle runs next to your code. Every experiment stays on its own branch.</p>
     </div>
-  </section>
-
-  <section class="band">
-    <p class="eyebrow">Run it</p>
-    <div>
-      <h2>On your repo, with your Bob.</h2>
-      <pre class="code">cd your-app                   # a git repo
+    <div class="steps-run">
+      <div><h3>Three lines to your first proof</h3><p>Write the feature you are about to estimate in <code>prove.yml</code>, give Settle your IBM Bob Shell key, and run it. The evidence board and the plan arrive in about four minutes.</p></div>
+      <pre><span class="c"># in your app's git repo</span>
 echo 'request: Add team accounts' > prove.yml
-export BOB_API_KEY=...        # IBM Bob Shell, Inference scope
-settle prove                  # risks, experiments, evidence, plan</pre>
-      <p class="muted">Settle runs next to your code. Nothing is merged; every experiment stays on its own branch.</p>
+export BOB_API_KEY=...   <span class="c"># Bob Shell, Inference scope</span>
+settle prove             <span class="c"># risks, experiments, evidence, plan</span></pre>
     </div>
   </section>
 
-  <footer class="end">
-    <p class="big">Know before you estimate.</p>
-    <a class="btn" href="runs/prove-2026-09-27T11-29-37/">See a real proof</a>
-    <div class="fine"><span>Settle · built with IBM Bob for the IBM Bob 2.0 Hackathon</span><span><a href="https://github.com/jenzylove/settle">github.com/jenzylove/settle</a></span></div>
+  <section class="sec faq" id="faq">
+    <div class="shead"><div><span class="tag">FAQ</span><h2>Questions, <em>answered.</em></h2></div></div>
+    <details><summary>Is this a chatbot?</summary><p>No. You give it one sentence and it runs experiments. The output is tests that passed or failed against your code, the exact errors, and a plan written from them.</p></details>
+    <details><summary>Why trust what Bob found?</summary><p>You don't have to. Settle reruns every experiment itself, and any experiment that changes an existing file is marked untrusted. Each finding shows the rerun output, Bob's own read, and the test code.</p></details>
+    <details><summary>Does it change my code?</summary><p>No. Experiments run in separate git worktrees and may only add files. Nothing is merged; every experiment stays on its own branch for you to open or delete.</p></details>
+    <details><summary>What does a proof cost?</summary><p>The demo proof took about four minutes and about three Bobcoins: one Bob session to name the risks, one per assumption, and one to write the plan.</p></details>
+    <details><summary>What if Bob picks the wrong risks?</summary><p>The board shows exactly which assumptions were tested, so the team can challenge them. Settle proves or disproves what it tests; it does not claim to find every risk.</p></details>
+  </section>
+
+  <section class="cta-big">
+    <h2>Know <em>before</em> you estimate.</h2>
+    <p>See the proof Settle produced for a real feature request, with every test, error and branch.</p>
+    <a class="pill-btn" href="runs/prove-2026-09-27T11-29-37/">See a real proof <span class="arr">↗</span></a>
+  </section>
+
+  <footer class="foot">
+    <div class="fcols">
+      <div style="max-width:320px"><b>Settle</b>Find the landmines before you estimate. Experiments built by IBM Bob, verified by Settle.</div>
+      <div><b>Product</b><a href="#how">How it works</a><a href="runs/prove-2026-09-27T11-29-37/">Real proof</a><a href="compare/">Design comparison</a></div>
+      <div><b>Project</b><a href="https://github.com/jenzylove/settle">GitHub</a><a href="#faq">FAQ</a></div>
+    </div>
+    <div class="wordmark">settle</div>
+    <div class="fine"><span>Built for the IBM Bob 2.0 Hackathon</span><span>MIT license</span></div>
   </footer>
 </div>
 </body>
