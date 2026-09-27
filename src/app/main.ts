@@ -127,7 +127,7 @@ async function debateView() {
       <div class="actions">
         ${
           ro
-            ? `<a class="btn" id="watch" href="${latest ? `#/run/${latest}` : "#/runs"}">Watch Bob build it</a><span class="muted">Runs build real code, so they happen on your machine: <code>npx settle ui</code> in your repo. <a href="${REPO}">How to run it</a></span>`
+            ? `<a class="btn" id="watch" href="${latest ? `#/run/${latest}` : "#/runs"}">Watch Bob build it</a><span class="muted">Runs build real code, so they happen on your machine with <code>settle ui</code>. <a href="${REPO}">How to run it</a></span>`
             : `<button class="btn" id="run" type="button">Build every option with Bob</button><button class="btn ghost" id="save" type="button">Save</button><span class="muted" id="msg">${esc(d.path ?? "")}</span>`
         }
       </div>
