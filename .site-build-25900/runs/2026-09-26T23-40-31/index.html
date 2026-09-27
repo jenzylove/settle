@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settle Results</title>
+<meta name="description" content="How do we make the top customers endpoint fast?">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #ffffff; --fg: #0b0b0c; --muted: #6b6b70; --line: #e4e4e7; --soft: #f5f5f6; --faint: #a1a1a6; --strong: #0b0b0c;
+  --sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #0b0b0c; --fg: #f4f4f5; --muted: #9a9aa2; --line: #26262b; --soft: #141417; --faint: #5c5c62; --strong: #f4f4f5; }
+}
+:root[data-theme="dark"] { --bg: #0b0b0c; --fg: #f4f4f5; --muted: #9a9aa2; --line: #26262b; --soft: #141417; --faint: #5c5c62; --strong: #f4f4f5; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+header.bar { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.tagline { margin-left: 10px; }
+@media (max-width: 720px) { .tagline { display: none; } }
+.brand { font-weight: 800; letter-spacing: -0.02em; font-size: 18px; }
+.muted { color: var(--muted); }
+.hero { text-align: center; padding: 72px 0 40px; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+h1 { font-size: clamp(32px, 5.4vw, 64px); line-height: 1.04; letter-spacing: -0.035em; font-weight: 800; margin: 18px auto 18px; max-width: 16ch; }
+.sub { color: var(--muted); max-width: 60ch; margin: 0 auto; }
+.verdict { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 36px 0; display: grid; grid-template-columns: 200px 1fr; gap: 24px; }
+.verdict .k { font: 500 12px/1.4 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); padding-top: 8px; }
+.verdict p { margin: 0; color: var(--muted); max-width: 80ch; }
+.verdict .h { font-size: clamp(22px, 3vw, 32px); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; margin: 0 0 10px; color: var(--fg); }
+.tablewrap { overflow-x: auto; margin: 40px 0 8px; }
+table { border-collapse: collapse; width: 100%; min-width: 720px; }
+th, td { text-align: left; padding: 16px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+thead th { border-bottom: 2px solid var(--strong); font-weight: 600; font-size: 15px; padding-top: 0; }
+thead th.win { border-bottom-width: 4px; }
+tbody th { font-weight: 500; width: 210px; }
+.rl { display: block; }
+.rn { display: block; font: 400 12px/1.4 var(--mono); color: var(--muted); margin-top: 2px; }
+td { font: 500 15px/1.4 var(--mono); white-space: nowrap; }
+td.base { color: var(--muted); }
+td.win { font-weight: 600; background: var(--soft); }
+th.win { background: var(--soft); }
+.mk { display: inline-block; margin-left: 8px; font-family: var(--sans); font-weight: 800; }
+.mk.no { color: var(--muted); }
+.tag { display: inline-block; font: 600 10px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid var(--strong); padding: 4px 6px; margin-right: 8px; vertical-align: 2px; }
+.oname { white-space: nowrap; }
+.legend { font: 400 12px/1.5 var(--mono); color: var(--muted); }
+h2 { font-size: 13px; font: 500 12px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin: 64px 0 8px; }
+.opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 0 32px; border-top: 1px solid var(--line); }
+.opt { padding: 24px 0; border-bottom: 1px solid var(--line); }
+.opt h3 { margin: 0 0 8px; font-size: 20px; letter-spacing: -0.01em; }
+.opt p { margin: 0 0 10px; color: var(--muted); }
+.opt .err { color: var(--fg); font-weight: 600; }
+.meta { font-size: 13px; }
+code { font-family: var(--mono); font-size: 0.86em; }
+.files { list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--muted); }
+.appx { position: relative; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.appx pre { margin: 0; padding: 24px 0; overflow-x: auto; font: 13px/1.6 var(--mono); color: var(--muted); white-space: pre; }
+button { font: 600 14px/1 var(--sans); background: var(--fg); color: var(--bg); border: 0; padding: 12px 18px; cursor: pointer; margin-top: 16px; }
+button:focus-visible { outline: 2px solid var(--fg); outline-offset: 3px; }
+footer { padding: 56px 0 40px; font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+@media (max-width: 720px) {
+  .verdict { grid-template-columns: 1fr; gap: 8px; }
+  .hero { padding: 48px 0 28px; }
+}
+button.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); margin: 0; padding: 8px 12px; font-size: 13px; }
+.mapsec { padding: 36px 0 12px; border-bottom: 1px solid var(--line); }
+.maphead { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; margin-bottom: 8px; }
+.maphead .k { font: 500 12px/1.4 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.mapnote { margin: 0; color: var(--muted); max-width: 70ch; }
+.map { position: relative; touch-action: none; user-select: none; -webkit-user-select: none; }
+.map svg { width: 100%; height: auto; display: block; overflow: visible; }
+.map .zone { fill: var(--soft); }
+.map .gl { stroke: var(--line); stroke-width: 1; }
+.map .ax { stroke: var(--strong); stroke-width: 1.5; }
+.map .tk { font: 500 13px var(--mono); fill: var(--muted); }
+.map .at { font: 500 12px var(--mono); fill: var(--muted); letter-spacing: 0.04em; }
+.map .ll { stroke: var(--fg); stroke-width: 2; stroke-dasharray: 6 5; }
+.map .drag { fill: transparent; }
+.map .lim-x .drag, .map .lim-x .knob { cursor: ew-resize; }
+.map .lim-y .drag, .map .lim-y .knob { cursor: ns-resize; }
+.map .knob { fill: var(--fg); }
+.map .kt { font: 600 12px var(--mono); fill: var(--bg); pointer-events: none; }
+.map g:focus { outline: none; }
+.map .lim-x:focus-visible .knob, .map .lim-y:focus-visible .knob { stroke: var(--muted); stroke-width: 4; }
+.map .pt:focus-visible .mk { stroke-width: 4; }
+.map .hit { fill: transparent; }
+.map .ld { stroke: var(--faint); stroke-width: 1; }
+.map .mk { stroke: var(--fg); stroke-width: 2; fill: var(--bg); }
+.map .pt.win .mk { fill: var(--fg); }
+.map .pt.no .mk { stroke: var(--faint); }
+.map .pt.base .mk { stroke: var(--faint); stroke-dasharray: 3 3; }
+.map .pl { font: 700 17px var(--sans); fill: var(--fg); letter-spacing: -0.01em; }
+.map .pt.no .pl, .map .pt.base .pl { fill: var(--muted); font-weight: 600; }
+.map .pv { font: 500 12px var(--mono); fill: var(--muted); }
+.tip { position: absolute; pointer-events: none; background: var(--fg); color: var(--bg); font: 500 12px/1.5 var(--mono); padding: 8px 10px; white-space: nowrap; transform: translate(-50%, calc(-100% - 14px)); }
+.tip b { font: 700 13px var(--sans); display: block; }
+.trust { border-top: 1px solid var(--line); }
+.trow { display: grid; grid-template-columns: 220px 1fr; gap: 24px; padding: 14px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.trow > span:last-child { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+.tk2 { font-weight: 600; }
+@media (max-width: 720px) { .trow { grid-template-columns: 1fr; gap: 4px; } }
+.opts { grid-template-columns: 1fr !important; }
+.opt { display: grid; grid-template-columns: 300px minmax(0, 1fr); column-gap: 40px; align-items: start; }
+.opt > * { grid-column: 1; min-width: 0; }
+.opt > .codebox { grid-column: 2; grid-row: 1 / span 12; }
+.codebox summary { cursor: pointer; font: 500 12px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 4px 0 10px; }
+.codebox[open] summary { color: var(--fg); }
+pre.code { margin: 0; font: 12.5px/1.6 var(--mono); overflow: auto; max-height: 460px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 12px 0; white-space: pre; }
+pre.code .cf { display: block; font-weight: 600; color: var(--fg); padding: 10px 0 4px; }
+pre.code .ch { display: block; color: var(--faint); }
+pre.code .ca { display: block; background: var(--soft); color: var(--fg); }
+pre.code .cd { display: block; color: var(--faint); text-decoration: line-through; }
+pre.code .cc { display: block; color: var(--muted); }
+@media (max-width: 820px) { .opt { grid-template-columns: 1fr; } .opt > .codebox { grid-column: 1; grid-row: auto; } .map .pv { display: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="bar">
+    <span><span class="brand">Settle</span> <span class="muted tagline">builds every option with IBM Bob, then measures them</span></span>
+    <span class="muted">2026-09-26 23:48 UTC · base <code>9ec6b19</code></span>
+  </header>
+
+  <section class="hero">
+    <div class="eyebrow">The question</div>
+    <h1>How do we make the top customers endpoint fast?</h1>
+    <p class="sub">3 of 3 options built by IBM Bob in parallel, each in its own branch, then measured with the same 15 second load test at concurrency 8.</p>
+  </section>
+
+  <section class="verdict" id="verdict" aria-live="polite">
+<div class="k">Verdict</div>
+<div>
+  <p class="h">Materialized view meets every constraint with the smallest change.</p>
+  <p>Materialized view: p95 12.3 ms, 84 lines of code changed, 0 new dependencies. Cache fails staleness (60.1 s, needs ≤ 15 s); Index and rewrite fails p95 latency (394.2 ms, needs ≤ 50 ms).</p>
+</div>
+  </section>
+
+  <section class="mapsec">
+    <div class="maphead">
+      <div>
+        <p class="k">Decision map</p>
+        <p class="mapnote">Each dot is one option Bob built. Drag the two lines to set your limits. Anything in the shaded corner is good enough, and the smallest change in there wins.</p>
+      </div>
+      <div class="readout"><button type="button" class="ghost" id="reset" hidden>Back to recorded limits</button></div>
+    </div>
+    <div class="map" id="map">
+<svg viewBox="0 0 1000 500" role="img" aria-label="Decision map: p95 latency against staleness, with your limits" data-scale='{"w":1000,"h":500,"left":86,"right":40,"top":28,"bottom":64,"lmin":0,"lmax":3.7,"smax":75}'>
+  <rect class="zone" x="86" y="354.4" width="401.3242658891028" height="81.60000000000002"/>
+  <line class="gl" x1="86" x2="86" y1="28" y2="436"/><text class="tk" x="86" y="460" text-anchor="middle">1 ms</text><line class="gl" x1="322.21621621621614" x2="322.21621621621614" y1="28" y2="436"/><text class="tk" x="322.21621621621614" y="460" text-anchor="middle">10 ms</text><line class="gl" x1="558.4324324324323" x2="558.4324324324323" y1="28" y2="436"/><text class="tk" x="558.4324324324323" y="460" text-anchor="middle">100 ms</text><line class="gl" x1="794.6486486486486" x2="794.6486486486486" y1="28" y2="436"/><text class="tk" x="794.6486486486486" y="460" text-anchor="middle">1 s</text><line class="gl" x1="86" x2="960" y1="436" y2="436"/><text class="tk" x="74" y="440" text-anchor="end">fresh</text><line class="gl" x1="86" x2="960" y1="354.4" y2="354.4"/><text class="tk" x="74" y="358.4" text-anchor="end">15 s</text><line class="gl" x1="86" x2="960" y1="272.79999999999995" y2="272.79999999999995"/><text class="tk" x="74" y="276.79999999999995" text-anchor="end">30 s</text><line class="gl" x1="86" x2="960" y1="191.20000000000002" y2="191.20000000000002"/><text class="tk" x="74" y="195.20000000000002" text-anchor="end">45 s</text><line class="gl" x1="86" x2="960" y1="109.59999999999997" y2="109.59999999999997"/><text class="tk" x="74" y="113.59999999999997" text-anchor="end">60 s</text><line class="gl" x1="86" x2="960" y1="28" y2="28"/><text class="tk" x="74" y="32" text-anchor="end">75 s</text>
+  <line class="ax" x1="86" x2="960" y1="436" y2="436"/>
+  <text class="at" x="960" y="486" text-anchor="end">p95 latency, log scale →</text>
+  <text class="at" x="74" y="18" text-anchor="end">↑ staleness</text>
+  <g class="lim-x" tabindex="0" role="slider" aria-label="p95 latency limit" aria-valuenow="50" aria-valuetext="50 ms">
+  <rect class="drag" x="473.3242658891028" y="28" width="28" height="408"/>
+  <line class="ll" x1="487.3242658891028" x2="487.3242658891028" y1="28" y2="436"/>
+  <rect class="knob" x="453.3242658891028" y="26" width="68" height="22" rx="11"/>
+  <text class="kt" x="487.3242658891028" y="41" text-anchor="middle">≤ 50 ms</text>
+</g><g class="lim-y" tabindex="0" role="slider" aria-label="Staleness limit" aria-valuenow="15" aria-valuetext="15 seconds">
+  <rect class="drag" x="86" y="340.4" width="874" height="28"/>
+  <line class="ll" x1="86" x2="960" y1="354.4" y2="354.4"/>
+  <rect class="knob" x="890" y="343.4" width="70" height="22" rx="11"/>
+  <text class="kt" x="925" y="358.4" text-anchor="middle">≤ 15 s</text>
+</g>
+  <g class="pt no" data-tip="Cache|p95 2 ms|up to 60.1 s stale|+22 −0 lines" tabindex="0" aria-label="Cache, p95 2 ms, up to 60.1 s stale, +22 −0 lines">
+  <circle class="hit" cx="157.10816654332962" cy="109.05599999999998" r="22"/>
+  
+  <circle class="mk" cx="157.10816654332962" cy="109.05599999999998" r="9"/>
+  <text class="pl" x="175.10816654332962" y="97.05599999999998" text-anchor="start">Cache</text>
+  <text class="pv" x="175.10816654332962" y="117.05599999999998" text-anchor="start">2 ms · 60.1 s stale</text>
+</g><g class="pt win" data-tip="Materialized view|p95 12 ms|up to 5.3 s stale|+71 −13 lines" tabindex="0" aria-label="Materialized view, p95 12 ms, up to 5.3 s stale, +71 −13 lines">
+  <circle class="hit" cx="343.45326145892807" cy="407.168" r="22"/>
+  
+  <circle class="mk" cx="343.45326145892807" cy="407.168" r="11"/>
+  <text class="pl" x="361.45326145892807" y="395.168" text-anchor="start">Materialized view · pick</text>
+  <text class="pv" x="361.45326145892807" y="415.168" text-anchor="start">12 ms · 5.3 s stale</text>
+</g><g class="pt no" data-tip="Index and rewrite|p95 394 ms|fresh|+8 −0 lines" tabindex="0" aria-label="Index and rewrite, p95 394 ms, fresh, +8 −0 lines">
+  <circle class="hit" cx="699.1503583325818" cy="436" r="22"/>
+  
+  <circle class="mk" cx="699.1503583325818" cy="436" r="9"/>
+  <text class="pl" x="717.1503583325818" y="424" text-anchor="start">Index and rewrite</text>
+  <text class="pv" x="717.1503583325818" y="444" text-anchor="start">394 ms · fresh</text>
+</g><g class="pt base" data-tip="Today (no change)|p95 617 ms|fresh|today&#39;s code" tabindex="0" aria-label="Today (no change), p95 617 ms, fresh, today&#39;s code">
+  <circle class="hit" cx="745.0440748165643" cy="435.456" r="22"/>
+  <line class="ld" x1="745.0440748165643" y1="425.456" x2="727.0440748165643" y2="361.456"/>
+  <rect class="mk" x="738.0440748165643" y="428.456" width="14" height="14" transform="rotate(45 745.0440748165643 435.456)"/>
+  <text class="pl" x="727.0440748165643" y="347.456" text-anchor="end">Today (no change)</text>
+  <text class="pv" x="727.0440748165643" y="367.456" text-anchor="end">617 ms · fresh</text>
+</g>
+</svg>
+      <div class="tip" id="tip" hidden></div>
+    </div>
+  </section>
+
+  <div class="tablewrap" id="table">
+<table>
+  <thead><tr><th scope="col"><span class="muted">Measured</span></th><th class="base" scope="col"><span class="oname">Today (no change)</span></th><th class="" scope="col"><span class="oname">Cache</span></th><th class="win" scope="col"><span class="tag">Pick</span><span class="oname">Materialized view</span></th><th class="" scope="col"><span class="oname">Index and rewrite</span></th></tr></thead>
+  <tbody>
+<tr>
+  <th scope="row"><span class="rl">p95 latency</span><span class="rn">needs ≤ 50 ms</span></th>
+  <td class="base">617 ms</td><td class="">2 ms<span class="mk ok" title="meets constraint">✓</span></td><td class="win">12 ms<span class="mk ok" title="meets constraint">✓</span></td><td class="">394 ms<span class="mk no" title="misses constraint">✕</span></td>
+</tr>
+<tr>
+  <th scope="row"><span class="rl">Requests</span><span class="rn">failed requests disqualify</span></th>
+  <td class="base">213 · 0 failed</td><td class="">105,169 · 0 failed</td><td class="win">15,664 · 0 failed</td><td class="">426 · 0 failed</td>
+</tr>
+<tr>
+  <th scope="row"><span class="rl">Median latency</span></th>
+  <td class="base">584 ms</td><td class="">1 ms</td><td class="win">7 ms</td><td class="">275 ms</td>
+</tr>
+<tr>
+  <th scope="row"><span class="rl">Throughput</span></th>
+  <td class="base">14.2 req/s</td><td class="">7011.3 req/s</td><td class="win">1044.3 req/s</td><td class="">28.4 req/s</td>
+</tr>
+<tr>
+  <th scope="row"><span class="rl">Staleness</span><span class="rn">needs ≤ 15 s</span></th>
+  <td class="base">instant</td><td class="">60.1 s<span class="mk no" title="misses constraint">✕</span></td><td class="win">5.3 s<span class="mk ok" title="meets constraint">✓</span></td><td class="">instant<span class="mk ok" title="meets constraint">✓</span></td>
+</tr>
+<tr>
+  <th scope="row"><span class="rl">Code changed</span><span class="rn">application code, tests excluded</span></th>
+  <td class="base">+0 −0</td><td class="">+22 −0</td><td class="win">+71 −13</td><td class="">+8 −0</td>
+</tr>
+<tr>
+  <th scope="row"><span class="rl">Tests added</span></th>
+  <td class="base">+0 lines</td><td class="">+50 lines</td><td class="win">+63 lines</td><td class="">+51 lines</td>
+</tr>
+<tr>
+  <th scope="row"><span class="rl">Files touched</span></th>
+  <td class="base">0</td><td class="">1</td><td class="win">3</td><td class="">1</td>
+</tr>
+<tr>
+  <th scope="row"><span class="rl">New dependencies</span></th>
+  <td class="base">none</td><td class="">none</td><td class="win">none</td><td class="">none</td>
+</tr>
+<tr>
+  <th scope="row"><span class="rl">Tests</span></th>
+  <td class="base">pass · 3</td><td class="">pass · 6<span class="mk ok" title="meets constraint">✓</span></td><td class="win">pass · 4<span class="mk ok" title="meets constraint">✓</span></td><td class="">pass · 5<span class="mk ok" title="meets constraint">✓</span></td>
+</tr>
+<tr>
+  <th scope="row"><span class="rl">Existing tests</span><span class="rn">must be left untouched</span></th>
+  <td class="base">—</td><td class="">not checked</td><td class="win">not checked</td><td class="">not checked</td>
+</tr>
+<tr>
+  <th scope="row"><span class="rl">Built by Bob in</span></th>
+  <td class="base">—</td><td class="">1m 56s</td><td class="win">2m 13s</td><td class="">2m 11s</td>
+</tr>
+  </tbody>
+</table>
+  </div>
+  <p class="legend">✓ meets the constraint · ✕ misses it · first column is today's code, for reference</p>
+
+  <h2>Trust this comparison</h2>
+  <div id="trust">
+<div class="trust">
+  <div class="trow"><span class="tk2">Base commit</span><span><code>9ec6b196c9fc</code>, every option branched from it</span></div>
+  <div class="trow"><span class="tk2">Load test</span><span>15 s at concurrency 8, one run per option, options measured one at a time</span></div>
+  <div class="trow"><span class="tk2">Disqualifiers</span><span>measurement errors, no successful requests, more than 1% failed requests, a missing freshness result, or changed existing tests</span></div>
+  <div class="trow"><span class="tk2">Cache</span><span>— · —</span></div><div class="trow"><span class="tk2">Materialized view</span><span>— · —</span></div><div class="trow"><span class="tk2">Index and rewrite</span><span>— · —</span></div>
+  <div class="trow"><span class="tk2">Today&#39;s code</span><span>213 requests, 0 failed</span></div>
+  <div class="trow"><span class="tk2">Machine</span><span>not recorded for this run</span></div>
+</div>
+  </div>
+
+  <h2>The options</h2>
+  <div class="opts" id="options">
+<section class="opt">
+  <h3>Cache</h3>
+  <p>Cache the endpoint&#39;s response in memory with a 60 second time to live.</p>
+  
+  
+  <p class="meta">Branch <code>settle/2026-09-26T23-40-31/cache</code></p>
+  <ul class="files"><li><code>demo/orders-api/src/server.ts</code></li></ul>
+  <ul class="files"><li><code>demo/orders-api/test/cache.test.ts</code> <span class="muted">test</span></li></ul>
+  <details class="codebox"><summary>The code Bob wrote</summary><pre class="code"><span class="cf">src/server.ts</span><span class="ch">⋯</span><span class="cc"> }</span><span class="cc"> </span><span class="ca">+// ---------------------------------------------------------------------------</span><span class="ca">+// In-memory cache for the top-customers response.</span><span class="ca">+// Each entry is keyed by the `limit` parameter; entries expire after TTL_MS.</span><span class="ca">+// ---------------------------------------------------------------------------</span><span class="ca">+export const CACHE_TTL_MS = 60_000; // 60 seconds</span><span class="ca">+</span><span class="ca">+interface CacheEntry {</span><span class="ca">+  rows: TopCustomer[];</span><span class="ca">+  expiresAt: number;</span><span class="ca">+}</span><span class="ca">+</span><span class="ca">+// Exported so tests can inspect / clear it.</span><span class="ca">+export const topCustomersCache = new Map&lt;number, CacheEntry&gt;();</span><span class="ca">+</span><span class="cc"> // Top customers by paid revenue over the last 30 days. This is the slow</span><span class="cc"> // endpoint the Settle demo debates how to speed up.</span><span class="cc"> export async function topCustomers(db: PGlite, limit: number): Promise&lt;TopCustomer[]&gt; {</span><span class="ca">+  const now = Date.now();</span><span class="ca">+  const cached = topCustomersCache.get(limit);</span><span class="ca">+  if (cached &amp;&amp; cached.expiresAt &gt; now) {</span><span class="ca">+    return cached.rows;</span><span class="ca">+  }</span><span class="ca">+</span><span class="cc">   const { rows } = await db.query&lt;TopCustomer&gt;(</span><span class="cc">     `SELECT c.id AS customer_id,</span><span class="ch">⋯</span><span class="cc">     [limit],</span><span class="cc">   );</span><span class="ca">+</span><span class="ca">+  topCustomersCache.set(limit, { rows, expiresAt: now + CACHE_TTL_MS });</span><span class="cc">   return rows;</span><span class="cc"> }</span></pre></details>
+</section>
+<section class="opt">
+  <h3>Materialized view <span class="tag">Pick</span></h3>
+  <p>Precompute the ranking in a Postgres materialized view and refresh it in the background every 5 seconds.</p>
+  
+  
+  <p class="meta">Branch <code>settle/2026-09-26T23-40-31/matview</code></p>
+  <ul class="files"><li><code>demo/orders-api/src/db.ts</code></li><li><code>demo/orders-api/src/index.ts</code></li><li><code>demo/orders-api/src/server.ts</code></li></ul>
+  <ul class="files"><li><code>demo/orders-api/test/matview.test.ts</code> <span class="muted">test</span></li></ul>
+  <details class="codebox" open><summary>The code Bob wrote</summary><pre class="code"><span class="cf">src/db.ts</span><span class="ch">⋯</span><span class="cc"> </span><span class="cc">     ANALYZE;</span><span class="ca">+</span><span class="ca">+    -- Materialized view: precomputed top-customers ranking (last 30 days, paid).</span><span class="ca">+    -- Populated immediately so the first request is fast even before the</span><span class="ca">+    -- first background refresh fires.</span><span class="ca">+    CREATE MATERIALIZED VIEW top_customers_mv AS</span><span class="ca">+    SELECT c.id AS customer_id,</span><span class="ca">+           c.name,</span><span class="ca">+           sum(o.amount_cents)::int AS revenue_cents,</span><span class="ca">+           count(*)::int           AS orders</span><span class="ca">+    FROM orders o</span><span class="ca">+    JOIN customers c ON c.id = o.customer_id</span><span class="ca">+    WHERE o.status = &#39;paid&#39;</span><span class="ca">+      AND o.created_at &gt; now() - interval &#39;30 days&#39;</span><span class="ca">+    GROUP BY c.id, c.name</span><span class="ca">+    ORDER BY revenue_cents DESC;</span><span class="ca">+</span><span class="ca">+    -- Index lets REFRESH MATERIALIZED VIEW CONCURRENTLY work and also makes</span><span class="ca">+    -- per-customer lookups O(log n).</span><span class="ca">+    CREATE UNIQUE INDEX top_customers_mv_customer_id</span><span class="ca">+      ON top_customers_mv (customer_id);</span><span class="ca">+</span><span class="ca">+    -- Index used by the endpoint query to return the top-N rows cheaply.</span><span class="ca">+    CREATE INDEX top_customers_mv_revenue</span><span class="ca">+      ON top_customers_mv (revenue_cents DESC);</span><span class="cc">   `);</span><span class="cc">   return db;</span><span class="cf">src/index.ts</span><span class="ch">⋯</span><span class="cc"> import { openDb } from &quot;./db.ts&quot;;</span><span class="cd">-import { buildServer } from &quot;./server.ts&quot;;</span><span class="ca">+import { buildServer, startMatviewRefresh } from &quot;./server.ts&quot;;</span><span class="cc"> </span><span class="cc"> const port = Number(process.env.PORT ?? 3000);</span><span class="cc"> const started = Date.now();</span><span class="cc"> const db = await openDb();</span><span class="cd">-buildServer(db).listen(port, () =&gt; {</span><span class="ca">+const stopRefresh = startMatviewRefresh(db, 5_000);</span><span class="ca">+const server = buildServer(db).listen(port, () =&gt; {</span><span class="cc">   console.log(`orders-api listening on ${port} (seeded in ${Date.now() - started} ms)`);</span><span class="cc"> });</span><span class="ca">+</span><span class="ca">+// Graceful shutdown: stop the background refresh before closing the server.</span><span class="ca">+for (const sig of [&quot;SIGTERM&quot;, &quot;SIGINT&quot;] as const) {</span><span class="ca">+  process.once(sig, async () =&gt; {</span><span class="ca">+    await stopRefresh();</span><span class="ca">+    server.close(() =&gt; process.exit(0));</span><span class="ca">+  });</span><span class="ca">+}</span><span class="cf">src/server.ts</span><span class="ch">⋯</span><span class="cc"> }</span><span class="cc"> </span><span class="cd">-// Top customers by paid revenue over the last 30 days. This is the slow</span><span class="cd">-// endpoint the Settle demo debates how to speed up.</span><span class="ca">+// Reads pre-computed results from the materialized view.  The view is</span><span class="ca">+// refreshed in the background by startMatviewRefresh() so this query is</span><span class="ca">+// essentially a single index scan — no aggregation at query time.</span><span class="cc"> export async function topCustomers(db: PGlite, limit: number): Promise&lt;TopCustomer[]&gt; {</span><span class="cc">   const { rows } = await db.query&lt;TopCustomer&gt;(</span><span class="cd">-    `SELECT c.id AS customer_id,</span><span class="cd">-            c.name,</span><span class="cd">-            sum(o.amount_cents)::int AS revenue_cents,</span><span class="cd">-            count(*)::int AS orders</span><span class="cd">-     FROM orders o</span><span class="cd">-     JOIN customers c ON c.id = o.customer_id</span><span class="cd">-     WHERE o.status = &#39;paid&#39;</span><span class="cd">-       AND o.created_at &gt; now() - interval &#39;30 days&#39;</span><span class="cd">-     GROUP BY c.id, c.name</span><span class="ca">+    `SELECT customer_id, name, revenue_cents, orders</span><span class="ca">+     FROM top_customers_mv</span><span class="cc">      ORDER BY revenue_cents DESC</span><span class="cc">      LIMIT $1`,</span><span class="ch">⋯</span><span class="cc"> }</span><span class="cc"> </span><span class="ca">+// Refreshes the materialized view every intervalMs milliseconds using</span><span class="ca">+// CONCURRENT refresh so readers are never blocked.  Returns a stop function</span><span class="ca">+// that cancels the next scheduled refresh and resolves when any in-flight</span><span class="ca">+// refresh has finished — useful in tests and graceful-shutdown handlers.</span><span class="ca">+export function startMatviewRefresh(db: PGlite, intervalMs = 5_000): () =&gt; Promise&lt;void&gt; {</span><span class="ca">+  let stopped = false;</span><span class="ca">+  // Track the in-flight refresh promise so stop() can await it.</span><span class="ca">+  let inFlight: Promise&lt;void&gt; = Promise.resolve();</span><span class="ca">+</span><span class="ca">+  const schedule = (): void =&gt; {</span><span class="ca">+    if (stopped) return;</span><span class="ca">+    inFlight = db</span><span class="ca">+      .exec(&quot;REFRESH MATERIALIZED VIEW CONCURRENTLY top_customers_mv&quot;)</span><span class="ca">+      .then(() =&gt; {</span><span class="ca">+        if (!stopped) setTimeout(schedule, intervalMs);</span><span class="ca">+      })</span><span class="ca">+      .catch((err) =&gt; {</span><span class="ca">+        // Log but do not crash the server — stale data is better than no data.</span><span class="ca">+        console.error(&quot;matview refresh failed:&quot;, err);</span><span class="ca">+        if (!stopped) setTimeout(schedule, intervalMs);</span><span class="ca">+      });</span><span class="ca">+  };</span><span class="ca">+</span><span class="ca">+  setTimeout(schedule, intervalMs);</span><span class="ca">+</span><span class="ca">+  return () =&gt; {</span><span class="ca">+    stopped = true;</span><span class="ca">+    return inFlight;</span><span class="ca">+  };</span><span class="ca">+}</span><span class="ca">+</span><span class="cc"> export async function createOrder(db: PGlite, customerId: number, amountCents: number): Promise&lt;number&gt; {</span><span class="cc">   const { rows } = await db.query&lt;{ id: number }&gt;(</span></pre></details>
+</section>
+<section class="opt">
+  <h3>Index and rewrite</h3>
+  <p>Add the right index or indexes and rewrite the query so Postgres does less work. No caching and no precomputed tables.</p>
+  
+  
+  <p class="meta">Branch <code>settle/2026-09-26T23-40-31/index</code></p>
+  <ul class="files"><li><code>demo/orders-api/src/db.ts</code></li></ul>
+  <ul class="files"><li><code>demo/orders-api/test/index.test.ts</code> <span class="muted">test</span></li></ul>
+  <details class="codebox"><summary>The code Bob wrote</summary><pre class="code"><span class="cf">src/db.ts</span><span class="ch">⋯</span><span class="cc">     FROM generate_series(1, ${ORDERS});</span><span class="cc"> </span><span class="ca">+    -- Partial composite index: covers the WHERE status=&#39;paid&#39; filter with a</span><span class="ca">+    -- partial predicate, then lets Postgres range-scan on created_at and</span><span class="ca">+    -- read customer_id + amount_cents straight from the index leaf pages.</span><span class="ca">+    -- This eliminates the full 200 k-row sequential scan on every request.</span><span class="ca">+    CREATE INDEX idx_orders_paid_created_at</span><span class="ca">+      ON orders (created_at DESC, customer_id, amount_cents)</span><span class="ca">+      WHERE status = &#39;paid&#39;;</span><span class="ca">+</span><span class="cc">     ANALYZE;</span><span class="cc">   `);</span></pre></details>
+</section>
+  </div>
+
+  <h2>Design doc appendix</h2>
+  <div class="appx"><pre id="appendix">## Appendix: measured comparison
+
+**Question:** How do we make the top customers endpoint fast?
+
+Each option was built by IBM Bob in its own branch from `9ec6b19`, then measured with the same load test (15 s at concurrency 8) and the same staleness probe.
+
+| | Today (no change) | Cache | Materialized view | Index and rewrite |
+|---|---|---|---|---|
+| p95 latency | 617 ms | 2 ms | 12 ms | 394 ms |
+| Requests | 213 · 0 failed | 105,169 · 0 failed | 15,664 · 0 failed | 426 · 0 failed |
+| Median latency | 584 ms | 1 ms | 7 ms | 275 ms |
+| Throughput | 14.2 req/s | 7011.3 req/s | 1044.3 req/s | 28.4 req/s |
+| Staleness | instant | 60.1 s | 5.3 s | instant |
+| Code changed | +0 −0 | +22 −0 | +71 −13 | +8 −0 |
+| Tests added | +0 lines | +50 lines | +63 lines | +51 lines |
+| Files touched | 0 | 1 | 3 | 1 |
+| New dependencies | none | none | none | none |
+| Tests | pass · 3 | pass · 6 | pass · 4 | pass · 5 |
+| Existing tests | — | not checked | not checked | not checked |
+| Built by Bob in | — | 1m 56s | 2m 13s | 2m 11s |
+
+**Constraints:** `max_p95_ms: 50`, `max_staleness_seconds: 15`, `tests_must_pass: true`
+
+**Verdict:** Materialized view meets every constraint with the smallest change. Materialized view: p95 12.3 ms, 84 lines of code changed, 0 new dependencies. Cache fails staleness (60.1 s, needs ≤ 15 s); Index and rewrite fails p95 latency (394.2 ms, needs ≤ 50 ms).
+
+**Branches:**
+- Cache: `settle/2026-09-26T23-40-31/cache`
+- Materialized view: `settle/2026-09-26T23-40-31/matview`
+- Index and rewrite: `settle/2026-09-26T23-40-31/index`
+
+_Generated by Settle on 2026-09-26._
+</pre></div>
+  <button id="copy" type="button">Copy appendix</button>
+
+  <footer>
+    <span>Settle · options built with IBM Bob</span>
+    <span>Numbers from this machine, this data, this run.</span>
+  </footer>
+</div>
+<script type="application/json" id="run-data">{"question":"How do we make the top customers endpoint fast?","context":"GET /stats/top-customers ranks customers by paid revenue over the last 30 days. It scans about 200,000 orders on every call and is slow under load. The sales dashboard polls it, and account managers use it right after closing large orders, so results must not lag far behind new orders.\n","created_at":"2026-09-26T23:48:22.120Z","base_commit":"9ec6b196c9fcaaffeb05601c3a12c70ae68074d7","app_path":"demo/orders-api","constraints":{"max_p95_ms":50,"max_staleness_seconds":15,"tests_must_pass":true},"load":{"request":{"method":"GET","path":"/stats/top-customers?limit=10"},"duration_seconds":15,"concurrency":8,"warmup_seconds":3},"baseline":{"id":"baseline","name":"Today (no change)","description":"The code as it is now.","branch":"settle/2026-09-26T23-40-31/baseline","built":true,"diff":{"added":0,"removed":0,"files":[],"test_added":0,"test_files":[]},"new_dependencies":[],"tests":{"ok":true,"passed":3,"failed":0},"load":{"requests":213,"errors":0,"rps":14.2,"p50_ms":584.1,"p95_ms":616.6,"p99_ms":640.9},"freshness":{"probes":3,"lags_seconds":[0.1,0.1,0.1],"max_seconds":0.1,"median_seconds":0.1,"timed_out":0}},"options":[{"id":"cache","name":"Cache","description":"Cache the endpoint's response in memory with a 60 second time to live.","branch":"settle/2026-09-26T23-40-31/cache","built":true,"bob":{"duration_seconds":116,"summary":{"type":"result","timestamp":"2026-09-26T23:42:28.453Z","status":"success","stats":{"task_id":"b3a27f489a71d7fe9fdfc5c0761f59fe","duration_ms":113344,"session_costs":0.486064,"max_cost":0,"tool_calls":13},"last_message":"---\n\n## Summary\n\n### What changed\n\n**[`src/server.ts`](demo/orders-api/src/server.ts)**\n\nAdded a module-level `Map\u003cnumber, CacheEntry>` called `topCustomersCache`. Each entry stores the result rows and an `expiresAt` timestamp. `CACHE_TTL_MS` is set to `60_000` (60 seconds).\n\n[`topCustomers()`](demo/orders-api/src/server.ts:50) now:\n1. Checks the cache first. On a hit (entry exists and `expiresAt > now()`), returns the cached rows immediately — zero DB work.\n2. On a miss or expired entry, runs the existing SQL query unchanged and writes the result back into the cache.\n\nThe HTTP route, request/response shape, and all existing code are untouched.\n\n**[`test/cache.test.ts`](demo/orders-api/test/cache.test.ts)** — 3 new tests:\n- Cache hit returns the same array reference (no re-query).\n- Different `limit` values are cached under independent keys.\n- An expired entry is discarded and a fresh query runs, updating the cache with a new TTL.\n\nNo new runtime dependency — the cache is a plain JS `Map`.\n\n### Tradeoff chosen\n\n**Staleness window**: a new order placed within the 60-second window will not appear in the ranking until the cache expires. That's acceptable given the stated constraint (\"results must not lag *far* behind new orders\" — 60 s fits a dashboard polling scenario and is the exact TTL specified).\n\n**Per-`limit` granularity**: each distinct `limit` value gets its own cache entry. In practice the dashboard almost certainly uses a fixed limit, so this causes no waste. If the API were called with many different limits under load, the first call per limit would still hit the DB; that's a rare edge case versus the typical steady-state polling pattern."}},"diff":{"added":22,"removed":0,"files":["demo/orders-api/src/server.ts"],"test_added":50,"test_files":["demo/orders-api/test/cache.test.ts"],"patch":"diff --git a/demo/orders-api/src/server.ts b/demo/orders-api/src/server.ts\nindex a612221..757547a 100644\n--- a/demo/orders-api/src/server.ts\n+++ b/demo/orders-api/src/server.ts\n@@ -9,7 +9,27 @@ export interface TopCustomer {\n }\n \n+// ---------------------------------------------------------------------------\n+// In-memory cache for the top-customers response.\n+// Each entry is keyed by the `limit` parameter; entries expire after TTL_MS.\n+// ---------------------------------------------------------------------------\n+export const CACHE_TTL_MS = 60_000; // 60 seconds\n+\n+interface CacheEntry {\n+  rows: TopCustomer[];\n+  expiresAt: number;\n+}\n+\n+// Exported so tests can inspect / clear it.\n+export const topCustomersCache = new Map\u003cnumber, CacheEntry>();\n+\n // Top customers by paid revenue over the last 30 days. This is the slow\n // endpoint the Settle demo debates how to speed up.\n export async function topCustomers(db: PGlite, limit: number): Promise\u003cTopCustomer[]> {\n+  const now = Date.now();\n+  const cached = topCustomersCache.get(limit);\n+  if (cached && cached.expiresAt > now) {\n+    return cached.rows;\n+  }\n+\n   const { rows } = await db.query\u003cTopCustomer>(\n     `SELECT c.id AS customer_id,\n@@ -26,4 +46,6 @@ export async function topCustomers(db: PGlite, limit: number): Promise\u003cTopCustom\n     [limit],\n   );\n+\n+  topCustomersCache.set(limit, { rows, expiresAt: now + CACHE_TTL_MS });\n   return rows;\n }"},"new_dependencies":[],"tests":{"ok":true,"passed":6,"failed":0},"load":{"requests":105169,"errors":0,"rps":7011.3,"p50_ms":1,"p95_ms":2,"p99_ms":3.4},"freshness":{"probes":3,"lags_seconds":[0.1,60.1,60.1],"max_seconds":60.1,"median_seconds":60.1,"timed_out":0}},{"id":"matview","name":"Materialized view","description":"Precompute the ranking in a Postgres materialized view and refresh it in the background every 5 seconds.","branch":"settle/2026-09-26T23-40-31/matview","built":true,"bob":{"duration_seconds":133,"summary":{"type":"result","timestamp":"2026-09-26T23:42:46.226Z","status":"success","stats":{"task_id":"a67f873af5c77e8b4b7183f107bbb73f","duration_ms":130726,"session_costs":0.6390440000000001,"max_cost":0,"tool_calls":16},"last_message":"---\n\n## Summary\n\n### What changed\n\n| File | Change |\n|---|---|\n| [`src/db.ts`](demo/orders-api/src/db.ts) | Added `CREATE MATERIALIZED VIEW top_customers_mv` (same query as the original endpoint), a unique index on `customer_id` (required by `CONCURRENTLY`), and a covering index on `revenue_cents DESC` for cheap top-N scans. The view is populated once during schema setup so the very first request is fast. |\n| [`src/server.ts`](demo/orders-api/src/server.ts) | `topCustomers()` now reads from `top_customers_mv` — a single index scan instead of a full 200 k-row aggregation. Added `startMatviewRefresh()`, which fires `REFRESH MATERIALIZED VIEW CONCURRENTLY top_customers_mv` every 5 seconds, returning a `stop()` function for clean shutdown. |\n| [`src/index.ts`](demo/orders-api/src/index.ts) | Wires `startMatviewRefresh(db, 5_000)` on startup and calls `stop()` on `SIGTERM`/`SIGINT`. |\n| [`test/matview.test.ts`](demo/orders-api/test/matview.test.ts) | New test: posts a very large order, waits for two refresh cycles (200 ms interval in test), and asserts the view reflects the new revenue. |\n\n### Tradeoffs\n\n- **Staleness window**: Results lag behind new orders by up to 5 seconds. This is acceptable for a sales dashboard polling on the order of seconds, and account managers will see their order reflected within one refresh cycle.\n- **`CONCURRENTLY` requirement**: Requires the unique index on `customer_id`. Without it, `CONCURRENTLY` would fall back to a blocking refresh. The index is present from day one.\n- **In-process scheduler**: The refresher lives in the app process rather than a Postgres `pg_cron` job. For a single-process deployment this is fine; a multi-instance deployment would want a dedicated scheduler or advisory-lock guard to avoid redundant concurrent refreshes. Given the workload described (a single API server), keeping it in-process is the smallest correct change."}},"diff":{"added":71,"removed":13,"files":["demo/orders-api/src/db.ts","demo/orders-api/src/index.ts","demo/orders-api/src/server.ts"],"test_added":63,"test_files":["demo/orders-api/test/matview.test.ts"],"patch":"diff --git a/demo/orders-api/src/db.ts b/demo/orders-api/src/db.ts\nindex fa3c0a9..50a8bda 100644\n--- a/demo/orders-api/src/db.ts\n+++ b/demo/orders-api/src/db.ts\n@@ -39,4 +39,28 @@ export async function openDb(): Promise\u003cPGlite> {\n \n     ANALYZE;\n+\n+    -- Materialized view: precomputed top-customers ranking (last 30 days, paid).\n+    -- Populated immediately so the first request is fast even before the\n+    -- first background refresh fires.\n+    CREATE MATERIALIZED VIEW top_customers_mv AS\n+    SELECT c.id AS customer_id,\n+           c.name,\n+           sum(o.amount_cents)::int AS revenue_cents,\n+           count(*)::int           AS orders\n+    FROM orders o\n+    JOIN customers c ON c.id = o.customer_id\n+    WHERE o.status = 'paid'\n+      AND o.created_at > now() - interval '30 days'\n+    GROUP BY c.id, c.name\n+    ORDER BY revenue_cents DESC;\n+\n+    -- Index lets REFRESH MATERIALIZED VIEW CONCURRENTLY work and also makes\n+    -- per-customer lookups O(log n).\n+    CREATE UNIQUE INDEX top_customers_mv_customer_id\n+      ON top_customers_mv (customer_id);\n+\n+    -- Index used by the endpoint query to return the top-N rows cheaply.\n+    CREATE INDEX top_customers_mv_revenue\n+      ON top_customers_mv (revenue_cents DESC);\n   `);\n   return db;\ndiff --git a/demo/orders-api/src/index.ts b/demo/orders-api/src/index.ts\nindex 559ae48..c2e8664 100644\n--- a/demo/orders-api/src/index.ts\n+++ b/demo/orders-api/src/index.ts\n@@ -1,9 +1,18 @@\n import { openDb } from \"./db.ts\";\n-import { buildServer } from \"./server.ts\";\n+import { buildServer, startMatviewRefresh } from \"./server.ts\";\n \n const port = Number(process.env.PORT ?? 3000);\n const started = Date.now();\n const db = await openDb();\n-buildServer(db).listen(port, () => {\n+const stopRefresh = startMatviewRefresh(db, 5_000);\n+const server = buildServer(db).listen(port, () => {\n   console.log(`orders-api listening on ${port} (seeded in ${Date.now() - started} ms)`);\n });\n+\n+// Graceful shutdown: stop the background refresh before closing the server.\n+for (const sig of [\"SIGTERM\", \"SIGINT\"] as const) {\n+  process.once(sig, async () => {\n+    await stopRefresh();\n+    server.close(() => process.exit(0));\n+  });\n+}\ndiff --git a/demo/orders-api/src/server.ts b/demo/orders-api/src/server.ts\nindex a612221..84f8d34 100644\n--- a/demo/orders-api/src/server.ts\n+++ b/demo/orders-api/src/server.ts\n@@ -9,17 +9,11 @@ export interface TopCustomer {\n }\n \n-// Top customers by paid revenue over the last 30 days. This is the slow\n-// endpoint the Settle demo debates how to speed up.\n+// Reads pre-computed results from the materialized view.  The view is\n+// refreshed in the background by startMatviewRefresh() so this query is\n+// essentially a single index scan — no aggregation at query time.\n export async function topCustomers(db: PGlite, limit: number): Promise\u003cTopCustomer[]> {\n   const { rows } = await db.query\u003cTopCustomer>(\n-    `SELECT c.id AS customer_id,\n-            c.name,\n-            sum(o.amount_cents)::int AS revenue_cents,\n-            count(*)::int AS orders\n-     FROM orders o\n-     JOIN customers c ON c.id = o.customer_id\n-     WHERE o.status = 'paid'\n-       AND o.created_at > now() - interval '30 days'\n-     GROUP BY c.id, c.name\n+    `SELECT customer_id, name, revenue_cents, orders\n+     FROM top_customers_mv\n      ORDER BY revenue_cents DESC\n      LIMIT $1`,\n@@ -29,4 +23,35 @@ export async function topCustomers(db: PGlite, limit: number): Promise\u003cTopCustom\n }\n \n+// Refreshes the materialized view every intervalMs milliseconds using\n+// CONCURRENT refresh so readers are never blocked.  Returns a stop function\n+// that cancels the next scheduled refresh and resolves when any in-flight\n+// refresh has finished — useful in tests and graceful-shutdown handlers.\n+export function startMatviewRefresh(db: PGlite, intervalMs = 5_000): () => Promise\u003cvoid> {\n+  let stopped = false;\n+  // Track the in-flight refresh promise so stop() can await it.\n+  let inFlight: Promise\u003cvoid> = Promise.resolve();\n+\n+  const schedule = (): void => {\n+    if (stopped) return;\n+    inFlight = db\n+      .exec(\"REFRESH MATERIALIZED VIEW CONCURRENTLY top_customers_mv\")\n+      .then(() => {\n+        if (!stopped) setTimeout(schedule, intervalMs);\n+      })\n+      .catch((err) => {\n+        // Log but do not crash the server — stale data is better than no data.\n+        console.error(\"matview refresh failed:\", err);\n+        if (!stopped) setTimeout(schedule, intervalMs);\n+      });\n+  };\n+\n+  setTimeout(schedule, intervalMs);\n+\n+  return () => {\n+    stopped = true;\n+    return inFlight;\n+  };\n+}\n+\n export async function createOrder(db: PGlite, customerId: number, amountCents: number): Promise\u003cnumber> {\n   const { rows } = await db.query\u003c{ id: number }>("},"new_dependencies":[],"tests":{"ok":true,"passed":4,"failed":0},"load":{"requests":15664,"errors":0,"rps":1044.3,"p50_ms":6.7,"p95_ms":12.3,"p99_ms":17.2},"freshness":{"probes":3,"lags_seconds":[2.8,5.2,5.3],"max_seconds":5.3,"median_seconds":5.2,"timed_out":0}},{"id":"index","name":"Index and rewrite","description":"Add the right index or indexes and rewrite the query so Postgres does less work. No caching and no precomputed tables.","branch":"settle/2026-09-26T23-40-31/index","built":true,"bob":{"duration_seconds":131,"summary":{"type":"result","timestamp":"2026-09-26T23:42:44.750Z","status":"success","stats":{"task_id":"bc698f113fccc68695c326d19ca67d40","duration_ms":128872,"session_costs":0.60773,"max_cost":0,"tool_calls":17},"last_message":"---\n\n## Summary\n\n### What changed\n\n**[`src/db.ts`](demo/orders-api/src/db.ts)** — one `CREATE INDEX` statement added to the schema setup:\n\n```sql\nCREATE INDEX idx_orders_paid_created_at\n  ON orders (created_at DESC, customer_id, amount_cents)\n  WHERE status = 'paid';\n```\n\n**[`test/index.test.ts`](demo/orders-api/test/index.test.ts)** — two new tests:\n- Confirms the index exists in `pg_indexes` with the right partial predicate.\n- Runs `EXPLAIN` and asserts the plan contains no `Seq Scan on orders`.\n\nNo routes, response shapes, or existing tests were touched.\n\n---\n\n### Why this index\n\nThe `topCustomers` query has three clauses that drive cost:\n\n| Clause | Without index | With index |\n|---|---|---|\n| `WHERE status = 'paid'` | Filter every row | Skipped — partial predicate excludes ~25 % of rows at index-build time and never stores them |\n| `AND created_at > now() - 30 days` | Evaluate on all remaining rows | B-tree range scan; only ~¼ of the paid rows (30 of 120 days) are read |\n| `GROUP BY customer_id` + `SUM(amount_cents)` | Sort/hash 150 k rows | Only ~37 k rows enter the aggregation |\n\nThe column order `(created_at DESC, customer_id, amount_cents)` means:\n- `created_at DESC` is the leading range predicate, so the planner can do a tight index range scan for the 30-day window.\n- `customer_id` and `amount_cents` are **covering** — Postgres can build the aggregate from index leaf pages alone (index-only scan), avoiding heap fetches for those columns entirely.\n\n### Tradeoffs\n\n- **Write overhead**: every new `paid` order must update the index. At this volume (thousands of orders/day rather than millions/second) that overhead is negligible.\n- **No staleness**: unlike caching or a materialised view, results are always current — the account manager sees a new large order the moment it is committed.\n- **Nothing pre-computed**: the aggregation still runs on each request, so cold-cache query time is proportional to the number of paid orders in the 30-day window (~37 k instead of ~200 k). Under high concurrency multiple queries run the same aggregation in parallel; if that becomes a bottleneck the materialised-view option would address it."}},"diff":{"added":8,"removed":0,"files":["demo/orders-api/src/db.ts"],"test_added":51,"test_files":["demo/orders-api/test/index.test.ts"],"patch":"diff --git a/demo/orders-api/src/db.ts b/demo/orders-api/src/db.ts\nindex fa3c0a9..436c48a 100644\n--- a/demo/orders-api/src/db.ts\n+++ b/demo/orders-api/src/db.ts\n@@ -38,4 +38,12 @@ export async function openDb(): Promise\u003cPGlite> {\n     FROM generate_series(1, ${ORDERS});\n \n+    -- Partial composite index: covers the WHERE status='paid' filter with a\n+    -- partial predicate, then lets Postgres range-scan on created_at and\n+    -- read customer_id + amount_cents straight from the index leaf pages.\n+    -- This eliminates the full 200 k-row sequential scan on every request.\n+    CREATE INDEX idx_orders_paid_created_at\n+      ON orders (created_at DESC, customer_id, amount_cents)\n+      WHERE status = 'paid';\n+\n     ANALYZE;\n   `);"},"new_dependencies":[],"tests":{"ok":true,"passed":5,"failed":0},"load":{"requests":426,"errors":0,"rps":28.4,"p50_ms":275.1,"p95_ms":394.2,"p99_ms":434.9},"freshness":{"probes":3,"lags_seconds":[0,0,0],"max_seconds":0,"median_seconds":0,"timed_out":0}}],"verdict":{"winner":"matview","headline":"Materialized view meets every constraint with the smallest change.","reason":"Materialized view: p95 12.3 ms, 84 lines of code changed, 0 new dependencies. Cache fails staleness (60.1 s, needs ≤ 15 s); Index and rewrite fails p95 latency (394.2 ms, needs ≤ 50 ms).","checks":{"cache":[{"label":"p95 latency","limit":"≤ 50 ms","actual":"2 ms","pass":true},{"label":"Staleness","limit":"≤ 15 s","actual":"60.1 s","pass":false},{"label":"Tests","limit":"pass","actual":"pass","pass":true}],"matview":[{"label":"p95 latency","limit":"≤ 50 ms","actual":"12.3 ms","pass":true},{"label":"Staleness","limit":"≤ 15 s","actual":"5.3 s","pass":true},{"label":"Tests","limit":"pass","actual":"pass","pass":true}],"index":[{"label":"p95 latency","limit":"≤ 50 ms","actual":"394.2 ms","pass":false},{"label":"Staleness","limit":"≤ 15 s","actual":"0 s","pass":true},{"label":"Tests","limit":"pass","actual":"pass","pass":true}]}}}</script>
+<script>"use strict";(()=>{function le(e,s){let t=[];if(!e.built||!e.load)return t.push({label:"Built and measured",limit:"yes",actual:"no",pass:!1}),t;let a=e.load.requests-e.load.errors,o=e.load.requests>0?e.load.errors/e.load.requests:1,l=e.load.runs?.find(i=>i.requests>0&&i.errors===i.requests);if(t.push({label:"Measured cleanly",limit:"no errors, \u2264 1% failed requests",actual:e.measure_error?"measurement failed":l?`one run had ${l.errors} errors of ${l.requests} requests`:a<=0?"no successful requests":`${e.load.errors} of ${e.load.requests} failed`,pass:!e.measure_error&&!l&&a>0&&o<=.01}),t.push({label:"Existing tests untouched",limit:"unchanged",actual:e.integrity?.touched.length?`changed ${e.integrity.touched.join(", ")}`:"unchanged",pass:!e.integrity?.touched.length}),s.max_p95_ms!==void 0&&t.push({label:"p95 latency",limit:`\u2264 ${s.max_p95_ms} ms`,actual:`${e.load.p95_ms} ms`,pass:e.load.p95_ms<=s.max_p95_ms}),s.max_staleness_seconds!==void 0){let i=e.freshness;t.push({label:"Staleness",limit:`\u2264 ${s.max_staleness_seconds} s`,actual:i?i.timed_out>0?`over ${i.max_seconds} s`:`${i.max_seconds} s`:"not measured",pass:!!i&&i.timed_out===0&&i.max_seconds<=s.max_staleness_seconds})}if(s.max_new_dependencies!==void 0){let i=e.new_dependencies?.length??0;t.push({label:"New dependencies",limit:`\u2264 ${s.max_new_dependencies}`,actual:String(i),pass:i<=s.max_new_dependencies})}return s.tests_must_pass&&t.push({label:"Tests",limit:"pass",actual:e.tests?.ok?"pass":"fail",pass:!!e.tests?.ok}),t}var S=e=>e.diff?e.diff.added+e.diff.removed:1/0;function N(e,s){let t={};for(let n of e)t[n.id]=le(n,s);let a=n=>t[n.id].filter(d=>!d.pass).length,o=(n,d)=>S(n)-S(d)||(n.new_dependencies?.length??0)-(d.new_dependencies?.length??0)||(n.load?.p95_ms??1/0)-(d.load?.p95_ms??1/0),l=e.filter(n=>a(n)===0).sort(o);if(l.length>0){let n=l[0],_=e.filter($=>$.id!==n.id).map($=>{let h=t[$.id].filter(g=>!g.pass);return h.length?`${$.name} fails ${h.map(g=>`${g.label.toLowerCase()} (${g.actual}, needs ${g.limit})`).join(" and ")}`:`${$.name} also qualifies but changes ${S($)} lines against ${S(n)}`}).join("; ");return{winner:n.id,headline:`${n.name} meets every constraint with the smallest change.`,reason:`${n.name}: p95 ${n.load.p95_ms} ms, ${S(n)} lines of code changed, ${n.new_dependencies?.length??0} new dependencies. ${_}.`,checks:t}}let i=[...e].sort((n,d)=>a(n)-a(d)||o(n,d))[0];return{winner:null,headline:"No option meets every constraint.",reason:i?`Closest is ${i.name}, which misses ${t[i.id].filter(n=>!n.pass).map(n=>n.label.toLowerCase()).join(" and ")}. Relax a constraint or add an option.`:"Nothing was built.",checks:t}}var c=e=>String(e??"").replace(/[&<>"']/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[s]);var R=e=>e===void 0?"\u2014":e>=1e3?`${(e/1e3).toFixed(2)} s`:`${Math.round(e)} ms`,re=e=>{let s=e.freshness;return s?s.timed_out?`over ${s.max_seconds} s`:s.max_seconds<1?"instant":`${s.max_seconds} s`:"\u2014"},ce=e=>e.diff?`+${e.diff.added} \u2212${e.diff.removed}`:"\u2014";function V(e){let s=e.constraints;return[{label:"p95 latency",note:s.max_p95_ms!==void 0?`needs \u2264 ${s.max_p95_ms} ms${e.load.repeats&&e.load.repeats>1?`, median of ${e.load.repeats} runs`:""}`:void 0,value:t=>t.load?.p95_range?`${R(t.load.p95_ms)} (${R(t.load.p95_range[0])}\u2013${R(t.load.p95_range[1])})`:R(t.load?.p95_ms),check:"p95 latency"},{label:"Requests",note:"failed requests disqualify",value:t=>t.load?`${t.load.requests.toLocaleString("en-US")} \xB7 ${t.load.errors} failed`:"\u2014",check:"Measured cleanly"},{label:"Median latency",value:t=>R(t.load?.p50_ms)},{label:"Throughput",value:t=>t.load?`${t.load.rps} req/s`:"\u2014"},{label:"Staleness",note:s.max_staleness_seconds!==void 0?`needs \u2264 ${s.max_staleness_seconds} s`:"time until a new write shows up",value:re,check:"Staleness"},{label:"Code changed",note:"application code, tests excluded",value:ce},{label:"Tests added",value:t=>t.diff?.test_added!==void 0?`+${t.diff.test_added} lines`:"\u2014"},{label:"Files touched",value:t=>t.diff?String(t.diff.files.length):"\u2014"},{label:"New dependencies",note:s.max_new_dependencies!==void 0?`needs \u2264 ${s.max_new_dependencies}`:void 0,value:t=>t.new_dependencies?t.new_dependencies.length?t.new_dependencies.join(", "):"none":"\u2014",check:"New dependencies"},{label:"Tests",value:t=>t.tests?t.tests.timed_out?"hung, never exited":`${t.tests.ok?"pass":"fail"}${t.tests.passed!==null?` \xB7 ${t.tests.passed}`:""}`:"\u2014",check:"Tests"},{label:"Existing tests",note:"must be left untouched",value:t=>t.id==="baseline"?"\u2014":t.integrity?t.integrity.touched.length?`changed ${t.integrity.touched.length}`:"untouched":"not checked",check:"Existing tests untouched"},{label:"Built by Bob in",value:t=>t.bob?`${Math.floor(t.bob.duration_seconds/60)}m ${t.bob.duration_seconds%60}s`:"\u2014"}]}function de(e,s){if(!e||!s)return"";let t=e.find(a=>a.label===s);return t?t.pass?'<span class="mk ok" title="meets constraint">\u2713</span>':'<span class="mk no" title="misses constraint">\u2715</span>':""}function G(e){let s=[e.baseline,...e.options],t=V(e),a=`| | ${s.map(n=>n.name).join(" | ")} |
+|---|${s.map(()=>"---").join("|")}|`,o=t.map(n=>`| ${n.label} | ${s.map(d=>n.value(d)).join(" | ")} |`).join(`
+`),l=Object.entries(e.constraints).map(([n,d])=>`\`${n}: ${d}\``).join(", "),i=e.options.map(n=>`- ${n.name}: \`${n.branch}\`${n.build_error?` (not built: ${n.build_error})`:""}`).join(`
+`);return`## Appendix: measured comparison
+
+**Question:** ${e.question}
+
+Each option was built by IBM Bob in its own branch from \`${e.base_commit.slice(0,7)}\`, then measured with the same load test (${e.load.duration_seconds} s at concurrency ${e.load.concurrency}) and the same staleness probe.
+
+${a}
+${o}
+
+**Constraints:** ${l||"none"}
+
+**Verdict:** ${e.verdict.headline} ${e.verdict.reason}
+
+**Branches:**
+${i}
+
+_Generated by Settle on ${e.created_at.slice(0,10)}._
+`}function A(e){return`<div class="k">Verdict</div>
+<div>
+  <p class="h">${c(e.verdict.headline)}</p>
+  <p>${c(e.verdict.reason)}</p>
+</div>`}function H(e){let s=[e.baseline,...e.options],t=e.verdict.winner,a=i=>i.id===t?"win":i.id==="baseline"?"base":"",o=s.map(i=>`<th class="${a(i)}" scope="col">${i.id===t?'<span class="tag">Pick</span>':""}<span class="oname">${c(i.name)}</span></th>`).join(""),l=V(e).map(i=>`<tr>
+  <th scope="row"><span class="rl">${c(i.label)}</span>${i.note?`<span class="rn">${c(i.note)}</span>`:""}</th>
+  ${s.map(n=>{let d=n.built?i.value(n):"not built";return`<td class="${a(n)}">${c(d)}${n.id==="baseline"?"":de(e.verdict.checks[n.id],i.check)}</td>`}).join("")}
+</tr>`).join(`
+`);return`<table>
+  <thead><tr><th scope="col"><span class="muted">Measured</span></th>${o}</tr></thead>
+  <tbody>
+${l}
+  </tbody>
+</table>`}function P(e){let s=e.verdict.winner;return e.options.map(t=>`<section class="opt">
+  <h3>${c(t.name)}${t.id===s?' <span class="tag">Pick</span>':""}</h3>
+  <p>${c(t.description)}</p>
+  ${t.build_error?`<p class="err">Not built: ${c(t.build_error)}</p>`:""}
+  ${t.measure_error?`<p class="err">Measurement failed: ${c(t.measure_error.split(`
+`)[0])}</p>`:""}
+  <p class="meta">Branch <code>${c(t.branch)}</code></p>
+  ${t.diff?.files.length?`<ul class="files">${t.diff.files.map(a=>`<li><code>${c(a)}</code></li>`).join("")}</ul>`:""}
+  ${t.diff?.test_files?.length?`<ul class="files">${t.diff.test_files.map(a=>`<li><code>${c(a)}</code> <span class="muted">test</span></li>`).join("")}</ul>`:""}
+  ${t.diff?.patch?`<details class="codebox"${t.id===s?" open":""}><summary>The code Bob wrote</summary>${pe(t.diff.patch,e.app_path)}</details>`:""}
+</section>`).join(`
+`)}function ue(e){let s=[e.baseline,...e.options].filter(o=>o.load),t=Math.max(...s.map(o=>o.load.p95_ms),e.constraints.max_p95_ms??0),a=Math.max(...s.map(o=>o.freshness?.max_seconds??0),e.constraints.max_staleness_seconds??0);return{w:1e3,h:500,left:86,right:40,top:28,bottom:64,lmin:0,lmax:Math.max(3.7,Math.ceil(Math.log10(t*2)*2)/2),smax:Math.max(75,Math.ceil(a*1.15/15)*15)}}var E=(e,s)=>e.left+(Math.log10(Math.max(s,1))-e.lmin)/(e.lmax-e.lmin)*(e.w-e.left-e.right),C=(e,s)=>e.h-e.bottom-Math.min(s,e.smax)/e.smax*(e.h-e.top-e.bottom),D=(e,s)=>10**(e.lmin+(s-e.left)/(e.w-e.left-e.right)*(e.lmax-e.lmin)),J=(e,s)=>(e.h-e.bottom-s)/(e.h-e.top-e.bottom)*e.smax,q=e=>e>=1e3?`${+(e/1e3).toFixed(e>=1e4?0:1)} s`:`${+e.toFixed(e<10?1:0)} ms`;function X(e){let s=ue(e),t=e.constraints,a=s.left,o=s.w-s.right,l=s.top,i=s.h-s.bottom,n=t.max_p95_ms!==void 0?E(s,t.max_p95_ms):o,d=t.max_staleness_seconds!==void 0?C(s,t.max_staleness_seconds):l,_=[1,10,100,1e3,1e4].filter(r=>Math.log10(r)<=s.lmax),$=Array.from({length:s.smax/15+1},(r,m)=>m*15),h=[..._.map(r=>`<line class="gl" x1="${E(s,r)}" x2="${E(s,r)}" y1="${l}" y2="${i}"/><text class="tk" x="${E(s,r)}" y="${i+24}" text-anchor="middle">${q(r)}</text>`),...$.map(r=>`<line class="gl" x1="${a}" x2="${o}" y1="${C(s,r)}" y2="${C(s,r)}"/><text class="tk" x="${a-12}" y="${C(s,r)+4}" text-anchor="end">${r===0?"fresh":`${r} s`}</text>`)].join(""),g=[],Z=(r,m,y,f)=>{let v=m-12,M=y?r+18:r-18-f,k=M+f;for(;g.some(w=>w.x0<k&&M<w.x1&&Math.abs(w.y-v)<36);)v-=38;return g.push({x0:M,x1:k,y:v}),v},ee=[...e.options,e.baseline].filter(r=>r.load).map(r=>{let m=E(s,r.load.p95_ms),y=r.freshness?r.freshness.timed_out?s.smax:r.freshness.max_seconds:0,f=C(s,y),v=e.verdict.checks[r.id],M=r.id!=="baseline"&&v&&v.every(oe=>oe.pass),k=r.id===e.verdict.winner,w=r.id==="baseline",ne=w?"pt base":k?"pt win":M?"pt ok":"pt no",j=m<o-220,ie=r.diff&&!w?`+${r.diff.added} \u2212${r.diff.removed} lines`:"today's code",F=`${r.name}|p95 ${q(r.load.p95_ms)}|${y<1?"fresh":`up to ${y} s stale`}|${ie}`,I=`${r.name}${k?" \xB7 pick":""}`,L=Z(m,f,j,Math.max(I.length*9.5,150)),B=j?m+18:m-18,ae=L<f-30?`<line class="ld" x1="${m}" y1="${f-10}" x2="${B}" y2="${L+14}"/>`:"";return`<g class="${ne}" data-tip="${c(F)}" tabindex="0" aria-label="${c(F.replace(/\|/g,", "))}">
+  <circle class="hit" cx="${m}" cy="${f}" r="22"/>
+  ${ae}
+  ${w?`<rect class="mk" x="${m-7}" y="${f-7}" width="14" height="14" transform="rotate(45 ${m} ${f})"/>`:`<circle class="mk" cx="${m}" cy="${f}" r="${k?11:9}"/>`}
+  <text class="pl" x="${B}" y="${L}" text-anchor="${j?"start":"end"}">${c(I)}</text>
+  <text class="pv" x="${B}" y="${L+20}" text-anchor="${j?"start":"end"}">${q(r.load.p95_ms)} \xB7 ${y<1?"fresh":`${y} s stale`}</text>
+</g>`}).join(""),te=t.max_p95_ms===void 0?"":`<g class="lim-x" tabindex="0" role="slider" aria-label="p95 latency limit" aria-valuenow="${t.max_p95_ms}" aria-valuetext="${q(t.max_p95_ms)}">
+  <rect class="drag" x="${n-14}" y="${l}" width="28" height="${i-l}"/>
+  <line class="ll" x1="${n}" x2="${n}" y1="${l}" y2="${i}"/>
+  <rect class="knob" x="${n-34}" y="${l-2}" width="68" height="22" rx="11"/>
+  <text class="kt" x="${n}" y="${l+13}" text-anchor="middle">\u2264 ${q(t.max_p95_ms)}</text>
+</g>`,se=t.max_staleness_seconds===void 0?"":`<g class="lim-y" tabindex="0" role="slider" aria-label="Staleness limit" aria-valuenow="${t.max_staleness_seconds}" aria-valuetext="${t.max_staleness_seconds} seconds">
+  <rect class="drag" x="${a}" y="${d-14}" width="${o-a}" height="28"/>
+  <line class="ll" x1="${a}" x2="${o}" y1="${d}" y2="${d}"/>
+  <rect class="knob" x="${o-70}" y="${d-11}" width="70" height="22" rx="11"/>
+  <text class="kt" x="${o-35}" y="${d+4}" text-anchor="middle">\u2264 ${t.max_staleness_seconds} s</text>
+</g>`;return`<svg viewBox="0 0 ${s.w} ${s.h}" role="img" aria-label="Decision map: p95 latency against staleness, with your limits" data-scale='${JSON.stringify(s)}'>
+  <rect class="zone" x="${a}" y="${d}" width="${Math.max(0,n-a)}" height="${Math.max(0,i-d)}"/>
+  ${h}
+  <line class="ax" x1="${a}" x2="${o}" y1="${i}" y2="${i}"/>
+  <text class="at" x="${o}" y="${i+50}" text-anchor="end">p95 latency, log scale \u2192</text>
+  <text class="at" x="${a-12}" y="${l-10}" text-anchor="end">\u2191 staleness</text>
+  ${te}${se}
+  ${ee}
+</svg>`}function pe(e,s){if(!e)return"";let t=s?`${s.replace(/\/$/,"")}/`:"",a=[];for(let o of e.split(`
+`)){let l=o.match(/^diff --git a\/(\S+)/);if(l){a.push(`<span class="cf">${c(l[1].startsWith(t)?l[1].slice(t.length):l[1])}</span>`);continue}/^(index |--- |\+\+\+ |new file|deleted file)/.test(o)||(o.startsWith("@@")?a.push('<span class="ch">\u22EF</span>'):o.startsWith("+")?a.push(`<span class="ca">${c(o)}</span>`):o.startsWith("-")?a.push(`<span class="cd">${c(o)}</span>`):a.push(`<span class="cc">${c(o)}</span>`))}return`<pre class="code">${a.join("")}</pre>`}function Y(e){let s=[e.baseline,...e.options],t=e.environment,a=e.load.repeats??1,o=(i,n)=>`<div class="trow"><span class="tk2">${c(i)}</span><span>${n}</span></div>`,l=e.options.map(i=>{let n=e.verdict.checks[i.id]??[],d=n.find(h=>h.label==="Measured cleanly"),_=n.find(h=>h.label==="Existing tests untouched"),$=i.load?.runs?.map(h=>`${Math.round(h.p95_ms)}`).join(" / ");return`<div class="trow"><span class="tk2">${c(i.name)}</span><span>${i.built?`${d?(d.pass?"\u2713 ":"\u2715 ")+c(d.actual):"\u2014"} \xB7 ${_?_.pass?"\u2713 tests untouched":"\u2715 "+c(_.actual):"\u2014"}${$?` \xB7 p95 per run ${$} ms`:""}`:`not built${i.build_error?`: ${c(i.build_error)}`:""}`}</span></div>`}).join("");return`<div class="trust">
+  ${o("Base commit",`<code>${c(e.base_commit.slice(0,12))}</code>, every option branched from it`)}
+  ${o("Load test",`${e.load.duration_seconds} s at concurrency ${e.load.concurrency}, ${a>1?`${a} runs per option, median reported`:"one run per option"}, options measured one at a time`)}
+  ${o("Disqualifiers","measurement errors, no successful requests, more than 1% failed requests, a missing freshness result, or changed existing tests")}
+  ${l}
+  ${o("Today's code",s[0].load?`${s[0].load.requests.toLocaleString("en-US")} requests, ${s[0].load.errors} failed`:"not measured")}
+  ${t?o("Machine",`${c(t.cpu)} \xB7 ${t.cpus} cores \xB7 ${t.memory_gb} GB \xB7 ${c(t.platform)} \xB7 Node ${c(t.node)}`):o("Machine","not recorded for this run")}
+</div>`}var u=JSON.parse(document.getElementById("run-data").textContent),W={...u.constraints},p=document.getElementById("map"),x=document.getElementById("tip"),U=document.getElementById("reset"),z=()=>JSON.parse(p.querySelector("svg").dataset.scale),K=e=>{let s=10**Math.max(0,Math.floor(Math.log10(e))-1);return Math.max(1,Math.round(e/s)*s)};function O(e){u.verdict=N(u.options,u.constraints),document.getElementById("verdict").innerHTML=A(u),document.getElementById("table").innerHTML=H(u),document.getElementById("options").innerHTML=P(u),document.getElementById("trust").innerHTML=Y(u),document.getElementById("appendix").textContent=G(u),p.querySelector("svg").outerHTML=X(u),U.hidden=JSON.stringify(W)===JSON.stringify(u.constraints),e&&p.querySelector(e)?.focus()}function T(e,s){let t=z();e==="x"?u.constraints.max_p95_ms=Math.min(K(s),K(10**t.lmax)):u.constraints.max_staleness_seconds=Math.max(0,Math.min(Math.round(s),t.smax))}var b=null;function me(e){let s=z(),t=p.querySelector("svg").getBoundingClientRect();return{s,x:(e.clientX-t.left)/t.width*s.w,y:(e.clientY-t.top)/t.height*s.h}}p.addEventListener("pointerdown",e=>{let s=e.target;b=s.closest(".lim-x")?"x":s.closest(".lim-y")?"y":null,b&&(p.setPointerCapture(e.pointerId),x.hidden=!0,e.preventDefault())});p.addEventListener("pointermove",e=>{if(b){let{s:t,x:a,y:o}=me(e);T(b,b==="x"?D(t,a):J(t,o)),O();return}let s=e.target.closest(".pt");Q(s)});p.addEventListener("pointerup",()=>b=null);p.addEventListener("pointercancel",()=>b=null);p.addEventListener("pointerleave",()=>!b&&(x.hidden=!0));function Q(e){if(!e){x.hidden=!0;return}let[s,...t]=e.dataset.tip.split("|"),a=e.querySelector(".mk").getBoundingClientRect(),o=p.getBoundingClientRect();x.innerHTML=`<b></b>${t.map(()=>"<span></span>").join("<br>")}`,x.querySelector("b").textContent=s,x.querySelectorAll("span").forEach((l,i)=>l.textContent=t[i]),x.style.left=`${a.left+a.width/2-o.left}px`,x.style.top=`${a.top-o.top}px`,x.hidden=!1}p.addEventListener("focusin",e=>{let s=e.target.closest(".pt");s&&Q(s)});p.addEventListener("focusout",()=>x.hidden=!0);p.addEventListener("keydown",e=>{let s=e.target,t=s.closest(".lim-x")?"x":s.closest(".lim-y")?"y":null;if(!t)return;let a=e.key==="ArrowUp"||e.key==="ArrowRight",o=e.key==="ArrowDown"||e.key==="ArrowLeft";if(!(!a&&!o)){if(e.preventDefault(),t==="x"){let l=u.constraints.max_p95_ms??50;T("x",a?l*1.25:l/1.25)}else{let l=u.constraints.max_staleness_seconds??15;T("y",l+(a?1:-1)*(e.shiftKey?10:1))}O(t==="x"?".lim-x":".lim-y")}});U.addEventListener("click",()=>{Object.assign(u.constraints,W),O()});document.getElementById("copy").addEventListener("click",async e=>{let s=e.currentTarget,t=document.getElementById("appendix").textContent??"";try{await navigator.clipboard.writeText(t),s.textContent="Copied"}catch{s.textContent="Select the text above to copy"}setTimeout(()=>s.textContent="Copy appendix",1800)});})();
+</script>
+</body>
+</html>

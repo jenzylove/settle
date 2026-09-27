@@ -235,7 +235,7 @@ experiment:
       <div class="ustep"><span class="unum">3</span><div><h3>Run it</h3><p>About four minutes later you get the results page and the plan.</p><pre>settle prove
 <span class="c"># runs/prove-.../index.html   results page</span>
 <span class="c"># runs/prove-.../proof.json   for your tools</span></pre></div></div>
-      <div class="ustep"><span class="unum">4</span><div><h3>Or run it on every feature ticket</h3><p>A GitHub Actions job that proves a feature when a ticket is labelled, and attaches the results.</p><pre>on:
+      <div class="ustep"><span class="unum">4</span><div><h3>Or run it on every feature ticket</h3><p>An example GitHub Actions job that proves a feature when a ticket is labelled estimate.</p><pre>on:
   issues: { types: [labeled] }
 jobs:
   prove:
@@ -243,8 +243,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: npm i -g bobshell settle
-      - run: echo "request: ${{ github.event.issue.title }}" > prove.yml && settle prove
+      <span class="c"># install IBM Bob Shell per bob.ibm.com/docs/shell</span>
+      - run: git clone https://github.com/jenzylove/settle ../settle && npm --prefix ../settle ci
+      - run: echo "request: ${{ github.event.issue.title }}" > prove.yml && node ../settle/bin/settle.mjs prove
         env: { BOB_API_KEY: ${{ secrets.BOB_API_KEY }} }</pre></div></div>
     </div>
   </section>

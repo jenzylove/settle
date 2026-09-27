@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settle Proof</title>
+<meta name="description" content="Let customers delete their account.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root { --bg: #f4f4f3; --card: #ffffff; --soft: #ececea; --ink: #0d0d0e; --muted: #6d6d72; --faint: #a3a3a8; --line: #e2e2df; --dark: #111113; --dark2: #1b1b1e; --dline: #2b2b2f;
+  --serif: "Instrument Serif", Georgia, serif; --sans: "Inter", ui-sans-serif, system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 var(--sans); -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+code { font-family: var(--mono); font-size: 0.88em; }
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 16px; }
+.pill-btn { display: inline-flex; align-items: center; gap: 10px; background: var(--ink); color: #fff; text-decoration: none; font: 600 14px var(--sans); padding: 12px 14px 12px 20px; border-radius: 999px; border: 0; cursor: pointer; }
+.pill-btn .arr { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(255,255,255,.16); font-size: 12px; }
+.pill-btn.light { background: #fff; color: var(--ink); box-shadow: 0 0 0 1px var(--line) inset; }
+.pill-btn.light .arr { background: var(--soft); }
+.tag { display: inline-block; font: 500 12px var(--sans); padding: 5px 12px; border-radius: 999px; background: #fff; box-shadow: 0 0 0 1px var(--line) inset; color: var(--ink); }
+nav.top { display: flex; justify-content: space-between; align-items: center; padding: 22px 0; }
+.logo { font: italic 400 30px var(--serif); text-decoration: none; letter-spacing: -0.01em; }
+.links { display: flex; gap: 26px; align-items: center; font-size: 14px; }
+.links a { text-decoration: none; color: var(--muted); }
+.links a:hover { color: var(--ink); }
+.links a.pill-btn { color: #fff; }
+.st { justify-self: start; display: inline-block; font: 600 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; padding: 5px 10px; border-radius: 999px; background: #fff; color: var(--ink); }
+.st.proven { background: #dff5e7; color: #14532d; }
+.st.unknown { background: #e8e8ec; color: #52525b; }
+@media (max-width: 760px) { .links a:not(.pill-btn) { display: none; } }
+
+.eyebrow { font: 500 12px var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.muted { color: var(--muted); }
+.meta-top { font-size: 13px; color: var(--muted); }
+main { padding: 40px 0 96px; }
+.req { font: 400 clamp(38px, 5.4vw, 70px)/1.04 var(--serif); letter-spacing: -0.015em; margin: 14px 0 18px; max-width: 22ch; }
+.sub { color: var(--muted); max-width: 64ch; margin: 0 0 32px; }
+.score { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.score div { background: var(--card); border-radius: 22px; padding: 24px; box-shadow: 0 0 0 1px var(--line) inset; }
+.score div.hot { background: var(--dark); color: #fff; box-shadow: none; }
+.score div.hot span { color: #a9a9b0; }
+.score strong { display: block; font: 400 64px/1 var(--serif); }
+.score span { color: var(--muted); font-size: 14px; }
+.headline { font: 400 clamp(26px, 3.2vw, 38px)/1.2 var(--serif); margin: 40px 0 8px; max-width: 30ch; }
+.headline em { font-style: italic; color: #75757a; }
+.cards { display: grid; gap: 16px; margin-top: 28px; }
+.card { background: var(--card); border-radius: 26px; padding: 30px; box-shadow: 0 0 0 1px var(--line) inset; }
+.head { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.n { font: 500 13px var(--mono); color: var(--faint); }
+.badge { font: 600 11px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; padding: 6px 12px; border-radius: 999px; background: var(--soft); }
+.badge.blocked { background: var(--ink); color: #fff; }
+.badge.proven { background: #dff5e7; color: #14532d; }
+.badge.unknown { background: #e8e8ec; color: #52525b; }
+.card h3 { font: 600 21px/1.35 var(--sans); letter-spacing: -0.01em; margin: 0 0 8px; max-width: 60ch; }
+.tech { font: 12.5px/1.55 var(--mono); color: var(--muted); margin: 0 0 14px; max-width: 100ch; }
+.plainp { margin: 0 0 14px; font-size: 16px; color: #3a3a3f; max-width: 80ch; }
+.why, .means { margin: 0 0 8px; max-width: 80ch; }
+.means { color: var(--muted); }
+.ev { margin-top: 18px; background: var(--dark); color: #e6e6e8; border-radius: 18px; padding: 18px 20px; }
+.evk { font: 500 10.5px var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: #7c7c83; margin: 0 0 8px; }
+.ev pre { margin: 0; font: 13px/1.6 var(--mono); white-space: pre-wrap; word-break: break-word; color: #f1f1f3; }
+.claim { font-size: 13.5px; color: #a9a9b0; margin: 12px 0 0; }
+.claim b { color: #fff; }
+details { margin-top: 16px; }
+summary { cursor: pointer; font: 500 12px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+pre.code { font: 12.5px/1.55 var(--mono); background: var(--soft); border-radius: 14px; padding: 16px; overflow: auto; max-height: 420px; white-space: pre; margin: 10px 0 0; }
+.meta { font-size: 13px; color: var(--muted); margin: 16px 0 0; }
+h2 { font: 400 clamp(32px, 4vw, 48px)/1.1 var(--serif); margin: 72px 0 16px; }
+h2 em { font-style: italic; color: #75757a; }
+.plan { background: var(--card); border-radius: 26px; padding: 12px 32px 28px; box-shadow: 0 0 0 1px var(--line) inset; max-width: 900px; }
+.plan h4 { font: 600 18px var(--sans); margin: 24px 0 8px; }
+.plan li { margin: 6px 0; }
+.plan p, .plan li { color: #3a3a3f; }
+.foot { padding: 40px 0; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 64px; }
+@media (max-width: 720px) { .score { grid-template-columns: minmax(0, 1fr); } .card { padding: 22px; } .plan { padding: 8px 20px 22px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="top"><a class="logo" href="../../">Settle</a><span class="meta-top">Proved 2026-09-27 12:55 UTC · base <code>95d4ab5</code></span></nav>
+  <main>
+    <p class="eyebrow">The feature request</p>
+    <h1 class="req">Let customers delete their account.</h1>
+    <p class="sub">Before anyone estimated it, IBM Bob named the assumptions most likely to make the estimate wrong, built a small experiment for each against the real code, and Settle reran every experiment itself.</p>
+    <div class="score">
+      <div><strong>0</strong><span>proven, safe to build on</span></div>
+      <div class="hot"><strong>3</strong><span>blocked, landmines found</span></div>
+      <div><strong>0</strong><span>unknown, still a risk</span></div>
+    </div>
+    <p class="headline">3 of 3 assumptions are false today. Fix them before you estimate.</p>
+    <div class="cards">
+      <article class="card blocked">
+  <div class="head">
+    <span class="n">01</span>
+    <span class="badge blocked">Blocked</span>
+  </div>
+  <h3>The foreign key from orders.customer_id to customers.id allows a customer row to be deleted so that…</h3>
+  <p class="plainp">Can we actually delete a customer row without the database refusing because their orders still point to them? Right now it would refuse.</p>
+  <p class="tech">The foreign key from orders.customer_id to customers.id allows a customer row to be deleted (or has ON DELETE CASCADE / SET NULL) so that deleting an account does not raise a constraint violation.</p>
+  <p class="why"><b>Why it matters.</b> Today the FK is declared as `REFERENCES customers(id)` with no cascade clause, so `DELETE FROM customers WHERE id = $1` will throw a foreign-key violation the moment any order exists for that customer. Every customer in the seed data has orders. The team will need a migration to add CASCADE or SET NULL, decide which semantics are correct, re-test the dashboard query, and handle the data-integrity gap — easily 2–3 extra days.</p>
+  <p class="means">A landmine. The experiment failed against today's code; this needs work before the feature.</p>
+  <div class="ev">
+    <p class="evk">What Settle saw when it reran Bob's experiment</p>
+    <pre>✖ assumption: FK allows customer delete when orders exist (no cascade) (4314.9711ms)
+ℹ fail 1
+✖ failing tests:
+✖ assumption: FK allows customer delete when orders exist (no cascade) (4314.9711ms)
+  AssertionError [ERR_ASSERTION]: FK violation raised while deleting customer 1 who has 33 orders: update or delete on table &quot;customers&quot; violates foreign key constraint &quot;orders_customer_id_fkey&quot; on table &quot;orders&quot;
+  + actual - expected
+  + error: update or delete on table &quot;customers&quot; violates foreign key constraint &quot;orders_customer_id_fkey&quot; on table &quot;orders&quot;
+    generatedMessage: false,
+    actual: error: update or delete on table &quot;customers&quot; violates foreign key constraint &quot;orders_customer_id_fkey&quot; on table &quot;orders&quot;
+    expected: null,</pre>
+    <p class="claim">Bob's own read: <b>broken</b>. Customer 1 has 33 orders; DELETE FROM customers WHERE id = 1 raises PostgreSQL error 23503: &#39;update or delete on table &quot;customers&quot; violates foreign key constraint &quot;orders_customer_id_fkey&quot; on table &quot;orders&quot;&#39; — the FK has no ON DELETE clause and blocks the delete.</p>
+  </div>
+  <details><summary>The experiment Bob wrote · settle-experiments/fk-no-cascade.test.ts</summary><pre class="code">/**
+ * Experiment: fk-no-cascade
+ *
+ * Assumption under test:
+ *   The FK `orders.customer_id REFERENCES customers(id)` (no ON DELETE clause)
+ *   allows a customer row to be deleted without a constraint violation even when
+ *   orders exist for that customer.
+ *
+ * The test PASSES when the assumption HOLDS (delete succeeds).
+ * The test FAILS when the assumption is BROKEN (FK violation is raised).
+ *
+ * Run:
+ *   node --import tsx --test settle-experiments/fk-no-cascade.test.ts
+ */
+
+import { test } from &quot;node:test&quot;;
+import assert from &quot;node:assert/strict&quot;;
+import { openDb } from &quot;../src/db.ts&quot;;
+
+test(&quot;assumption: FK allows customer delete when orders exist (no cascade)&quot;, async () =&gt; {
+  const db = await openDb();
+
+  // Step 1 – confirm customer 1 has orders (seed data guarantees this at scale,
+  // but we assert explicitly so the evidence is in the failure message).
+  const { rows: countRows } = await db.query&lt;{ cnt: number }&gt;(
+    `SELECT count(*)::int AS cnt FROM orders WHERE customer_id = 1`,
+  );
+  const orderCount = countRows[0].cnt;
+  assert.ok(
+    orderCount &gt; 0,
+    `Pre-condition failed: expected orders for customer 1, got ${orderCount}`,
+  );
+
+  // Step 2 – attempt the delete inside a transaction, then roll it back so the
+  // database is left unchanged regardless of outcome.
+  let deleteError: Error | null = null;
+  try {
+    await db.exec(`BEGIN`);
+    await db.exec(`DELETE FROM customers WHERE id = 1`);
+    await db.exec(`ROLLBACK`);
+  } catch (err) {
+    // Roll back on error so the connection is clean.
+    try { await db.exec(`ROLLBACK`); } catch { /* ignore */ }
+    deleteError = err as Error;
+  }
+
+  // The assumption says the delete should succeed (no FK violation).
+  // If deleteError is non-null the assumption is FALSE – we surface the
+  // concrete error message so it appears directly in the test output.
+  assert.equal(
+    deleteError,
+    null,
+    `FK violation raised while deleting customer 1 who has ${orderCount} orders: ${deleteError?.message}`,
+  );
+});
+</pre></details>
+  <p class="meta">Branch <code>settle/prove-2026-09-27T12-51-10/fk-no-cascade</code> · built by Bob in 1m 20s · 0.39 Bobcoins</p>
+</article>
+<article class="card blocked">
+  <div class="head">
+    <span class="n">02</span>
+    <span class="badge blocked">Blocked</span>
+  </div>
+  <h3>The customers.name and customers.region columns are nullable, so personal data can be erased in-place…</h3>
+  <p class="plainp">If we want to wipe a customer&#39;s name and region without deleting their order history, can the database even store a blank/null in those fields? Currently it cannot.</p>
+  <p class="tech">The customers.name and customers.region columns are nullable (or the schema can accept an anonymisation sentinel), so personal data can be erased in-place without dropping the row that orders depend on.</p>
+  <p class="why"><b>Why it matters.</b> The schema declares both columns as `text NOT NULL`. If the team&#39;s privacy strategy is to anonymise (blank out PII) rather than hard-delete, the NOT NULL constraint blocks a simple `UPDATE customers SET name = NULL WHERE id = $1`. They must either ALTER COLUMN to allow nulls, add a `deleted` flag + application-level filtering everywhere, or switch to hard-delete with FK CASCADE — each option is a multi-day schema migration plus audit of every query that reads `name`.</p>
+  <p class="means">A landmine. The experiment failed against today's code; this needs work before the feature.</p>
+  <div class="ev">
+    <p class="evk">What Settle saw when it reran Bob's experiment</p>
+    <pre>✖ customers.name and customers.region are nullable (anonymisation assumption) (4787.7349ms)
+ℹ fail 1
+✖ failing tests:
+✖ customers.name and customers.region are nullable (anonymisation assumption) (4787.7349ms)
+  AssertionError [ERR_ASSERTION]: customers.name is_nullable=NO (expected YES). UPDATE error: null value in column &quot;name&quot; of relation &quot;customers&quot; violates not-null constraint
+    generatedMessage: false,
+    actual: &#39;NO&#39;,
+    expected: &#39;YES&#39;,</pre>
+    <p class="claim">Bob's own read: <b>broken</b>. information_schema reports customers.name is_nullable=NO and customers.region is_nullable=NO; a live UPDATE SET name = NULL on id=1 was rejected with &#39;null value in column &quot;name&quot; of relation &quot;customers&quot; violates not-null constraint&#39;.</p>
+  </div>
+  <details><summary>The experiment Bob wrote · settle-experiments/name-nullable.test.ts</summary><pre class="code">/**
+ * Experiment: are customers.name and customers.region nullable?
+ *
+ * PASSES  – if the assumption holds (columns accept NULL / sentinels today).
+ * FAILS   – if the assumption is broken (NOT NULL constraint is in effect).
+ *
+ * Run:
+ *   node --import tsx --test settle-experiments/name-nullable.test.ts
+ */
+
+import { test } from &quot;node:test&quot;;
+import assert from &quot;node:assert/strict&quot;;
+import { openDb } from &quot;../src/db.ts&quot;;
+
+// ── helpers ───────────────────────────────────────────────────────────────────
+
+type ColumnRow = { column_name: string; is_nullable: string };
+
+async function columnNullability(
+  db: Awaited&lt;ReturnType&lt;typeof openDb&gt;&gt;,
+  tableName: string,
+  columnName: string,
+): Promise&lt;string&gt; {
+  const { rows } = await db.query&lt;ColumnRow&gt;(
+    `SELECT column_name, is_nullable
+       FROM information_schema.columns
+      WHERE table_name   = $1
+        AND column_name  = $2`,
+    [tableName, columnName],
+  );
+  if (rows.length === 0) return &quot;COLUMN_NOT_FOUND&quot;;
+  return rows[0].is_nullable; // &#39;YES&#39; or &#39;NO&#39;
+}
+
+// ── test ──────────────────────────────────────────────────────────────────────
+
+test(&quot;customers.name and customers.region are nullable (anonymisation assumption)&quot;, async (t) =&gt; {
+  const db = await openDb();
+
+  // 1. Check information_schema to read the declared nullability.
+  const nameNullable   = await columnNullability(db, &quot;customers&quot;, &quot;name&quot;);
+  const regionNullable = await columnNullability(db, &quot;customers&quot;, &quot;region&quot;);
+
+  // 2. Try an actual UPDATE SET name = NULL on a real row.
+  //    If the column is NOT NULL this throws; we catch and record the error.
+  let updateError: string | null = null;
+  try {
+    await db.query(`UPDATE customers SET name = NULL WHERE id = 1`);
+  } catch (err) {
+    updateError = (err as Error).message;
+  }
+
+  // 3. Try an actual UPDATE SET region = NULL on a real row.
+  let updateRegionError: string | null = null;
+  try {
+    await db.query(`UPDATE customers SET region = NULL WHERE id = 1`);
+  } catch (err) {
+    updateRegionError = (err as Error).message;
+  }
+
+  // 4. Assertions – the test PASSES only if both columns accept NULL.
+  assert.equal(
+    nameNullable,
+    &quot;YES&quot;,
+    `customers.name is_nullable=${nameNullable} (expected YES). ` +
+      `UPDATE error: ${updateError ?? &quot;none&quot;}`,
+  );
+
+  assert.equal(
+    regionNullable,
+    &quot;YES&quot;,
+    `customers.region is_nullable=${regionNullable} (expected YES). ` +
+      `UPDATE error: ${updateRegionError ?? &quot;none&quot;}`,
+  );
+
+  assert.equal(
+    updateError,
+    null,
+    `UPDATE customers SET name = NULL was rejected: ${updateError}`,
+  );
+
+  assert.equal(
+    updateRegionError,
+    null,
+    `UPDATE customers SET region = NULL was rejected: ${updateRegionError}`,
+  );
+});
+</pre></details>
+  <p class="meta">Branch <code>settle/prove-2026-09-27T12-51-10/name-nullable</code> · built by Bob in 1m 24s · 0.39 Bobcoins</p>
+</article>
+<article class="card blocked">
+  <div class="head">
+    <span class="n">03</span>
+    <span class="badge blocked">Blocked</span>
+  </div>
+  <h3>The top-customers dashboard query still returns correct totals after a customer is removed, because either…</h3>
+  <p class="plainp">If we delete a top customer&#39;s account, does their past revenue still show up correctly in the dashboard, or does it just vanish silently and make the numbers wrong?</p>
+  <p class="tech">The top-customers dashboard query still returns correct totals after a customer is removed, because either the JOIN is changed to a LEFT JOIN or orders are reassigned, so no historical revenue silently disappears from the leaderboard.</p>
+  <p class="why"><b>Why it matters.</b> The dashboard uses an INNER JOIN (`FROM orders o JOIN customers c ON c.id = o.customer_id`). If a deleted customer&#39;s orders are kept but the customer row is gone (FK CASCADE SET NULL or a soft-delete that excludes the row), those orders are dropped from the revenue totals entirely. A high-value deleted customer would silently reduce the leaderboard numbers with no error — a data-correctness bug that is invisible until someone notices the numbers don&#39;t add up. Fixing it requires changing the query, adding tests, and deciding the business rule for whose revenue counts.</p>
+  <p class="means">A landmine. The experiment failed against today's code; this needs work before the feature.</p>
+  <div class="ev">
+    <p class="evk">What Settle saw when it reran Bob's experiment</p>
+    <pre>✖ dashboard JOIN survives customer deletion — revenue totals must not change (4601.4126ms)
+ℹ fail 1
+✖ failing tests:
+✖ dashboard JOIN survives customer deletion — revenue totals must not change (4601.4126ms)
+  AssertionError [ERR_ASSERTION]: Revenue total changed after customer deletion! Before: 42275239 cents, After: 41153801 cents. Difference: 1121438 cents (whale had 1500000 cents). The INNER JOIN silently drops orders whose customer row was deleted — assumption is BROKEN.
+  + actual - expected
+    generatedMessage: false,
+    actual: 41153801,
+    expected: 42275239,</pre>
+    <p class="claim">Bob's own read: <b>broken</b>. After nulling out a whale customer&#39;s orders and deleting the customer row, the /stats/top-customers total dropped from 42,275,239 cents to 41,153,801 cents (a loss of 1,121,438 cents). The INNER JOIN silently discards all orders whose customer_id no longer matches a customers row, so deleted customers&#39; historical revenue vanishes from the leaderboard with no error.</p>
+  </div>
+  <details><summary>The experiment Bob wrote · settle-experiments/dashboard-join-survives-deletion.test.ts</summary><pre class="code">/**
+ * Experiment: dashboard-join-survives-deletion
+ *
+ * Assumption under test:
+ *   The /stats/top-customers revenue totals remain correct after a customer is
+ *   deleted — i.e. their historical orders still count in the leaderboard.
+ *
+ * How:
+ *   1. Boot the real server with the real DB (openDb + buildServer).
+ *   2. Insert a known &quot;whale&quot; customer with two large paid orders dated within
+ *      the last 30 days, so they definitely appear in the top-customers query.
+ *   3. Record their revenue_cents from /stats/top-customers.
+ *   4. Simulate deletion by:
+ *        a. Dropping the FK constraint so customer_id can become NULL, then
+ *        b. Setting all their orders&#39; customer_id to NULL, then
+ *        c. Deleting the customer row.
+ *      This mirrors &quot;soft-delete or CASCADE SET NULL&quot; behaviour — the orders
+ *      survive but the customer is gone.
+ *   5. Re-query /stats/top-customers and check whether the sum of all returned
+ *      revenue_cents equals the pre-deletion total.
+ *
+ * Pass condition  (assumption HOLDS):  totals are equal.
+ * Fail condition  (assumption BROKEN): the whale&#39;s revenue has disappeared,
+ *                                      making the post-deletion total lower.
+ */
+
+import { test } from &quot;node:test&quot;;
+import assert from &quot;node:assert/strict&quot;;
+import type { AddressInfo } from &quot;node:net&quot;;
+import type { Server } from &quot;node:http&quot;;
+import { openDb } from &quot;../src/db.ts&quot;;
+import { buildServer } from &quot;../src/server.ts&quot;;
+import type { TopCustomer } from &quot;../src/server.ts&quot;;
+
+// ---------------------------------------------------------------------------
+// Helper — spin up a private server and return its base URL + db handle
+// ---------------------------------------------------------------------------
+async function startServer() {
+  const db = await openDb();
+  const server: Server = buildServer(db);
+  await new Promise&lt;void&gt;((resolve) =&gt; server.listen(0, resolve));
+  const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  return { db, server, base };
+}
+
+// ---------------------------------------------------------------------------
+// The experiment
+// ---------------------------------------------------------------------------
+test(&quot;dashboard JOIN survives customer deletion — revenue totals must not change&quot;, async () =&gt; {
+  const { db, server, base } = await startServer();
+
+  try {
+    // -----------------------------------------------------------------------
+    // 1. Insert a known whale customer (id chosen well above the 5000 seeded
+    //    ones so there is no collision).
+    // -----------------------------------------------------------------------
+    const WHALE_ID = 99999;
+    const ORDER_A   = 1_000_000; // 1 000 000 cents = $10 000
+    const ORDER_B   =   500_000; // 500 000 cents   = $5 000
+    const WHALE_TOTAL = ORDER_A + ORDER_B;
+
+    await db.exec(`
+      INSERT INTO customers (id, name, region) VALUES (${WHALE_ID}, &#39;Whale Corp&#39;, &#39;north&#39;);
+
+      INSERT INTO orders (customer_id, amount_cents, status, created_at) VALUES
+        (${WHALE_ID}, ${ORDER_A}, &#39;paid&#39;, now() - interval &#39;1 day&#39;),
+        (${WHALE_ID}, ${ORDER_B}, &#39;paid&#39;, now() - interval &#39;2 days&#39;);
+    `);
+
+    // -----------------------------------------------------------------------
+    // 2. Record the pre-deletion total revenue across ALL top-customers rows.
+    //    We use limit=100 to capture as many customers as possible.
+    //    The whale must be present (their revenue guarantees top placement).
+    // -----------------------------------------------------------------------
+    const res1 = await fetch(`${base}/stats/top-customers?limit=100`);
+    assert.equal(res1.status, 200, &quot;pre-deletion fetch should succeed&quot;);
+    const before: TopCustomer[] = await res1.json();
+
+    const whaleRow = before.find((r) =&gt; r.customer_id === WHALE_ID);
+    assert.ok(
+      whaleRow,
+      `Whale customer (id=${WHALE_ID}) must appear in top-customers before deletion`,
+    );
+    assert.equal(
+      whaleRow.revenue_cents,
+      WHALE_TOTAL,
+      `Whale revenue before deletion: expected ${WHALE_TOTAL}, got ${whaleRow.revenue_cents}`,
+    );
+
+    const totalBefore = before.reduce((s, r) =&gt; s + r.revenue_cents, 0);
+
+    // -----------------------------------------------------------------------
+    // 3. Simulate deletion: drop the FK, NULL-out the orders, delete the row.
+    //    This is the realistic &quot;soft-delete leaves orphaned orders&quot; scenario.
+    // -----------------------------------------------------------------------
+    await db.exec(`
+      -- Drop the FK so we can set customer_id = NULL
+      ALTER TABLE orders DROP CONSTRAINT orders_customer_id_fkey;
+
+      -- Make the column nullable so NULL is accepted
+      ALTER TABLE orders ALTER COLUMN customer_id DROP NOT NULL;
+
+      -- Orphan the whale&#39;s orders (customer deleted, orders remain)
+      UPDATE orders SET customer_id = NULL WHERE customer_id = ${WHALE_ID};
+
+      -- Now delete the customer row
+      DELETE FROM customers WHERE id = ${WHALE_ID};
+    `);
+
+    // -----------------------------------------------------------------------
+    // 4. Re-run the dashboard query via the HTTP endpoint.
+    // -----------------------------------------------------------------------
+    const res2 = await fetch(`${base}/stats/top-customers?limit=100`);
+    assert.equal(res2.status, 200, &quot;post-deletion fetch should succeed&quot;);
+    const after: TopCustomer[] = await res2.json();
+
+    const totalAfter = after.reduce((s, r) =&gt; s + r.revenue_cents, 0);
+
+    // The whale must NOT appear after deletion (they&#39;re gone from customers)
+    const whaleAfter = after.find((r) =&gt; r.customer_id === WHALE_ID);
+    assert.equal(
+      whaleAfter,
+      undefined,
+      `Whale customer (id=${WHALE_ID}) must not appear in results after deletion`,
+    );
+
+    // -----------------------------------------------------------------------
+    // 5. Core assertion: total revenue must be unchanged.
+    //    If the INNER JOIN silently drops orphaned ord</pre></details>
+  <p class="meta">Branch <code>settle/prove-2026-09-27T12-51-10/dashboard-join-survives-deletion</code> · built by Bob in 1m 54s · 0.59 Bobcoins</p>
+</article>
+    </div>
+    <h2>The plan Bob wrote <em>from the evidence.</em></h2><div class="plan"><h4>Implementation Plan: Delete Customer Account</h4>
+<h4>What we now know</h4>
+<ul>
+<li><b>FK constraint blocks hard-delete</b> — <code>orders.customer_id</code> has a strict NOT NULL foreign key to <code>customers.id</code> with no CASCADE or SET NULL; deleting a customer row while orders exist will always fail. ✖ Blocked</li>
+<li><b>Name and region columns are NOT nullable</b> — both are defined <code>NOT NULL</code>, so an in-place anonymisation sentinel (<code>NULL</code>) cannot be written without a schema change. ✖ Blocked</li>
+<li><b>Dashboard query uses an INNER JOIN</b> — <code>topCustomers</code> in <code>server.ts</code> joins orders to customers with a plain <code>JOIN</code>; any deleted (or anonymised) customer row would silently drop their revenue from the leaderboard totals. ✖ Blocked</li>
+</ul>
+<p>---</p>
+<h4>Landmines to fix first</h4>
+<p><b>1. Schema: make name/region nullable (<code>db.ts</code>)</b></p>
+<p><code>customers.name</code> and <code>customers.region</code> are both <code>NOT NULL</code> (<code>demo/orders-api/src/db.ts</code>, lines 13–14).</p>
+<p>Change both columns to allow NULL (migration: <code>ALTER TABLE customers ALTER COLUMN name DROP NOT NULL; ALTER TABLE customers ALTER COLUMN region DROP NOT NULL;</code>).</p>
+<p>This is the prerequisite for soft-delete anonymisation — the only deletion strategy that doesn&#39;t break the FK.</p>
+<p><b>2. Drop the FK restriction or adopt soft-delete (<code>db.ts</code>)</b></p>
+<p><code>orders.customer_id</code> is <code>REFERENCES customers(id)</code> with no cascade (<code>db.ts</code>, line 19).</p>
+<p>Rather than add CASCADE (which would destroy order history), implement <b>soft-delete</b>: keep the customer row, NULL out personal data (name, region), and add a <code>deleted_at</code> column.  No FK change required once columns are nullable.</p>
+<p><b>3. Fix the dashboard INNER JOIN (<code>server.ts</code>)</b></p>
+<p><code>topCustomers</code> uses <code>JOIN customers c ON c.id = o.customer_id</code> (<code>demo/orders-api/src/server.ts</code>, line 19).</p>
+<p>Change to <code>LEFT JOIN</code> and handle the NULL name (e.g. <code>COALESCE(c.name, &#39;[deleted]&#39;)</code>).  Without this, deleted customers silently vanish from revenue totals.</p>
+<p>---</p>
+<h4>Plan</h4>
+<ol>
+<li>Migration: add <code>deleted_at timestamptz NULL</code>, drop <code>NOT NULL</code> from <code>name</code> and <code>region</code> in <code>customers</code>.</li>
+<li>Update <code>topCustomers</code> to use <code>LEFT JOIN</code> and coalesce the name.</li>
+<li>Implement <code>DELETE /customers/:id</code> endpoint: NULL out <code>name</code>/<code>region</code>, set <code>deleted_at = now()</code>.</li>
+<li>Filter deleted customers from any customer-listing queries (add <code>WHERE deleted_at IS NULL</code>).</li>
+<li>Write integration tests covering: delete with existing orders, dashboard totals unchanged, deleted customer absent from listings.</li>
+</ol>
+<p>---</p>
+<h4>Estimate impact</h4>
+<p>All three assumptions are blocked. What looked like an afternoon feature (add a DELETE endpoint) is now a <b>multi-step schema migration + query fix + API change</b>. The anonymisation approach adds roughly 2–3× the original scope: a schema migration with backward-compatible rollout, a query fix that must be regression-tested against revenue totals, and a new endpoint with proper soft-delete semantics. No precise hour estimate is possible without knowing deployment constraints (zero-downtime migration, existing API consumers), but teams should plan for this as a sprint item, not a quick patch.</p></div>
+    <div class="foot"><span>Settle · experiments built by IBM Bob, verified by Settle</span><span>Every experiment is on its own branch. Nothing was merged.</span></div>
+  </main>
+</div>
+</body>
+</html>

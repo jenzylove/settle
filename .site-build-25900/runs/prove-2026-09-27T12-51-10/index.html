@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settle Results</title>
+<meta name="description" content="Let customers delete their account.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root { --bg: #f4f4f3; --card: #ffffff; --soft: #ececea; --ink: #0d0d0e; --muted: #6d6d72; --faint: #a3a3a8; --line: #e2e2df; --dark: #111113; --dark2: #1b1b1e; --dline: #2b2b2f;
+  --serif: "Instrument Serif", Georgia, serif; --sans: "Inter", ui-sans-serif, system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 var(--sans); -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+code { font-family: var(--mono); font-size: 0.88em; }
+.wrap { max-width: 1160px; margin: 0 auto; padding: 0 16px; }
+.pill-btn { display: inline-flex; align-items: center; gap: 10px; background: var(--ink); color: #fff; text-decoration: none; font: 600 14px var(--sans); padding: 12px 14px 12px 20px; border-radius: 999px; border: 0; cursor: pointer; }
+.pill-btn .arr { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(255,255,255,.16); font-size: 12px; }
+.pill-btn.light { background: #fff; color: var(--ink); box-shadow: 0 0 0 1px var(--line) inset; }
+.pill-btn.light .arr { background: var(--soft); }
+.tag { display: inline-block; font: 500 12px var(--sans); padding: 5px 12px; border-radius: 999px; background: #fff; box-shadow: 0 0 0 1px var(--line) inset; color: var(--ink); }
+nav.top { display: flex; justify-content: space-between; align-items: center; padding: 22px 0; }
+.logo { font: italic 400 30px var(--serif); text-decoration: none; letter-spacing: -0.01em; }
+.links { display: flex; gap: 26px; align-items: center; font-size: 14px; }
+.links a { text-decoration: none; color: var(--muted); }
+.links a:hover { color: var(--ink); }
+.links a.pill-btn { color: #fff; }
+.st { justify-self: start; display: inline-block; font: 600 11px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; padding: 5px 10px; border-radius: 999px; background: #fff; color: var(--ink); }
+.st.proven { background: #dff5e7; color: #14532d; }
+.st.unknown { background: #e8e8ec; color: #52525b; }
+@media (max-width: 760px) { .links a:not(.pill-btn) { display: none; } }
+
+:root { --accent: #2f5bff; --accent-soft: #e8edff; }
+main { padding: 24px 0 96px; }
+.top-actions { display: flex; gap: 10px; align-items: center; }
+.pill-btn.blue { background: var(--accent); }
+.hero2 { background: radial-gradient(120% 120% at 0% 0%, #ffffff 0%, #f1f1ef 60%, #e9e9e6 100%); border-radius: 32px; padding: 44px 44px 40px; box-shadow: 0 0 0 1px var(--line) inset; animation: rise .6s ease both; }
+.req-tag { display: inline-flex; align-items: center; gap: 8px; font: 500 12px var(--sans); padding: 6px 12px; border-radius: 999px; background: #fff; box-shadow: 0 0 0 1px var(--line) inset; }
+.req-tag::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.req2 { font: 400 clamp(30px, 4vw, 48px)/1.1 var(--serif); margin: 18px 0 30px; max-width: 26ch; }
+.answer { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 28px; align-items: center; padding-top: 28px; border-top: 1px solid var(--line); }
+.big { font: 400 clamp(84px, 11vw, 140px)/0.85 var(--serif); color: var(--accent); }
+.answer h1 { font: 400 clamp(30px, 3.6vw, 44px)/1.1 var(--serif); margin: 0 0 8px; }
+.answer h1 em { font-style: italic; color: var(--accent); }
+.answer p { color: var(--muted); margin: 0; max-width: 56ch; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
+.cchip { display: inline-flex; align-items: center; gap: 8px; font: 600 13px var(--sans); padding: 7px 14px; border-radius: 999px; background: #fff; box-shadow: 0 0 0 1px var(--line) inset; }
+.cchip i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.cchip.blocked i, .f.blocked .dot { background: var(--accent); }
+.cchip.proven i, .f.proven .dot { background: #22a55b; }
+.cchip.unknown i, .f.unknown .dot { background: #b0b0b6; }
+h2.sec2 { font: 400 clamp(28px, 3vw, 38px)/1.1 var(--serif); margin: 56px 0 6px; }
+h2.sec2 em { font-style: italic; color: var(--accent); }
+.lead { color: var(--muted); margin: 0 0 20px; }
+.f { background: var(--card); border-radius: 22px; box-shadow: 0 0 0 1px var(--line) inset; margin-bottom: 12px; transition: box-shadow .25s ease, transform .25s ease; animation: rise .55s ease both; animation-delay: var(--d); }
+.f:hover { box-shadow: 0 0 0 1px #cfd6ff inset, 0 12px 30px -18px rgba(47,91,255,.35); transform: translateY(-1px); }
+.f[open] { box-shadow: 0 0 0 1.5px var(--accent) inset; }
+.f > summary { list-style: none; cursor: pointer; display: grid; grid-template-columns: 12px 96px minmax(0, 1fr) 24px; gap: 16px; align-items: center; padding: 22px 24px; }
+.f > summary::-webkit-details-marker { display: none; }
+.dot { width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 0 5px var(--accent-soft); }
+.f.proven .dot { box-shadow: 0 0 0 5px #dcf5e6; }
+.f.unknown .dot { box-shadow: 0 0 0 5px #ececef; }
+.flabel { font: 600 12px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.f.proven .flabel { color: #15803d; }
+.f.unknown .flabel { color: #6b6b72; }
+.ftitle { font: 600 17px/1.4 var(--sans); }
+.chev { width: 24px; height: 24px; border-radius: 50%; background: var(--soft); position: relative; transition: transform .25s ease, background .25s ease; }
+.chev::before { content: ""; position: absolute; left: 8px; top: 7px; width: 6px; height: 6px; border-right: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: rotate(45deg); }
+.f[open] .chev { transform: rotate(180deg); background: var(--accent-soft); }
+.fbody { padding: 0 24px 24px 152px; animation: fade .35s ease both; }
+.fgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; }
+.k { font: 600 12px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); margin: 0 0 8px; }
+.fbody p { margin: 0 0 8px; color: #3a3a3f; font-size: 15px; }
+.proofline { font: 500 13.5px/1.55 var(--mono) !important; background: var(--dark); color: #f1f1f3 !important; padding: 14px 16px; border-radius: 14px; }
+.small { font-size: 13px !important; color: var(--muted) !important; }
+.more { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 14px; }
+.sub > summary { cursor: pointer; font: 500 13px var(--sans); color: var(--accent); margin: 6px 0; }
+pre.code { font: 12.5px/1.55 var(--mono); background: var(--soft); border-radius: 14px; padding: 16px; overflow: auto; max-height: 380px; white-space: pre; margin: 8px 0 12px; }
+.steps2 { counter-reset: st; display: grid; gap: 10px; }
+.step2 { counter-increment: st; display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 14px; align-items: start; background: var(--card); border-radius: 18px; padding: 16px 18px; box-shadow: 0 0 0 1px var(--line) inset; animation: rise .5s ease both; animation-delay: var(--d); }
+.step2::before { content: counter(st); width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font: 600 13px var(--sans); }
+.step2 span { font-size: 15px; color: #2b2b30; padding-top: 4px; }
+.cta-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 44px; }
+.meta2 { margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--faint); display: flex; gap: 16px; flex-wrap: wrap; justify-content: space-between; }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@media (max-width: 760px) {
+  .hero2 { padding: 28px 22px; }
+  .answer { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .f > summary { grid-template-columns: 12px minmax(0, 1fr) 24px; }
+  .flabel { display: none; }
+  .fbody { padding: 0 20px 20px; }
+  .fgrid { grid-template-columns: minmax(0, 1fr); }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="top">
+    <a class="logo" href="../../">Settle</a>
+    <div class="top-actions"><a class="pill-btn light" href="../../try/">Try another <span class="arr">↻</span></a><a class="pill-btn blue" href="../../#use">Use it in your repo <span class="arr">↗</span></a></div>
+  </nav>
+  <main>
+    <section class="hero2">
+      <span class="req-tag">Feature request</span>
+      <p class="req2">"Let customers delete their account."</p>
+      <div class="answer">
+        <div class="big">3</div>
+        <div>
+          <h1>3 landmines. <em>Harder than it looks.</em></h1>
+          <p>Bob tested 3 things this feature depends on. 3 of them are not true in the code today. Fix them first, then estimate.</p>
+          <div class="chips">
+            <span class="cchip blocked"><i></i>3 landmines</span>
+            <span class="cchip proven"><i></i>0 safe</span>
+            <span class="cchip unknown"><i></i>0 unsure</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <h2 class="sec2">What Bob <em>checked</em></h2>
+    <p class="lead">Each one is something the feature needs to be true. Open it to see why it matters and the proof.</p>
+    <details class="f blocked" style="--d:0ms">
+  <summary>
+    <span class="dot"></span>
+    <span class="flabel">Landmine</span>
+    <span class="ftitle">Can we actually delete a customer row without the database refusing because their orders still point to them?</span>
+    <span class="chev" aria-hidden="true"></span>
+  </summary>
+  <div class="fbody">
+    <div class="fgrid">
+      <div>
+        <p class="k">Why it matters</p>
+        <p>Today the FK is declared as `REFERENCES customers(id)` with no cascade clause, so `DELETE FROM customers WHERE id = $1` will throw a foreign-key violation the moment any order exists for that customer. Every customer in the seed data has orders. The team will need a migration to add CASCADE or SET NULL, decide which semantics are correct, re-test the dashboard query, and handle the data-integrity gap — easily 2–3 extra days.</p>
+      </div>
+      <div>
+        <p class="k">What Bob's test found</p>
+        <p class="proofline">FK violation raised while deleting customer 1 who has 33 orders: update or delete on table &quot;customers&quot; violates foreign key constraint &quot;orders_customer_id_fk…</p>
+        <p class="small">Settle reran the test itself and got the same result Bob reported (broken).</p>
+      </div>
+    </div>
+    <div class="more">
+      <details class="sub"><summary>See the test Bob wrote</summary><pre class="code">/**
+ * Experiment: fk-no-cascade
+ *
+ * Assumption under test:
+ *   The FK `orders.customer_id REFERENCES customers(id)` (no ON DELETE clause)
+ *   allows a customer row to be deleted without a constraint violation even when
+ *   orders exist for that customer.
+ *
+ * The test PASSES when the assumption HOLDS (delete succeeds).
+ * The test FAILS when the assumption is BROKEN (FK violation is raised).
+ *
+ * Run:
+ *   node --import tsx --test settle-experiments/fk-no-cascade.test.ts
+ */
+
+import { test } from &quot;node:test&quot;;
+import assert from &quot;node:assert/strict&quot;;
+import { openDb } from &quot;../src/db.ts&quot;;
+
+test(&quot;assumption: FK allows customer delete when orders exist (no cascade)&quot;, async () =&gt; {
+  const db = await openDb();
+
+  // Step 1 – confirm customer 1 has orders (seed data guarantees this at scale,
+  // but we assert explicitly so the evidence is in the failure message).
+  const { rows: countRows } = await db.query&lt;{ cnt: number }&gt;(
+    `SELECT count(*)::int AS cnt FROM orders WHERE customer_id = 1`,
+  );
+  const orderCount = countRows[0].cnt;
+  assert.ok(
+    orderCount &gt; 0,
+    `Pre-condition failed: expected orders for customer 1, got ${orderCount}`,
+  );
+
+  // Step 2 – attempt the delete inside a transaction, then roll it back so the
+  // database is left unchanged regardless of outcome.
+  let deleteError: Error | null = null;
+  try {
+    await db.exec(`BEGIN`);
+    await db.exec(`DELETE FROM customers WHERE id = 1`);
+    await db.exec(`ROLLBACK`);
+  } catch (err) {
+    // Roll back on error so the connection is clean.
+    try { await db.exec(`ROLLBACK`); } catch { /* ignore */ }
+    deleteError = err as Error;
+  }
+
+  // The assumption says the delete should succeed (no FK violation).
+  // If deleteError is non-null the assumption is FALSE – we surface the
+  // concrete error message so it appears directly in the test output.
+  assert.equal(
+    deleteError,
+    null,
+    `FK violation raised while deleting customer 1 who has ${orderCount} orders: ${deleteError?.message}`,
+  );
+});
+</pre></details>
+      <details class="sub"><summary>See the full test output</summary><pre class="code">✖ assumption: FK allows customer delete when orders exist (no cascade) (4314.9711ms)
+ℹ fail 1
+✖ failing tests:
+✖ assumption: FK allows customer delete when orders exist (no cascade) (4314.9711ms)
+  AssertionError [ERR_ASSERTION]: FK violation raised while deleting customer 1 who has 33 orders: update or delete on table &quot;customers&quot; violates foreign key constraint &quot;orders_customer_id_fkey&quot; on table &quot;orders&quot;
+  + actual - expected
+  + error: update or delete on table &quot;customers&quot; violates foreign key constraint &quot;orders_customer_id_fkey&quot; on table &quot;orders&quot;
+    generatedMessage: false,
+    actual: error: update or delete on table &quot;customers&quot; violates foreign key constraint &quot;orders_customer_id_fkey&quot; on table &quot;orders&quot;
+    expected: null,</pre></details>
+      <p class="small">Branch <code>settle/prove-2026-09-27T12-51-10/fk-no-cascade</code> · built by Bob in 1m 20s</p>
+    </div>
+  </div>
+</details>
+<details class="f blocked" style="--d:90ms">
+  <summary>
+    <span class="dot"></span>
+    <span class="flabel">Landmine</span>
+    <span class="ftitle">If we want to wipe a customer&#39;s name and region without deleting their order history, can the database even store a…</span>
+    <span class="chev" aria-hidden="true"></span>
+  </summary>
+  <div class="fbody">
+    <div class="fgrid">
+      <div>
+        <p class="k">Why it matters</p>
+        <p>The schema declares both columns as `text NOT NULL`. If the team&#39;s privacy strategy is to anonymise (blank out PII) rather than hard-delete, the NOT NULL constraint blocks a simple `UPDATE customers SET name = NULL WHERE id = $1`. They must either ALTER COLUMN to allow nulls, add a `deleted` flag + application-level filtering everywhere, or switch to hard-delete with FK CASCADE — each option is a multi-day schema migration plus audit of every query that reads `name`.</p>
+      </div>
+      <div>
+        <p class="k">What Bob's test found</p>
+        <p class="proofline">customers.name is_nullable=NO (expected YES). UPDATE error: null value in column &quot;name&quot; of relation &quot;customers&quot; violates not-null constraint</p>
+        <p class="small">Settle reran the test itself and got the same result Bob reported (broken).</p>
+      </div>
+    </div>
+    <div class="more">
+      <details class="sub"><summary>See the test Bob wrote</summary><pre class="code">/**
+ * Experiment: are customers.name and customers.region nullable?
+ *
+ * PASSES  – if the assumption holds (columns accept NULL / sentinels today).
+ * FAILS   – if the assumption is broken (NOT NULL constraint is in effect).
+ *
+ * Run:
+ *   node --import tsx --test settle-experiments/name-nullable.test.ts
+ */
+
+import { test } from &quot;node:test&quot;;
+import assert from &quot;node:assert/strict&quot;;
+import { openDb } from &quot;../src/db.ts&quot;;
+
+// ── helpers ───────────────────────────────────────────────────────────────────
+
+type ColumnRow = { column_name: string; is_nullable: string };
+
+async function columnNullability(
+  db: Awaited&lt;ReturnType&lt;typeof openDb&gt;&gt;,
+  tableName: string,
+  columnName: string,
+): Promise&lt;string&gt; {
+  const { rows } = await db.query&lt;ColumnRow&gt;(
+    `SELECT column_name, is_nullable
+       FROM information_schema.columns
+      WHERE table_name   = $1
+        AND column_name  = $2`,
+    [tableName, columnName],
+  );
+  if (rows.length === 0) return &quot;COLUMN_NOT_FOUND&quot;;
+  return rows[0].is_nullable; // &#39;YES&#39; or &#39;NO&#39;
+}
+
+// ── test ──────────────────────────────────────────────────────────────────────
+
+test(&quot;customers.name and customers.region are nullable (anonymisation assumption)&quot;, async (t) =&gt; {
+  const db = await openDb();
+
+  // 1. Check information_schema to read the declared nullability.
+  const nameNullable   = await columnNullability(db, &quot;customers&quot;, &quot;name&quot;);
+  const regionNullable = await columnNullability(db, &quot;customers&quot;, &quot;region&quot;);
+
+  // 2. Try an actual UPDATE SET name = NULL on a real row.
+  //    If the column is NOT NULL this throws; we catch and record the error.
+  let updateError: string | null = null;
+  try {
+    await db.query(`UPDATE customers SET name = NULL WHERE id = 1`);
+  } catch (err) {
+    updateError = (err as Error).message;
+  }
+
+  // 3. Try an actual UPDATE SET region = NULL on a real row.
+  let updateRegionError: string | null = null;
+  try {
+    await db.query(`UPDATE customers SET region = NULL WHERE id = 1`);
+  } catch (err) {
+    updateRegionError = (err as Error).message;
+  }
+
+  // 4. Assertions – the test PASSES only if both columns accept NULL.
+  assert.equal(
+    nameNullable,
+    &quot;YES&quot;,
+    `customers.name is_nullable=${nameNullable} (expected YES). ` +
+      `UPDATE error: ${updateError ?? &quot;none&quot;}`,
+  );
+
+  assert.equal(
+    regionNullable,
+    &quot;YES&quot;,
+    `customers.region is_nullable=${regionNullable} (expected YES). ` +
+      `UPDATE error: ${updateRegionError ?? &quot;none&quot;}`,
+  );
+
+  assert.equal(
+    updateError,
+    null,
+    `UPDATE customers SET name = NULL was rejected: ${updateError}`,
+  );
+
+  assert.equal(
+    updateRegionError,
+    null,
+    `UPDATE customers SET region = NULL was rejected: ${updateRegionError}`,
+  );
+});
+</pre></details>
+      <details class="sub"><summary>See the full test output</summary><pre class="code">✖ customers.name and customers.region are nullable (anonymisation assumption) (4787.7349ms)
+ℹ fail 1
+✖ failing tests:
+✖ customers.name and customers.region are nullable (anonymisation assumption) (4787.7349ms)
+  AssertionError [ERR_ASSERTION]: customers.name is_nullable=NO (expected YES). UPDATE error: null value in column &quot;name&quot; of relation &quot;customers&quot; violates not-null constraint
+    generatedMessage: false,
+    actual: &#39;NO&#39;,
+    expected: &#39;YES&#39;,</pre></details>
+      <p class="small">Branch <code>settle/prove-2026-09-27T12-51-10/name-nullable</code> · built by Bob in 1m 24s</p>
+    </div>
+  </div>
+</details>
+<details class="f blocked" style="--d:180ms">
+  <summary>
+    <span class="dot"></span>
+    <span class="flabel">Landmine</span>
+    <span class="ftitle">If we delete a top customer&#39;s account, does their past revenue still show up correctly in the dashboard, or does it…</span>
+    <span class="chev" aria-hidden="true"></span>
+  </summary>
+  <div class="fbody">
+    <div class="fgrid">
+      <div>
+        <p class="k">Why it matters</p>
+        <p>The dashboard uses an INNER JOIN (`FROM orders o JOIN customers c ON c.id = o.customer_id`). If a deleted customer&#39;s orders are kept but the customer row is gone (FK CASCADE SET NULL or a soft-delete that excludes the row), those orders are dropped from the revenue totals entirely. A high-value deleted customer would silently reduce the leaderboard numbers with no error — a data-correctness bug that is invisible until someone notices the numbers don&#39;t add up. Fixing it requires changing the query, adding tests, and deciding the business rule for whose revenue counts.</p>
+      </div>
+      <div>
+        <p class="k">What Bob's test found</p>
+        <p class="proofline">Revenue total changed after customer deletion! Before: 42275239 cents, After: 41153801 cents. Difference: 1121438 cents (whale had 1500000 cents). The INNER …</p>
+        <p class="small">Settle reran the test itself and got the same result Bob reported (broken).</p>
+      </div>
+    </div>
+    <div class="more">
+      <details class="sub"><summary>See the test Bob wrote</summary><pre class="code">/**
+ * Experiment: dashboard-join-survives-deletion
+ *
+ * Assumption under test:
+ *   The /stats/top-customers revenue totals remain correct after a customer is
+ *   deleted — i.e. their historical orders still count in the leaderboard.
+ *
+ * How:
+ *   1. Boot the real server with the real DB (openDb + buildServer).
+ *   2. Insert a known &quot;whale&quot; customer with two large paid orders dated within
+ *      the last 30 days, so they definitely appear in the top-customers query.
+ *   3. Record their revenue_cents from /stats/top-customers.
+ *   4. Simulate deletion by:
+ *        a. Dropping the FK constraint so customer_id can become NULL, then
+ *        b. Setting all their orders&#39; customer_id to NULL, then
+ *        c. Deleting the customer row.
+ *      This mirrors &quot;soft-delete or CASCADE SET NULL&quot; behaviour — the orders
+ *      survive but the customer is gone.
+ *   5. Re-query /stats/top-customers and check whether the sum of all returned
+ *      revenue_cents equals the pre-deletion total.
+ *
+ * Pass condition  (assumption HOLDS):  totals are equal.
+ * Fail condition  (assumption BROKEN): the whale&#39;s revenue has disappeared,
+ *                                      making the post-deletion total lower.
+ */
+
+import { test } from &quot;node:test&quot;;
+import assert from &quot;node:assert/strict&quot;;
+import type { AddressInfo } from &quot;node:net&quot;;
+import type { Server } from &quot;node:http&quot;;
+import { openDb } from &quot;../src/db.ts&quot;;
+import { buildServer } from &quot;../src/server.ts&quot;;
+import type { TopCustomer } from &quot;../src/server.ts&quot;;
+
+// ---------------------------------------------------------------------------
+// Helper — spin up a private server and return its base URL + db handle
+// ---------------------------------------------------------------------------
+async function startServer() {
+  const db = await openDb();
+  const server: Server = buildServer(db);
+  await new Promise&lt;void&gt;((resolve) =&gt; server.listen(0, resolve));
+  const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  return { db, server, base };
+}
+
+// ---------------------------------------------------------------------------
+// The experiment
+// ---------------------------------------------------------------------------
+test(&quot;dashboard JOIN survives customer deletion — revenue totals must not change&quot;, async () =&gt; {
+  const { db, server, base } = await startServer();
+
+  try {
+    // -----------------------------------------------------------------------
+    // 1. Insert a known whale customer (id chosen well above the 5000 seeded
+    //    ones so there is no collision).
+    // -----------------------------------------------------------------------
+    const WHALE_ID = 99999;
+    const ORDER_A   = 1_000_000; // 1 000 000 cents = $10 000
+    const ORDER_B   =   500_000; // 500 000 cents   = $5 000
+    const WHALE_TOTAL = ORDER_A + ORDER_B;
+
+    await db.exec(`
+      INSERT INTO customers (id, name, region) VALUES (${WHALE_ID}, &#39;Whale Corp&#39;, &#39;north&#39;);
+
+      INSERT INTO orders (customer_id, amount_cents, status, created_at) VALUES
+        (${WHALE_ID}, ${ORDER_A}, &#39;paid&#39;, now() - interval &#39;1 day&#39;),
+        (${WHALE_ID}, ${ORDER_B}, &#39;paid&#39;, now() - interval &#39;2 days&#39;);
+    `);
+
+    // -----------------------------------------------------------------------
+    // 2. Record the pre-deletion total revenue across ALL top-customers rows.
+    //    We use limit=100 to capture as many customers as possible.
+    //    The whale must be present (their revenue guarantees top placement).
+    // -----------------------------------------------------------------------
+    const res1 = await fetch(`${base}/stats/top-customers?limit=100`);
+    assert.equal(res1.status, 200, &quot;pre-deletion fetch should succeed&quot;);
+    const before: TopCustomer[] = await res1.json();
+
+    const whaleRow = before.find((r) =&gt; r.customer_id === WHALE_ID);
+    assert.ok(
+      whaleRow,
+      `Whale customer (id=${WHALE_ID}) must appear in top-customers before deletion`,
+    );
+    assert.equal(
+      whaleRow.revenue_cents,
+      WHALE_TOTAL,
+      `Whale revenue before deletion: expected ${WHALE_TOTAL}, got ${whaleRow.revenue_cents}`,
+    );
+
+    const totalBefore = before.reduce((s, r) =&gt; s + r.revenue_cents, 0);
+
+    // -----------------------------------------------------------------------
+    // 3. Simulate deletion: drop the FK, NULL-out the orders, delete the row.
+    //    This is the realistic &quot;soft-delete leaves orphaned orders&quot; scenario.
+    // -----------------------------------------------------------------------
+    await db.exec(`
+      -- Drop the FK so we can set customer_id = NULL
+      ALTER TABLE orders DROP CONSTRAINT orders_customer_id_fkey;
+
+      -- Make the column nullable so NULL is accepted
+      ALTER TABLE orders ALTER COLUMN customer_id DROP NOT NULL;
+
+      -- Orphan the whale&#39;s orders (customer deleted, orders remain)
+      UPDATE orders SET customer_id = NULL WHERE customer_id = ${WHALE_ID};
+
+      -- Now delete the customer row
+      DELETE FROM customers WHERE id = ${WHALE_ID};
+    `);
+
+    // -----------------------------------------------------------------------
+    // 4. Re-run the dashboard query via the HTTP endpoint.
+    // -----------------------------------------------------------------------
+    const res2 = await fetch(`${base}/stats/top-customers?limit=100`);
+    assert.equal(res2.status, 200, &quot;post-deletion fetch should succeed&quot;);
+    const after: TopCustomer[] = await res2.json();
+
+    const totalAfter = after.reduce((s, r) =&gt; s + r.revenue_cents, 0);
+
+    // The whale must NOT appear after deletion (they&#39;re gone from customers)
+    const whaleAfter = after.find((r) =&gt; r.customer_id === WHALE_ID);
+    assert.equal(
+      whaleAfter,
+      undefined,
+      `Whale customer (id=${WHALE_ID}) must not appear in results after deletion`,
+    );
+
+    // -----------------------------------------------------------------------
+    // 5. Core assertion: total revenue must be unchanged.
+    //    If the INNER JOIN silently drops orphaned ord</pre></details>
+      <details class="sub"><summary>See the full test output</summary><pre class="code">✖ dashboard JOIN survives customer deletion — revenue totals must not change (4601.4126ms)
+ℹ fail 1
+✖ failing tests:
+✖ dashboard JOIN survives customer deletion — revenue totals must not change (4601.4126ms)
+  AssertionError [ERR_ASSERTION]: Revenue total changed after customer deletion! Before: 42275239 cents, After: 41153801 cents. Difference: 1121438 cents (whale had 1500000 cents). The INNER JOIN silently drops orders whose customer row was deleted — assumption is BROKEN.
+  + actual - expected
+    generatedMessage: false,
+    actual: 41153801,
+    expected: 42275239,</pre></details>
+      <p class="small">Branch <code>settle/prove-2026-09-27T12-51-10/dashboard-join-survives-deletion</code> · built by Bob in 1m 54s</p>
+    </div>
+  </div>
+</details>
+
+    <h2 class="sec2">What to do <em>next</em></h2><p class="lead">Bob's plan, written from what the tests actually found. Landmines first.</p><div class="steps2"><div class="step2" style="--d:0ms"><span>Migration: add deleted_at timestamptz NULL, drop NOT NULL from name and region in customers.</span></div><div class="step2" style="--d:70ms"><span>Update topCustomers to use LEFT JOIN and coalesce the name.</span></div><div class="step2" style="--d:140ms"><span>Implement DELETE /customers/:id endpoint: NULL out name/region, set deleted_at = now().</span></div><div class="step2" style="--d:210ms"><span>Filter deleted customers from any customer-listing queries (add WHERE deleted_at IS NULL).</span></div><div class="step2" style="--d:280ms"><span>Write integration tests covering: delete with existing orders, dashboard totals unchanged, deleted customer absent from listings.</span></div></div>
+
+    <div class="cta-row">
+      <a class="pill-btn blue" href="../../#use">Run this on your repo <span class="arr">↗</span></a>
+      <a class="pill-btn light" href="../../try/">Try another request <span class="arr">↻</span></a>
+    </div>
+
+    <div class="meta2"><span>A real recorded run · about 4 minutes · every experiment on its own branch, nothing merged</span><span>base 95d4ab5</span></div>
+  </main>
+</div>
+</body>
+</html>

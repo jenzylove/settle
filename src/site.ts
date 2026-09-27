@@ -2,6 +2,7 @@ import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameS
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { landingPage } from "./app/landing.ts";
 import { landingProve } from "./app/landing-prove.ts";
+import { tryPage } from "./app/try-page.ts";
 import { renderProof } from "./proof-page.ts";
 import type { ProofFile } from "./prove.ts";
 import { appPage } from "./app/page.ts";
@@ -79,13 +80,17 @@ export async function build(args: string[]) {
     mkdirSync(join(tmp, "runs", id), { recursive: true });
     writeFileSync(join(tmp, "runs", id, "index.html"), renderProof(p));
     writeFileSync(join(tmp, "runs", id, "proof.json"), JSON.stringify(p));
+    if (existsSync(join(runsDir, id, "events.jsonl"))) copyFileSync(join(runsDir, id, "events.jsonl"), join(tmp, "runs", id, "events.jsonl"));
   }
   const featuredProof = flag("proof") ?? proofs[0];
   if (featuredProof) {
     mkdirSync(join(tmp, "compare"), { recursive: true });
     renameSync(join(tmp, "index.html"), join(tmp, "compare", "index.html"));
     const p: ProofFile = JSON.parse(readFileSync(join(runsDir, featuredProof, "proof.json"), "utf8"));
-    writeFileSync(join(tmp, "index.html"), landingProve(p));
+    const allProofs: ProofFile[] = proofs.map((id) => JSON.parse(readFileSync(join(runsDir, id, "proof.json"), "utf8")));
+    writeFileSync(join(tmp, "index.html"), landingProve(p, allProofs));
+    mkdirSync(join(tmp, "try"), { recursive: true });
+    writeFileSync(join(tmp, "try", "index.html"), tryPage(allProofs));
   }
   writeFileSync(join(tmp, "app", "index.html"), appPage({ mode: "static", script: bundleApp(), home: "../" }));
   writeFileSync(join(tmp, "app", "data", "debate.json"), JSON.stringify(readDebate(config)));

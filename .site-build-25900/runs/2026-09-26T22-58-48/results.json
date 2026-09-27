@@ -1,0 +1,311 @@
+{
+  "question": "How do we make the top customers endpoint fast?",
+  "context": "GET /stats/top-customers ranks customers by paid revenue over the last 30 days. It scans about 200,000 orders on every call and is slow under load. The sales dashboard polls it, and account managers use it right after closing large orders, so results must not lag far behind new orders.\n",
+  "created_at": "2026-09-26T23:06:40.858Z",
+  "base_commit": "c5ea5dfcf314ffe8acd44cef9a51984c02b5f5ad",
+  "app_path": "demo/orders-api",
+  "constraints": {
+    "max_p95_ms": 50,
+    "max_staleness_seconds": 10,
+    "tests_must_pass": true
+  },
+  "load": {
+    "request": {
+      "method": "GET",
+      "path": "/stats/top-customers?limit=10"
+    },
+    "duration_seconds": 15,
+    "concurrency": 8,
+    "warmup_seconds": 3
+  },
+  "baseline": {
+    "id": "baseline",
+    "name": "Today (no change)",
+    "description": "The code as it is now.",
+    "branch": "settle/2026-09-26T22-58-48/baseline",
+    "built": true,
+    "diff": {
+      "added": 0,
+      "removed": 0,
+      "files": [],
+      "test_added": 0,
+      "test_files": []
+    },
+    "new_dependencies": [],
+    "tests": {
+      "ok": true,
+      "passed": 3,
+      "failed": 0
+    },
+    "load": {
+      "requests": 165,
+      "errors": 0,
+      "rps": 11,
+      "p50_ms": 751.7,
+      "p95_ms": 1006.7,
+      "p99_ms": 1030.2
+    },
+    "freshness": {
+      "probes": 3,
+      "lags_seconds": [
+        0.1,
+        0.1,
+        0.1
+      ],
+      "max_seconds": 0.1,
+      "median_seconds": 0.1,
+      "timed_out": 0
+    }
+  },
+  "options": [
+    {
+      "id": "cache",
+      "name": "Cache",
+      "description": "Cache the endpoint's response in memory with a 60 second time to live.",
+      "branch": "settle/2026-09-26T22-58-48/cache",
+      "built": true,
+      "bob": {
+        "duration_seconds": 133,
+        "summary": {
+          "type": "result",
+          "timestamp": "2026-09-26T23:01:02.320Z",
+          "status": "success",
+          "stats": {
+            "task_id": "6799490f18133391ce9d71fff3b6dafb",
+            "duration_ms": 130874,
+            "session_costs": 0.719266,
+            "max_cost": 0,
+            "tool_calls": 18
+          },
+          "last_message": "---\n\n## Summary\n\n### What was changed\n\n**New file — [`src/cache.ts`](demo/orders-api/src/cache.ts)**  \nA tiny generic `TtlCache<K, V>` class backed by a `Map`. Stores each entry with an `expiresAt` timestamp and evicts on read. No external dependencies.\n\n**Modified — [`src/server.ts`](demo/orders-api/src/server.ts)**  \n- Imported `TtlCache`.\n- Exported `TOP_CUSTOMERS_TTL_MS = 60_000` (60 s) as a named constant so tests and future config can override it.\n- `buildServer` now accepts an optional `ttlMs` parameter (defaults to the constant) and creates one `TtlCache<number, TopCustomer[]>` per server instance, keyed on the `limit` value.\n- The `GET /stats/top-customers` handler does a cache lookup before querying Postgres; on a miss it queries, stores, and returns. HTTP shape is unchanged.\n\n**New file — [`test/cache.test.ts`](demo/orders-api/test/cache.test.ts)**  \n5 unit tests for `TtlCache` (hit, miss, expiry, delete, purge) and 3 integration tests via HTTP (cache hit returns identical payload, independent per-limit keys, fresh result after expiry). The existing [`test/api.test.ts`](demo/orders-api/test/api.test.ts) was not touched.\n\n### Tradeoffs\n\n| Concern | Decision |\n|---|---|\n| **TTL length** | 60 s — matches the requirement. An account manager closing a big order will see the result reflected within 60 s; the load on Postgres drops by roughly `RPS × 60`. |\n| **Per-limit cache keys** | Different `limit` values produce different result sets, so they are cached independently. In practice the dashboard always uses the same limit, so there is effectively one entry. |\n| **Process-local only** | This is a single-process in-memory cache. In a horizontally scaled deployment each instance has its own cache, which is fine — each independently avoids the DB storm during its own TTL window. A Redis cache would provide cross-instance consistency but was out of scope. |\n| **No explicit invalidation** | Orders written via `POST /orders` do not evict the cache. The 60 s TTL is the stated acceptable lag. Explicit invalidation would tighten freshness at the cost of more code. |\n| **No external dependency** | `TtlCache` is ~30 lines of plain TypeScript — no `node-cache` / `lru-cache` needed for this simple single-entry use case. `package.json` did not change. |"
+        }
+      },
+      "diff": {
+        "added": 45,
+        "removed": 2,
+        "files": [
+          "demo/orders-api/src/cache.ts",
+          "demo/orders-api/src/server.ts"
+        ],
+        "test_added": 105,
+        "test_files": [
+          "demo/orders-api/test/cache.test.ts"
+        ],
+        "patch": "diff --git a/demo/orders-api/src/cache.ts b/demo/orders-api/src/cache.ts\nnew file mode 100644\nindex 0000000..3618fc4\n--- /dev/null\n+++ b/demo/orders-api/src/cache.ts\n@@ -0,0 +1,33 @@\n+/** Minimal single-value TTL cache used by the top-customers endpoint. */\n+export class TtlCache<K, V> {\n+  private store = new Map<K, { value: V; expiresAt: number }>();\n+\n+  constructor(private readonly ttlMs: number) {}\n+\n+  get(key: K): V | undefined {\n+    const entry = this.store.get(key);\n+    if (!entry) return undefined;\n+    if (Date.now() > entry.expiresAt) {\n+      this.store.delete(key);\n+      return undefined;\n+    }\n+    return entry.value;\n+  }\n+\n+  set(key: K, value: V): void {\n+    this.store.set(key, { value, expiresAt: Date.now() + this.ttlMs });\n+  }\n+\n+  /** Evict a single key — useful in tests or explicit invalidation. */\n+  delete(key: K): void {\n+    this.store.delete(key);\n+  }\n+\n+  /** Remove all expired entries without clearing live ones. */\n+  purgeExpired(): void {\n+    const now = Date.now();\n+    for (const [k, entry] of this.store) {\n+      if (now > entry.expiresAt) this.store.delete(k);\n+    }\n+  }\n+}\ndiff --git a/demo/orders-api/src/server.ts b/demo/orders-api/src/server.ts\nindex a612221..e9d7688 100644\n--- a/demo/orders-api/src/server.ts\n+++ b/demo/orders-api/src/server.ts\n@@ -1,4 +1,5 @@\n import { createServer, type IncomingMessage, type Server, type ServerResponse } from \"node:http\";\n import type { PGlite } from \"@electric-sql/pglite\";\n+import { TtlCache } from \"./cache.ts\";\n \n export interface TopCustomer {\n@@ -9,4 +10,7 @@ export interface TopCustomer {\n }\n \n+/** Cache TTL in milliseconds. 60 s balances freshness with load reduction. */\n+export const TOP_CUSTOMERS_TTL_MS = 60_000;\n+\n // Top customers by paid revenue over the last 30 days. This is the slow\n // endpoint the Settle demo debates how to speed up.\n@@ -50,5 +54,7 @@ async function readJson(req: IncomingMessage): Promise<any> {\n }\n \n-export function buildServer(db: PGlite): Server {\n+export function buildServer(db: PGlite, ttlMs = TOP_CUSTOMERS_TTL_MS): Server {\n+  const cache = new TtlCache<number, TopCustomer[]>(ttlMs);\n+\n   return createServer(async (req, res) => {\n     try {\n@@ -61,5 +67,9 @@ export function buildServer(db: PGlite): Server {\n       if (req.method === \"GET\" && url.pathname === \"/stats/top-customers\") {\n         const limit = Math.min(Math.max(Number(url.searchParams.get(\"limit\") ?? 10), 1), 100);\n-        return send(res, 200, await topCustomers(db, limit));\n+        const cached = cache.get(limit);\n+        if (cached) return send(res, 200, cached);\n+        const rows = await topCustomers(db, limit);\n+        cache.set(limit, rows);\n+        return send(res, 200, rows);\n       }"
+      },
+      "new_dependencies": [],
+      "tests": {
+        "ok": true,
+        "passed": 11,
+        "failed": 0
+      },
+      "load": {
+        "requests": 74321,
+        "errors": 0,
+        "rps": 4954.7,
+        "p50_ms": 1.4,
+        "p95_ms": 2.8,
+        "p99_ms": 4.7
+      },
+      "freshness": {
+        "probes": 3,
+        "lags_seconds": [
+          0.1,
+          60.1,
+          60.1
+        ],
+        "max_seconds": 60.1,
+        "median_seconds": 60.1,
+        "timed_out": 0
+      }
+    },
+    {
+      "id": "matview",
+      "name": "Materialized view",
+      "description": "Precompute the ranking in a Postgres materialized view and refresh it on a short schedule in the background.",
+      "branch": "settle/2026-09-26T22-58-48/matview",
+      "built": true,
+      "bob": {
+        "duration_seconds": 142,
+        "summary": {
+          "type": "result",
+          "timestamp": "2026-09-26T23:01:10.894Z",
+          "status": "success",
+          "stats": {
+            "task_id": "1bfd907f755a21f6a0784a4474464e4f",
+            "duration_ms": 138911,
+            "session_costs": 0.672398,
+            "max_cost": 0,
+            "tool_calls": 17
+          },
+          "last_message": "---\n\n## What changed and why\n\n### Files modified\n\n**[`demo/orders-api/src/db.ts`](demo/orders-api/src/db.ts)**\n\n- **`CREATE MATERIALIZED VIEW mv_top_customers`** — added at the end of the seed script so the view is fully populated the moment the DB is ready. It runs the same GROUP BY/ORDER BY logic that the old hot path ran on every request, but only once on startup (and once per refresh interval thereafter).\n- **`CREATE INDEX ON mv_top_customers (revenue_cents DESC)`** — the endpoint always `ORDER BY revenue_cents DESC LIMIT N`. With this index, Postgres can satisfy it as a single forward index scan touching exactly *N* index pages — O(limit), not O(customers-in-view).\n- **`startMatviewRefresher(db, intervalMs)`** — exported helper that calls `REFRESH MATERIALIZED VIEW` on a `setInterval`. Returns a cancel function so the test can stop it, and the production server can stop it on close. `timer.unref()` prevents the timer from keeping the process alive.\n\n**[`demo/orders-api/src/server.ts`](demo/orders-api/src/server.ts)**\n\n- **`topCustomers`** — replaced the 200 k-row aggregation with a straight `SELECT … FROM mv_top_customers ORDER BY revenue_cents DESC LIMIT $1`. Same return type, same column names — the HTTP response shape is identical.\n- **`buildServer`** — gains an optional `refreshIntervalMs` parameter (default 10 s). It calls `startMatviewRefresher` on startup and hooks `stopRefresh` onto the server's `close` event so the timer is cleaned up properly.\n\n**[`demo/orders-api/test/matview.test.ts`](demo/orders-api/test/matview.test.ts)** *(new)*\n\n- Verifies the view exists and is populated after `openDb`.\n- Verifies the view rows are already sorted by `revenue_cents DESC`.\n- Verifies a `REFRESH` picks up a newly inserted order.\n- Verifies the HTTP endpoint returns exactly the top rows from the view.\n\n### Tradeoffs chosen\n\n| Decision | Reasoning |\n|---|---|\n| **10 s refresh interval** | Dashboard polls frequently; account managers want results within seconds of closing a deal. 10 s lag is acceptable and keeps CPU cost low. Could be made env-configurable if needed. |\n| **Non-concurrent refresh** | `REFRESH MATERIALIZED VIEW` (without `CONCURRENTLY`) briefly locks the view for reads. For this workload that's fine: the lock is very short (milliseconds) and avoids the extra unique-index requirement that `CONCURRENTLY` needs. If read availability during refresh becomes a concern, add `CONCURRENTLY` and a unique index on `customer_id`. |\n| **Index on the view** | The index makes `ORDER BY revenue_cents DESC LIMIT N` a pure index scan on the view — completely decoupled from orders table size. |\n| **No cache layer** | This option deliberately avoids caching. Freshness comes from the 10 s refresh, not from a TTL. |"
+        }
+      },
+      "diff": {
+        "added": 45,
+        "removed": 13,
+        "files": [
+          "demo/orders-api/src/db.ts",
+          "demo/orders-api/src/server.ts"
+        ],
+        "test_added": 124,
+        "test_files": [
+          "demo/orders-api/test/matview.test.ts"
+        ],
+        "patch": "diff --git a/demo/orders-api/src/db.ts b/demo/orders-api/src/db.ts\nindex fa3c0a9..f8b4de1 100644\n--- a/demo/orders-api/src/db.ts\n+++ b/demo/orders-api/src/db.ts\n@@ -39,5 +39,38 @@ export async function openDb(): Promise<PGlite> {\n \n     ANALYZE;\n+\n+    -- Materialized view: precomputed top-customer ranking for the last 30 days.\n+    -- Reads are instant (index scan on revenue_cents); writes go to orders as\n+    -- normal and the view is refreshed on a background schedule.\n+    CREATE MATERIALIZED VIEW mv_top_customers AS\n+    SELECT c.id          AS customer_id,\n+           c.name,\n+           sum(o.amount_cents)::int AS revenue_cents,\n+           count(*)::int            AS orders\n+    FROM orders o\n+    JOIN customers c ON c.id = o.customer_id\n+    WHERE o.status = 'paid'\n+      AND o.created_at > now() - interval '30 days'\n+    GROUP BY c.id, c.name\n+    ORDER BY revenue_cents DESC;\n+\n+    -- Index so ORDER BY + LIMIT is a fast index scan, not a sort.\n+    CREATE INDEX ON mv_top_customers (revenue_cents DESC);\n   `);\n   return db;\n }\n+\n+// Refresh the materialized view in the background on a fixed interval.\n+// Returns a cancel function that stops the timer.\n+export function startMatviewRefresher(db: PGlite, intervalMs: number = 10_000): () => void {\n+  const timer = setInterval(async () => {\n+    try {\n+      await db.exec(\"REFRESH MATERIALIZED VIEW mv_top_customers;\");\n+    } catch {\n+      // Swallow errors – a stale view is better than a crash.\n+    }\n+  }, intervalMs);\n+  // Allow Node to exit without waiting for this timer.\n+  timer.unref?.();\n+  return () => clearInterval(timer);\n+}\ndiff --git a/demo/orders-api/src/server.ts b/demo/orders-api/src/server.ts\nindex a612221..590485f 100644\n--- a/demo/orders-api/src/server.ts\n+++ b/demo/orders-api/src/server.ts\n@@ -1,4 +1,5 @@\n import { createServer, type IncomingMessage, type Server, type ServerResponse } from \"node:http\";\n import type { PGlite } from \"@electric-sql/pglite\";\n+import { startMatviewRefresher } from \"./db.ts\";\n \n export interface TopCustomer {\n@@ -9,17 +10,11 @@ export interface TopCustomer {\n }\n \n-// Top customers by paid revenue over the last 30 days. This is the slow\n-// endpoint the Settle demo debates how to speed up.\n+// Top customers by paid revenue over the last 30 days.\n+// Reads from the precomputed materialized view – O(limit) index scan\n+// instead of a full 200k-row aggregation on every call.\n export async function topCustomers(db: PGlite, limit: number): Promise<TopCustomer[]> {\n   const { rows } = await db.query<TopCustomer>(\n-    `SELECT c.id AS customer_id,\n-            c.name,\n-            sum(o.amount_cents)::int AS revenue_cents,\n-            count(*)::int AS orders\n-     FROM orders o\n-     JOIN customers c ON c.id = o.customer_id\n-     WHERE o.status = 'paid'\n-       AND o.created_at > now() - interval '30 days'\n-     GROUP BY c.id, c.name\n+    `SELECT customer_id, name, revenue_cents, orders\n+     FROM mv_top_customers\n      ORDER BY revenue_cents DESC\n      LIMIT $1`,\n@@ -50,6 +45,8 @@ async function readJson(req: IncomingMessage): Promise<any> {\n }\n \n-export function buildServer(db: PGlite): Server {\n-  return createServer(async (req, res) => {\n+export function buildServer(db: PGlite, refreshIntervalMs: number = 10_000): Server {\n+  // Start the background view refresher; it will stop when the server closes.\n+  const stopRefresh = startMatviewRefresher(db, refreshIntervalMs);\n+  const server = createServer(async (req, res) => {\n     try {\n       const url = new URL(req.url ?? \"/\", \"http://localhost\");\n@@ -80,3 +77,5 @@ export function buildServer(db: PGlite): Server {\n     }\n   });\n+  server.once(\"close\", stopRefresh);\n+  return server;\n }"
+      },
+      "new_dependencies": [],
+      "tests": {
+        "ok": true,
+        "passed": 7,
+        "failed": 0
+      },
+      "load": {
+        "requests": 25564,
+        "errors": 0,
+        "rps": 1704.3,
+        "p50_ms": 4.3,
+        "p95_ms": 7,
+        "p99_ms": 10.1
+      },
+      "freshness": {
+        "probes": 3,
+        "lags_seconds": [
+          2.2,
+          9.8,
+          10
+        ],
+        "max_seconds": 10,
+        "median_seconds": 9.8,
+        "timed_out": 0
+      }
+    },
+    {
+      "id": "index",
+      "name": "Index and rewrite",
+      "description": "Add the right index or indexes and rewrite the query so Postgres does less work. No caching and no precomputed tables.",
+      "branch": "settle/2026-09-26T22-58-48/index",
+      "built": true,
+      "bob": {
+        "duration_seconds": 124,
+        "summary": {
+          "type": "result",
+          "timestamp": "2026-09-26T23:00:53.451Z",
+          "status": "success",
+          "stats": {
+            "task_id": "fe3624bf63d7097c9c11dcf09571ba0f",
+            "duration_ms": 120983,
+            "session_costs": 0.6063459999999999,
+            "max_cost": 0,
+            "tool_calls": 17
+          },
+          "last_message": "---\n\n## Summary\n\n### What changed\n\n**[`demo/orders-api/src/db.ts`](demo/orders-api/src/db.ts:39)** — Added one index after the seed data inserts:\n\n```sql\nCREATE INDEX orders_paid_date_covering\n  ON orders (created_at, customer_id, amount_cents)\n  WHERE status = 'paid';\n```\n\n**[`demo/orders-api/test/index.test.ts`](demo/orders-api/test/index.test.ts)** — Two new tests: one checks the index exists in `pg_indexes`; the other runs `EXPLAIN` on the exact query and asserts the plan references `orders_paid_date_covering`.\n\nNo other files were modified. Routes, request shapes, and response shapes are identical.\n\n---\n\n### Why this index\n\n| Property | Effect |\n|---|---|\n| **Partial** (`WHERE status = 'paid'`) | Index holds only ~75% of the 200k rows (paid orders). The planner can skip the index entirely for any non-paid query and doesn't waste memory or I/O on refunded rows. |\n| **`created_at` first** | Postgres performs an index range scan — it reads only the leaf pages for the 30-day window rather than the entire index. At ~25% of 150k paid rows that is roughly 37k rows touched vs. 200k with a seq scan. |\n| **`customer_id, amount_cents` included** | All three columns needed for `GROUP BY c.id` and `SUM(amount_cents)` are in the index, so Postgres can use an **index-only scan** — zero heap fetches — to build the aggregate. The join to `customers` is a small nested-loop over at most ~5k primary-key lookups. |\n\n### Tradeoffs\n\n- **Write overhead:** Every `INSERT`/`UPDATE` to `orders` maintains an extra B-tree entry. For this workload (append-mostly orders) the overhead is negligible compared to the read gain.\n- **No caching / no precomputed state:** Results always reflect the latest committed orders, which satisfies the \"must not lag far behind new orders\" requirement directly — account managers closing large orders see them immediately.\n- **No schema migration needed** for the query itself: the SQL in [`topCustomers()`](demo/orders-api/src/server.ts:13) is unchanged; only the planner's execution path changes."
+        }
+      },
+      "diff": {
+        "added": 10,
+        "removed": 0,
+        "files": [
+          "demo/orders-api/src/db.ts"
+        ],
+        "test_added": 45,
+        "test_files": [
+          "demo/orders-api/test/index.test.ts"
+        ],
+        "patch": "diff --git a/demo/orders-api/src/db.ts b/demo/orders-api/src/db.ts\nindex fa3c0a9..a29e282 100644\n--- a/demo/orders-api/src/db.ts\n+++ b/demo/orders-api/src/db.ts\n@@ -38,4 +38,14 @@ export async function openDb(): Promise<PGlite> {\n     FROM generate_series(1, ${ORDERS});\n \n+    -- Covering partial index for the top-customers query.\n+    -- Partial (WHERE status = 'paid') shrinks the index to ~75% of rows.\n+    -- created_at first so Postgres uses a range scan for the 30-day window\n+    -- instead of scanning all paid orders; customer_id and amount_cents are\n+    -- included so the GROUP BY / SUM can be resolved with an index-only scan\n+    -- without touching the heap at all.\n+    CREATE INDEX orders_paid_date_covering\n+      ON orders (created_at, customer_id, amount_cents)\n+      WHERE status = 'paid';\n+\n     ANALYZE;\n   `);"
+      },
+      "new_dependencies": [],
+      "tests": {
+        "ok": true,
+        "passed": 5,
+        "failed": 0
+      },
+      "load": {
+        "requests": 367,
+        "errors": 0,
+        "rps": 24.5,
+        "p50_ms": 329.5,
+        "p95_ms": 408.6,
+        "p99_ms": 437.2
+      },
+      "freshness": {
+        "probes": 3,
+        "lags_seconds": [
+          0,
+          0,
+          0
+        ],
+        "max_seconds": 0,
+        "median_seconds": 0,
+        "timed_out": 0
+      }
+    }
+  ],
+  "verdict": {
+    "winner": "matview",
+    "headline": "Materialized view meets every constraint with the smallest change.",
+    "reason": "Materialized view: p95 7 ms, 58 lines of code changed, 0 new dependencies. Cache fails staleness (60.1 s, needs ≤ 10 s); Index and rewrite fails p95 latency (408.6 ms, needs ≤ 50 ms).",
+    "checks": {
+      "cache": [
+        {
+          "label": "p95 latency",
+          "limit": "≤ 50 ms",
+          "actual": "2.8 ms",
+          "pass": true
+        },
+        {
+          "label": "Staleness",
+          "limit": "≤ 10 s",
+          "actual": "60.1 s",
+          "pass": false
+        },
+        {
+          "label": "Tests",
+          "limit": "pass",
+          "actual": "pass",
+          "pass": true
+        }
+      ],
+      "matview": [
+        {
+          "label": "p95 latency",
+          "limit": "≤ 50 ms",
+          "actual": "7 ms",
+          "pass": true
+        },
+        {
+          "label": "Staleness",
+          "limit": "≤ 10 s",
+          "actual": "10 s",
+          "pass": true
+        },
+        {
+          "label": "Tests",
+          "limit": "pass",
+          "actual": "pass",
+          "pass": true
+        }
+      ],
+      "index": [
+        {
+          "label": "p95 latency",
+          "limit": "≤ 50 ms",
+          "actual": "408.6 ms",
+          "pass": false
+        },
+        {
+          "label": "Staleness",
+          "limit": "≤ 10 s",
+          "actual": "0 s",
+          "pass": true
+        },
+        {
+          "label": "Tests",
+          "limit": "pass",
+          "actual": "pass",
+          "pass": true
+        }
+      ]
+    }
+  }
+}

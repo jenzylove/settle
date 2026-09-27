@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settle App</title>
+<meta name="description" content="Settle builds every option of a design debate with IBM Bob and shows you the numbers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #ffffff; --fg: #0b0b0c; --muted: #6b6b70; --faint: #a1a1a6; --line: #e4e4e7; --soft: #f5f5f6; --strong: #0b0b0c;
+  --sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #0b0b0c; --fg: #f4f4f5; --muted: #9a9aa2; --faint: #5c5c62; --line: #26262b; --soft: #141417; --strong: #f4f4f5; }
+}
+:root[data-theme="dark"] { --bg: #0b0b0c; --fg: #f4f4f5; --muted: #9a9aa2; --faint: #5c5c62; --line: #26262b; --soft: #141417; --strong: #f4f4f5; }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+.bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.brand { font-weight: 800; letter-spacing: -0.02em; font-size: 18px; text-decoration: none; }
+.nav { display: flex; gap: 22px; align-items: center; }
+.nav a { text-decoration: none; color: var(--muted); }
+.nav a:hover, .nav a.on { color: var(--fg); }
+.muted { color: var(--muted); }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+code, .mono { font-family: var(--mono); font-size: 0.9em; }
+.btn { display: inline-flex; align-items: center; gap: 10px; font: 600 15px/1 var(--sans); background: var(--fg); color: var(--bg); border: 1px solid var(--fg); padding: 14px 20px; cursor: pointer; text-decoration: none; }
+.btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+.rule { border: 0; border-top: 1px solid var(--line); margin: 0; }
+
+main { padding: 48px 0 96px; }
+textarea, input { font: inherit; color: var(--fg); background: transparent; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 10px 0; width: 100%; resize: vertical; }
+textarea:disabled, input:disabled { color: var(--fg); -webkit-text-fill-color: var(--fg); opacity: 1; border-bottom-color: transparent; resize: none; }
+.q { resize: none; font: 800 clamp(30px, 4.6vw, 56px)/1.06 var(--sans); letter-spacing: -0.035em; margin: 14px 0 6px; }
+.ctx { color: var(--muted); font-size: 17px; max-width: 80ch; }
+.grid2 { display: grid; grid-template-columns: 1.6fr 1fr; gap: 56px; margin-top: 48px; }
+.grid2 .eyebrow { margin-bottom: 8px; }
+.opt-row { display: grid; grid-template-columns: 28px 200px 1fr 28px; gap: 16px; align-items: center; border-bottom: 1px solid var(--line); }
+.opt-row input { border-bottom: 0; }
+.opt-name { font-weight: 600; }
+.opt-n { color: var(--muted); }
+.x { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 14px; }
+.btn.small { padding: 10px 14px; font-size: 13px; margin-top: 16px; }
+.lim { display: flex; justify-content: space-between; align-items: center; gap: 16px; border-bottom: 1px solid var(--line); padding: 8px 0; }
+.lim input[type=number] { width: 80px; text-align: right; font-family: var(--mono); border-bottom: 0; }
+.lim input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--fg); }
+.actions { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-top: 48px; padding-top: 28px; border-top: 1px solid var(--line); }
+.actions .muted { font-size: 14px; }
+
+.list { border-top: 1px solid var(--line); margin-top: 14px; }
+.run-row { display: grid; grid-template-columns: 170px 1fr 1.2fr 80px; gap: 20px; padding: 20px 0; border-bottom: 1px solid var(--line); text-decoration: none; align-items: baseline; }
+.run-row:hover { background: var(--soft); }
+.rq { font-weight: 600; }
+.rv { color: var(--muted); }
+.go { text-align: right; font-weight: 600; }
+
+.run-head { padding-bottom: 28px; border-bottom: 1px solid var(--line); }
+.run-head h1 { font: 800 clamp(28px, 4vw, 48px)/1.06 var(--sans); letter-spacing: -0.035em; margin: 14px 0 22px; max-width: 22ch; }
+.phases { display: flex; align-items: center; gap: 14px; font: 500 13px var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); }
+.ph.now { color: var(--fg); font-weight: 600; }
+.ph.past { color: var(--muted); }
+.ph-sep { width: 40px; height: 1px; background: var(--line); }
+.speed { margin-top: 18px; font: 500 12px var(--mono); color: var(--muted); display: flex; gap: 8px; align-items: center; }
+.speed button { font: inherit; background: none; border: 1px solid var(--line); color: var(--muted); padding: 4px 8px; cursor: pointer; }
+.speed button.on { color: var(--fg); border-color: var(--fg); }
+
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); border-bottom: 1px solid var(--line); }
+.col { padding: 28px 24px 22px; border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 420px; }
+.col:first-child { padding-left: 0; }
+.col:last-child { border-right: 0; padding-right: 0; }
+.col h3 { margin: 0 0 6px; font-size: 22px; letter-spacing: -0.02em; }
+.col .desc { margin: 0 0 14px; color: var(--muted); font-size: 14px; min-height: 42px; }
+.col .status { font-size: 13px; margin: 0 0 16px; color: var(--muted); }
+.col.building .status { color: var(--fg); }
+.col.win h3 { text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 2px; }
+.feed { list-style: none; padding: 0; margin: 0; flex: 1; font: 13px/1.5 var(--mono); color: var(--muted); border-top: 1px solid var(--line); }
+.feed li { padding: 7px 0; border-bottom: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.feed li.latest { color: var(--fg); }
+.feed li.latest::before { content: "›"; margin-right: 8px; }
+.col footer { margin-top: 14px; font-size: 12px; }
+.tag { display: inline-block; font: 600 10px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid var(--strong); padding: 4px 6px; margin-bottom: 10px; }
+
+.measure { padding-top: 36px; }
+.mhead { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+.mkey { font-size: 12px; color: var(--muted); margin: 0; }
+.mrows { margin-top: 14px; border-top: 2px solid var(--strong); }
+.mrow { display: grid; grid-template-columns: 220px 1fr 1fr 130px 80px; gap: 24px; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--line); transition: background .3s ease; }
+.mrow.mlabels { font: 500 12px var(--mono); color: var(--muted); padding: 10px 0; }
+.mrow.now { background: var(--soft); }
+.mrow.base .mn { color: var(--muted); }
+.mn { font: 600 16px var(--sans); }
+.mrow.win .mn { font-weight: 800; }
+.mrow .tag { margin: 0 0 0 6px; vertical-align: 2px; }
+.mbar { display: grid; grid-template-columns: 1fr 84px; gap: 12px; align-items: center; }
+.track { position: relative; height: 10px; background: var(--soft); }
+.track .fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--fg); transform-origin: left; }
+.track .fill.over { background: var(--faint); }
+.track .fill.grow { animation: grow .9s cubic-bezier(.2,.7,.2,1) both; }
+@keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.track .limit { position: absolute; top: -6px; bottom: -6px; width: 0; border-left: 2px dashed var(--fg); z-index: 1; }
+.bv { font: 600 14px var(--mono); text-align: right; }
+.verdict-box .vh, .verdict-box .muted, .verdict-box .btn { animation: rise .7s ease both; }
+.verdict-box .muted { animation-delay: .15s; } .verdict-box .btn { animation-delay: .3s; }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (max-width: 820px) { .mrow { grid-template-columns: 1fr; gap: 8px; } .mrow.mlabels { display: none; } }
+.verdict-box { padding-top: 40px; }
+.verdict-box .vh { font: 700 clamp(24px, 3vw, 36px)/1.15 var(--sans); letter-spacing: -0.02em; margin: 10px 0; }
+.verdict-box .muted { max-width: 90ch; margin: 0 0 24px; }
+.foot { padding: 40px 0; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+@media (max-width: 820px) {
+  .grid2 { grid-template-columns: 1fr; gap: 32px; }
+  .opt-row { grid-template-columns: 22px 1fr 22px; }
+  .opt-row .opt-desc { grid-column: 2 / 4; }
+  .run-row { grid-template-columns: 1fr; gap: 4px; }
+  .go { text-align: left; }
+  .col { border-right: 0; border-bottom: 1px solid var(--line); padding: 24px 0; min-height: 0; }
+}
+</style>
+</head>
+<body data-mode="static">
+<div class="wrap">
+  <header class="bar">
+    <a class="brand" href="../">Settle</a>
+    <nav class="nav">
+      <a href="#/" data-route="debate">Debate</a>
+      <a href="#/runs" data-route="runs">Runs</a>
+      <a href="https://github.com/jenzylove/settle">GitHub</a>
+    </nav>
+  </header>
+  <main id="app"></main>
+  <footer class="foot"><span>Settle · options built with IBM Bob</span><span>Recorded runs from a real machine. Run your own with <code>settle ui</code>.</span></footer>
+</div>
+<script>"use strict";(()=>{var R=document.body.dataset.mode??"local",A="https://github.com/jenzylove/settle",w=async(n,o)=>{let l=await fetch(n,o);if(!l.ok)throw new Error(await l.text()||l.statusText);return l.json()},C={mode:"local",debate:()=>w("/api/debate"),save:n=>w("/api/debate",{method:"PUT",headers:{"content-type":"application/json"},body:JSON.stringify(n)}),runs:()=>w("/api/runs"),start:async()=>(await w("/api/run",{method:"POST"})).id,watch(n,o){let l=new EventSource(`/api/events/${n}`);return l.onmessage=e=>o(JSON.parse(e.data)),l.addEventListener("end",()=>l.close()),()=>l.close()},results:n=>`/runs/${n}/`},P={mode:"static",debate:()=>w("data/debate.json"),runs:()=>w("data/runs.json"),watch(n,o,l){let e=!1;return(async()=>{let g=(await(await fetch(`../runs/${n}/events.jsonl`)).text()).split(`
+`).filter(Boolean).map(u=>JSON.parse(u));for(let u=0;u<g.length&&!e;u++){if(u>0){let h=(g[u].t-g[u-1].t)/l();await new Promise(i=>setTimeout(i,Math.min(h,1400)))}e||o(g[u])}})(),()=>e=!0},results:n=>`../runs/${n}/`},c=R==="static"?P:C,x=document.getElementById("app"),r=n=>String(n??"").replace(/[&<>"']/g,o=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[o]),M=()=>{};function S(n){document.querySelectorAll(".nav a[data-route]").forEach(o=>o.classList.toggle("on",o.dataset.route===n))}async function N(){S("debate");let n=await c.debate(),o=c.mode==="static",l=o?(await c.runs())[0]?.id:void 0,e=o?"disabled":"",f=(i,b)=>`
+    <div class="opt-row" data-i="${b}" data-id="${r(i.id)}">
+      <span class="opt-n mono">${String.fromCharCode(65+b)}</span>
+      <input class="opt-name" value="${r(i.name)}" placeholder="Option name" aria-label="Option name" ${e}>
+      <input class="opt-desc" value="${r(i.description)}" placeholder="What Bob should build, in one sentence" aria-label="Option description" ${e}>
+      ${o?"":'<button class="x" type="button" aria-label="Remove option">\u2715</button>'}
+    </div>`;if(x.innerHTML=`
+    <section class="debate">
+      <p class="eyebrow">The question</p>
+      <textarea id="q" class="q" rows="2" aria-label="Question" ${e}>${r(n.question)}</textarea>
+      <textarea id="ctx" class="ctx" rows="3" aria-label="Context" placeholder="Context Bob should know" ${e}>${r(n.context??"")}</textarea>
+
+      <div class="grid2">
+        <div>
+          <p class="eyebrow">Options Bob will build</p>
+          <div id="opts">${n.options.map(f).join("")}</div>
+          ${o?"":'<button class="btn ghost small" id="add" type="button">Add option</button>'}
+        </div>
+        <div>
+          <p class="eyebrow">Your limits</p>
+          <label class="lim"><span>p95 latency at most</span><span><input id="p95" type="number" min="1" value="${n.constraints.max_p95_ms??""}" ${e}> ms</span></label>
+          <label class="lim"><span>Results stale for at most</span><span><input id="stale" type="number" min="0" value="${n.constraints.max_staleness_seconds??""}" ${e}> s</span></label>
+          <label class="lim"><span>Existing tests must pass</span><span><input id="tests" type="checkbox" ${n.constraints.tests_must_pass?"checked":""} ${e}></span></label>
+        </div>
+      </div>
+
+      <div class="actions">
+        ${o?`<a class="btn" id="watch" href="${l?`#/run/${l}`:"#/runs"}">Watch Bob build it</a><span class="muted">Runs build real code, so they happen on your machine with <code>settle ui</code>. <a href="${A}">How to run it</a></span>`:`<button class="btn" id="run" type="button">Build every option with Bob</button><button class="btn ghost" id="save" type="button">Save</button><span class="muted" id="msg">${r(n.path??"")}</span>`}
+      </div>
+    </section>`,o)return;let g=()=>({question:document.getElementById("q").value.trim(),context:document.getElementById("ctx").value.trim(),options:[...document.querySelectorAll(".opt-row")].map(i=>{let b=i.querySelector(".opt-name").value.trim();return{id:i.dataset.id||b.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"option",name:b,description:i.querySelector(".opt-desc").value.trim()}}),constraints:{max_p95_ms:Number(document.getElementById("p95").value)||void 0,max_staleness_seconds:document.getElementById("stale").value===""?void 0:Number(document.getElementById("stale").value),tests_must_pass:document.getElementById("tests").checked}}),u=i=>document.getElementById("msg").textContent=i,h=()=>document.querySelectorAll(".opt-row .x").forEach(i=>i.onclick=()=>i.closest(".opt-row").remove());h(),document.getElementById("add").onclick=()=>{let i=document.querySelectorAll(".opt-row").length;document.getElementById("opts").insertAdjacentHTML("beforeend",f({id:"",name:"",description:""},i)),h()},document.getElementById("save").onclick=async()=>{try{await c.save(g()),u("Saved to settle.yml")}catch(i){u(i.message)}},document.getElementById("run").onclick=async i=>{let b=i.currentTarget;b.disabled=!0;try{await c.save(g());let y=await c.start();location.hash=`#/run/${y}`}catch(y){u(y.message),b.disabled=!1}}}async function V(){S("runs");let n=await c.runs();x.innerHTML=`
+    <section class="runs">
+      <p class="eyebrow">${c.mode==="static"?"Recorded runs":"Runs"}</p>
+      ${n.length===0?'<p class="muted">No runs yet.</p>':`<div class="list">${n.map(o=>`<a class="run-row" href="#/run/${o.id}">
+                  <span class="mono muted">${r((o.created_at??o.id).slice(0,16).replace("T"," "))}</span>
+                  <span class="rq">${r(o.question)}</span>
+                  <span class="rv">${o.status==="running"?"Running\u2026":r(o.headline??"")}</span>
+                  <span class="go">${c.mode==="static"?"Replay":"Open"} \u2192</span>
+                </a>`).join("")}</div>`}
+    </section>`}function D(n){S("runs");let o=[5,10,20],l=10,e={question:"",phase:"starting",t0:0,now:0,cols:new Map,base:{id:"baseline",name:"Today (no change)",description:"",state:"waiting",feed:[],calls:0},limits:{}};c.debate().then(s=>{e.limits.max_p95_ms===void 0&&e.limits.max_staleness_seconds===void 0&&(e.limits=s.constraints,i())}).catch(()=>{}),x.innerHTML=`
+    <section class="run">
+      <div class="run-head">
+        <p class="eyebrow">${c.mode==="static"?"Replay of a real run":"Live run"} <span class="mono">${r(n)}</span></p>
+        <h1 id="rq">&nbsp;</h1>
+        <div class="phases" id="phases"></div>
+        ${c.mode==="static"?`<div class="speed">Speed ${o.map(s=>`<button type="button" data-s="${s}" class="${s===l?"on":""}">${s}\xD7</button>`).join("")}</div>`:""}
+      </div>
+      <div class="cols" id="cols"></div>
+      <div class="measure" id="measure"></div>
+      <div class="verdict-box" id="vbox" aria-live="polite"></div>
+    </section>`,document.querySelectorAll(".speed button").forEach(s=>s.onclick=()=>{l=Number(s.dataset.s),document.querySelectorAll(".speed button").forEach(a=>a.classList.toggle("on",a===s))});let f=s=>`${Math.floor(s/60)}m ${String(Math.floor(s%60)).padStart(2,"0")}s`,g=s=>s===void 0?"\u2014":s>=1e3?`${(s/1e3).toFixed(2)} s`:`${Math.round(s)} ms`,u=s=>{let a=s.m?.freshness;return a?a.timed_out?`over ${a.max_seconds} s`:a.max_seconds<1?"instant":`${a.max_seconds} s`:"\u2014"},h={install:"Installing",tests:"Running tests",start:"Starting app",load:"Load test",freshness:"Freshness probe"};function i(){document.getElementById("rq").textContent=e.question||"\xA0";let a=["build","measure","done"].indexOf(e.phase);document.getElementById("phases").innerHTML=["Bob builds","Measure","Verdict"].map((t,d)=>{let m=e.phase==="done"?2:a;return`<span class="ph ${d<m?"past":d===m?"now":""}">${t}</span>`}).join('<span class="ph-sep"></span>');let q=e.t0?(e.now-e.t0)/1e3:0;document.getElementById("cols").innerHTML=[...e.cols.values()].map(t=>{let d=t.state==="building"?`Building \xB7 ${f(q)}`:t.state==="failed"?`Not built${t.error?`: ${r(t.error)}`:""}`:t.state==="measuring"?r(h[t.step??""]??"Measuring"):t.state==="measured"?"Measured":t.state==="built"?`Built in ${f(t.seconds??0)}`:"Waiting",m=e.verdict?.winner===t.id;return`<article class="col ${t.state} ${m?"win":""}">
+          <header>
+            ${m?'<span class="tag">Pick</span>':""}
+            <h3>${r(t.name)}</h3>
+            <p class="desc">${r(t.description)}</p>
+            <p class="status mono">${d}</p>
+          </header>
+          <ol class="feed">${t.feed.slice(-7).map((v,$,_)=>`<li class="${$===_.length-1&&t.state==="building"?"latest":""}">${r(v)}</li>`).join("")}</ol>
+          <footer class="mono muted">${t.calls} Bob actions${t.cost!==void 0?` \xB7 ${t.cost} Bobcoins`:""}</footer>
+        </article>`}).join("");let E=[e.base,...e.cols.values()],H=E.some(t=>t.m||t.state==="measuring"),O=Math.log10(3e3),T=t=>Math.max(2,Math.min(100,Math.log10(Math.max(t,1))/O*100)),B=t=>Math.max(t<1?0:2,Math.min(100,t/75*100)),p=e.limits,L=(t,d,m,v,$)=>`<div class="mbar"><div class="track">${m!==void 0?`<i class="limit" style="left:${m}%"></i>`:""}<b class="fill ${d?"over":""} ${v?"grow":""}" style="width:${t}%"></b></div><span class="bv">${$}</span></div>`;document.getElementById("measure").innerHTML=H?`<div class="mhead"><p class="eyebrow">Same load test and freshness probe on every branch, one at a time</p>
+          <p class="mkey mono">${p.max_p95_ms!==void 0?`\u2506 limit \u2264 ${p.max_p95_ms} ms`:""}${p.max_staleness_seconds!==void 0?` \xB7 \u2264 ${p.max_staleness_seconds} s stale`:""}</p></div>
+        <div class="mrows">
+        <div class="mrow mlabels"><span></span><span>p95 latency</span><span>Staleness</span><span>Code changed</span><span>Tests</span></div>
+        ${E.map(t=>{let d=t.m,m=d?.load?.p95_ms,v=d?.freshness,$=v?v.timed_out?75:v.max_seconds:void 0,_=!!t.grow,j=t.state==="measuring"&&!d?`<span class="muted mono">${r(h[t.step??""]??"")}\u2026</span>`:'<span class="muted mono">\u2014</span>';return`<div class="mrow ${t.state==="measuring"?"now":""} ${e.verdict?.winner===t.id?"win":""} ${t.id==="baseline"?"base":""}">
+              <span class="mn">${r(t.name)}${e.verdict?.winner===t.id?' <span class="tag">Pick</span>':""}</span>
+              ${m!==void 0?L(T(m),p.max_p95_ms!==void 0&&m>p.max_p95_ms,p.max_p95_ms!==void 0?T(p.max_p95_ms):void 0,_,g(m)):j}
+              ${$!==void 0?L(B($),p.max_staleness_seconds!==void 0&&$>p.max_staleness_seconds,p.max_staleness_seconds!==void 0?B(p.max_staleness_seconds):void 0,_,u(t)):'<span class="muted mono">\u2014</span>'}
+              <span class="mono">${d?.lines&&t.id!=="baseline"?`+${d.lines.added} \u2212${d.lines.removed}`:"\u2014"}</span>
+              <span class="mono">${d?.tests?d.tests.timed_out?"hung":d.tests.ok?"pass":"fail":"\u2014"}</span>
+            </div>`}).join("")}
+        </div>`:"",E.forEach(t=>t.grow=!1),document.getElementById("vbox").innerHTML=e.verdict?`<p class="eyebrow">Verdict</p>
+        <p class="vh">${r(e.verdict.headline)}</p>
+        <p class="muted">${r(e.verdict.reason)}</p>
+        <a class="btn" href="${c.results(n)}">Open the results and move the limits</a>`:""}let b=s=>{switch(e.now=Math.max(e.now,s.t),s.kind){case"start":e.question=s.question,e.t0=s.t,s.constraints&&(e.limits=s.constraints);for(let a of s.options)e.cols.set(a.id,{...a,state:"waiting",feed:[],calls:0});break;case"phase":e.phase=s.phase,s.phase==="build"&&e.cols.forEach(a=>a.state="building");break;case"bob":{let a=e.cols.get(s.option);a&&(a.feed.push(s.label==="update todo list"?"Updated its plan":s.label),a.calls++);break}case"built":{let a=e.cols.get(s.option);a&&Object.assign(a,{state:s.ok?"built":"failed",seconds:s.seconds,cost:s.cost,error:s.error,calls:s.tool_calls??a.calls});break}case"measure":{let a=s.option==="baseline"?e.base:e.cols.get(s.option);a&&Object.assign(a,{state:"measuring",step:s.step});break}case"measured":{let a=s.option==="baseline"?e.base:e.cols.get(s.option);a&&Object.assign(a,{state:"measured",m:s,grow:!0});break}case"verdict":e.verdict=s.verdict;break}i()};i();let y=c.watch(n,b,()=>l),I=setInterval(()=>{c.mode==="local"&&e.phase==="build"&&(e.now=Date.now(),i())},1e3);M=()=>{y(),clearInterval(I)}}async function k(){M(),M=()=>{};let n=location.hash||"#/";try{n.startsWith("#/run/")?D(decodeURIComponent(n.slice(6))):n==="#/runs"?await V():await N()}catch(o){x.innerHTML=`<p class="muted">${r(o.message)}</p>`}window.scrollTo(0,0)}addEventListener("hashchange",k);k();})();
+</script>
+</body>
+</html>

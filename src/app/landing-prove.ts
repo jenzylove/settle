@@ -1,4 +1,5 @@
 import type { ProofFile } from "../prove.ts";
+import { keyEvidence } from "../proof-page.ts";
 
 const esc = (s: unknown) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
@@ -143,9 +144,8 @@ const shortAssumption = (x: X) => {
   return t.length > 96 ? t.slice(0, 93).replace(/\s+\S*$/, "") + "…" : t;
 };
 
-export function landingProve(p: ProofFile): string {
-  const s = p.summary;
-  const proofUrl = `runs/${esc(p.id)}/`;
+export function landingProve(p: ProofFile, all: ProofFile[] = [p]): string {
+  const tryUrl = `try/`;
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -154,122 +154,135 @@ export function landingProve(p: ProofFile): string {
 <title>Settle</title>
 <meta name="description" content="Find the landmines before you estimate. Settle has IBM Bob test the risky assumptions behind a feature against your real code.">
 ${PREMIUM_FONTS}
-<style>${PREMIUM_CSS}${CSS}</style>
+<style>${PREMIUM_CSS}${CSS}${ACCENT_CSS}</style>
 </head>
 <body>
 <div class="hero-shell">
   <div class="wrap">
     <nav class="top">
       <a class="logo" href="./">Settle</a>
-      <div class="links"><a href="#how">How it works</a><a href="#proof">Real proof</a><a href="#faq">FAQ</a><a class="pill-btn" href="${proofUrl}">See a proof <span class="arr">↗</span></a></div>
+      <div class="links"><a href="#how">How it works</a><a href="#use">Use it in your repo</a><a href="#faq">FAQ</a><a class="pill-btn blue" href="${tryUrl}">Try it <span class="arr">↗</span></a></div>
     </nav>
     <section class="hero">
-      <span class="tag">Built with IBM Bob</span>
-      <h1>Find the <em>landmines</em> <span class="chip dark" title="Settle's badge for an assumption that failed against the real code"><span>BLOCKED</span></span> before you <em>estimate</em> <span class="chip light" title="The estimate that would have been wrong"><span><s>2 days</s></span></span></h1>
-      <p class="sub">A "two day" feature becomes two weeks because of something nobody knew was in the code. Settle has IBM Bob test the risky parts against your real code first.</p>
+      <span class="tag dotted">Built with IBM Bob</span>
+      <h1>Find the <em>landmines</em> <span class="chip dark" title="Settle's badge for something the feature needs that is not true in the code today"><span>BLOCKED</span></span> before you <em>estimate</em> <span class="chip light" title="The estimate that would have been wrong"><span><s>2 days</s></span></span></h1>
+      <p class="sub">A "two day" feature becomes two weeks because of something nobody knew was in the code. Before your team commits to a date, Settle has IBM Bob check the risky parts against your real code, and shows you what will get in the way.</p>
       <div class="ctas">
-        <a class="pill-btn" href="${proofUrl}">See a real proof <span class="arr">↗</span></a>
-        <a class="pill-btn light" href="#how">How it works <span class="arr">↓</span></a>
+        <a class="pill-btn blue" href="${tryUrl}">Try it <span class="arr">↗</span></a>
+        <a class="pill-btn light" href="#use">Use it in your repo <span class="arr">↓</span></a>
       </div>
     </section>
-    <div class="frame">
-      <div class="screen">
-        <div class="bar2"><span>settle prove</span><span>${s.proven} proven · ${s.blocked} blocked · ${s.unknown} unknown</span></div>
-        <p class="q">"${esc(p.request)}"</p>
-        ${p.experiments.map((x) => `<div class="srow"><span class="st ${x.status}">${x.status}</span><div><b>${esc(shortAssumption(x))}</b><code>${esc(evidenceLine(x.evidence))}</code></div></div>`).join("")}
-      </div>
-    </div>
-    <div class="strip"><span>Four minute proofs</span><span>Runs on your code, on your machine</span><span>Every result rerun by Settle</span><span>Nothing is merged</span></div>
+    <div class="strip"><span>About four minutes per feature</span><span>Runs on your code, on your machine</span><span>Every result rerun by Settle</span><span>Nothing is merged</span></div>
   </div>
 </div>
 
 <div class="wrap">
   <section class="sec">
     <div class="shead">
-      <div><span class="tag">The problem</span><h2>Estimating a feature is <em>guesswork.</em></h2></div>
-      <p>The landmines are only found by building, so they are found after the date is promised.</p>
+      <div><span class="tag dotted">The problem</span><h2>Estimating a feature is <em>guesswork.</em></h2></div>
+      <p>The problems are only found by building, so they are found after the date is promised.</p>
     </div>
     <div class="grid3">
-      <div class="card"><span class="num">/01</span><h3>Estimate</h3><p>Engineers read the code and guess the size. "About two days."</p><div class="art"><div class="art-est"><i style="height:40%"></i><i style="height:55%"></i><i style="height:35%"></i><i style="height:60%"></i></div></div></div>
-      <div class="card"><span class="num">/02</span><h3>Build</h3><p>Days in: a column too small, a query that gives wrong answers, a cache shared across customers.</p><div class="art"><div class="art-est"><i style="height:40%"></i><i style="height:55%"></i><i style="height:100%;background:#0d0d0e"></i><i style="height:60%"></i></div></div></div>
-      <div class="card"><span class="num">/03</span><h3>Slip</h3><p>The date moves, and the team trusts its next estimate a little less.</p><div class="art"><div class="art-slip"><s>2 days</s> <b>2 weeks</b></div></div></div>
+      <div class="card lift"><span class="num">/01</span><h3>Estimate</h3><p>A manager asks for a feature. Engineers read the code and guess: "about two days."</p><div class="art"><div class="art-est"><i style="height:40%"></i><i style="height:55%"></i><i style="height:35%"></i><i style="height:60%"></i></div></div></div>
+      <div class="card lift"><span class="num">/02</span><h3>Build</h3><p>Days in, something in the code gets in the way that nobody knew was there.</p><div class="art"><div class="art-est"><i style="height:40%"></i><i style="height:55%"></i><i class="hot" style="height:100%"></i><i style="height:60%"></i></div></div></div>
+      <div class="card lift"><span class="num">/03</span><h3>Slip</h3><p>The date moves, and the team trusts its next estimate a little less.</p><div class="art"><div class="art-slip"><s>2 days</s> <b>2 weeks</b></div></div></div>
     </div>
   </section>
 
   <section class="sec" id="how">
     <div class="shead">
-      <div><span class="tag">How it works</span><h2>One sentence in. <em>Evidence</em> out.</h2></div>
-      <p>Bob investigates, Settle checks. On your repository, with your Bob, in about four minutes.</p>
+      <div><span class="tag dotted">How it works</span><h2>Bob investigates. <em>Settle checks.</em></h2></div>
+      <p>A spike your team would spend days on, done against your real code in about four minutes.</p>
     </div>
-    <div class="grid4">
-      <div class="card"><span class="num">/01</span><div class="ico">${icon.search}</div><h3>Bob finds the risks</h3><p>Bob reads the code the feature touches and names what must be true for it to be as easy as it looks.</p></div>
-      <div class="card"><span class="num">/02</span><div class="ico">${icon.flask}</div><h3>Bob runs experiments</h3><p>One Bob per assumption, all at once, each in its own copy of your repo, writes a real test.</p></div>
-      <div class="card dark"><span class="num">/03</span><div class="ico">${icon.shield}</div><h3>Settle checks the work</h3><p>Every experiment is rerun by Settle, not taken on Bob's word. Experiments may only add files.</p></div>
-      <div class="card"><span class="num">/04</span><div class="ico">${icon.map}</div><h3>Bob plans from facts</h3><p>The plan is written from what was found, with the landmines first.</p></div>
+    <div class="flow">
+      <div class="fstep"><span class="fnum">1</span><div><h3>Name the feature</h3><p>The thing you are about to estimate, like "let customers delete their account".</p></div></div>
+      <div class="fstep"><span class="fnum">2</span><div><h3>Bob finds what it depends on</h3><p>Bob reads the code the feature touches and lists what must be true for it to be as easy as it looks.</p></div></div>
+      <div class="fstep"><span class="fnum">3</span><div><h3>Bob tests each one, at once</h3><p>One Bob per item, each in its own copy of your repo, writes a real test against today's code.</p></div></div>
+      <div class="fstep hot"><span class="fnum">4</span><div><h3>Settle checks Bob's work</h3><p>Every test is rerun by Settle, never taken on Bob's word. Tests may only add files, never change yours.</p></div></div>
+      <div class="fstep"><span class="fnum">5</span><div><h3>You get the answer and a plan</h3><p>What is safe, what will get in the way and why, and a plan with the problems first.</p></div></div>
     </div>
   </section>
 </div>
 
-<section class="proof-sec" id="proof">
+<section class="proof-sec" id="try">
   <div class="wrap">
     <div class="shead">
-      <div><span class="tag">A real proof</span><h2>${s.blocked} landmines, found <em>before</em> anyone estimated.</h2></div>
-      <p>Real output from Settle rerunning the experiments Bob wrote against the demo orders API.</p>
+      <div><span class="tag">Try it</span><h2>Pick a feature. <em>Watch Bob check it.</em></h2></div>
+      <p>Real recorded runs of Settle on a small demo online store. Pick what a manager just asked for and see what would have gone wrong.</p>
     </div>
-    <p class="req">"${esc(p.request)}"</p>
-    <div class="pgrid">
-      ${p.experiments.map((x) => `<div class="pcard"><span class="st ${x.status}">${x.status}</span><h3>${esc(shortAssumption(x))}</h3><p>${esc(x.why_risky.length > 180 ? x.why_risky.slice(0, 177) + "…" : x.why_risky)}</p><div class="evi">${esc(evidenceLine(x.evidence))}</div></div>`).join("")}
+    <div class="tgrid">
+      ${all
+        .map(
+          (x) => `<a class="topt" href="${tryUrl}?run=${esc(x.id)}"><small>Feature request</small><b>"${esc(x.request)}"</b><span class="res">${x.summary.blocked ? `${x.summary.blocked} landmine${x.summary.blocked === 1 ? "" : "s"} found` : "No landmines"} <span class="go">Watch it run ↗</span></span></a>`,
+        )
+        .join("")}
     </div>
-    <div class="proof-cta"><a class="pill-btn" href="${proofUrl}">Open the full evidence and plan <span class="arr">↗</span></a></div>
   </div>
 </section>
 
 <div class="wrap">
-  <section class="sec">
+  <section class="sec" id="use">
     <div class="shead">
-      <div><span class="tag">Why not just ask an AI</span><h2>A guess, or a <em>failing test.</em></h2></div>
-      <p>An AI can tell you what might go wrong. Settle shows you what does, in your code, today.</p>
+      <div><span class="tag dotted">Use it in your repo</span><h2>Add it to your team's <em>planning.</em></h2></div>
+      <p>Settle runs next to your code with your IBM Bob. Nothing is merged; every test stays on its own branch.</p>
     </div>
-    <div class="vs">
-      <div class="card"><h3>Asking an AI</h3><p class="quote">"Mixed currencies might affect your ranking."</p><p>Maybe. How much, and where? Nobody knows until someone builds it.</p></div>
-      <div class="card dark"><h3>Settle</h3><p class="quote">✕ topCustomers ranks correctly when orders have mixed currencies<br>Expected Bob ($150) first, got Alice ($100 + ¥6,700)</p><p>A real test against real code, rerun by Settle, on a branch you can open.</p></div>
+    <div class="use">
+      <div class="ustep"><span class="unum">1</span><div><h3>Install</h3><p>Node 24, git, and IBM Bob Shell with an API key.</p><pre>git clone https://github.com/jenzylove/settle
+cd settle && npm install && npm link
+export BOB_API_KEY=...   <span class="c"># Bob Shell, Inference scope</span></pre></div></div>
+      <div class="ustep"><span class="unum">2</span><div><h3>Name the feature</h3><p>A <code>prove.yml</code> in the app you are estimating.</p><pre>request: Let customers delete their account.
+context: Customers want a "delete my account" button.
+experiment:
+  command: node --import tsx --test {file}</pre></div></div>
+      <div class="ustep"><span class="unum">3</span><div><h3>Run it</h3><p>About four minutes later you get the results page and the plan.</p><pre>settle prove
+<span class="c"># runs/prove-.../index.html   results page</span>
+<span class="c"># runs/prove-.../proof.json   for your tools</span></pre></div></div>
+      <div class="ustep"><span class="unum">4</span><div><h3>Or run it on every feature ticket</h3><p>An example GitHub Actions job that proves a feature when a ticket is labelled estimate.</p><pre>on:
+  issues: { types: [labeled] }
+jobs:
+  prove:
+    if: github.event.label.name == 'estimate'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      <span class="c"># install IBM Bob Shell per bob.ibm.com/docs/shell</span>
+      - run: git clone https://github.com/jenzylove/settle ../settle && npm --prefix ../settle ci
+      - run: echo "request: \${{ github.event.issue.title }}" > prove.yml && node ../settle/bin/settle.mjs prove
+        env: { BOB_API_KEY: \${{ secrets.BOB_API_KEY }} }</pre></div></div>
     </div>
   </section>
 
   <section class="sec">
     <div class="shead">
-      <div><span class="tag">Run it</span><h2>On your repo, <em>with your Bob.</em></h2></div>
-      <p>Settle runs next to your code. Every experiment stays on its own branch.</p>
+      <div><span class="tag dotted">Why not just ask an AI</span><h2>A guess, or a <em>failing test.</em></h2></div>
+      <p>An AI can tell you what might go wrong. Settle shows you what does, in your code, today.</p>
     </div>
-    <div class="steps-run">
-      <div><h3>Three lines to your first proof</h3><p>Write the feature you are about to estimate in <code>prove.yml</code>, give Settle your IBM Bob Shell key, and run it. The evidence board and the plan arrive in about four minutes.</p></div>
-      <pre><span class="c"># in your app's git repo</span>
-echo 'request: Add team accounts' > prove.yml
-export BOB_API_KEY=...   <span class="c"># Bob Shell, Inference scope</span>
-settle prove             <span class="c"># risks, experiments, evidence, plan</span></pre>
+    <div class="vs">
+      <div class="card"><h3>Asking an AI</h3><p class="quote">"Deleting accounts might affect existing orders."</p><p>Maybe. How, and how badly? Nobody knows until someone builds it.</p></div>
+      <div class="card dark"><h3>Settle</h3><p class="quote">${esc(p.experiments.find((x) => x.status === "blocked") ? keyEvidence(p.experiments.find((x) => x.status === "blocked")!) : "")}</p><p>A real test against real code, rerun by Settle, on a branch you can open.</p></div>
     </div>
   </section>
 
   <section class="sec faq" id="faq">
-    <div class="shead"><div><span class="tag">FAQ</span><h2>Questions, <em>answered.</em></h2></div></div>
-    <details><summary>Is this a chatbot?</summary><p>No. You give it one sentence and it runs experiments. The output is tests that passed or failed against your code, the exact errors, and a plan written from them.</p></details>
-    <details><summary>Why trust what Bob found?</summary><p>You don't have to. Settle reruns every experiment itself, and any experiment that changes an existing file is marked untrusted. Each finding shows the rerun output, Bob's own read, and the test code.</p></details>
-    <details><summary>Does it change my code?</summary><p>No. Experiments run in separate git worktrees and may only add files. Nothing is merged; every experiment stays on its own branch for you to open or delete.</p></details>
-    <details><summary>What does a proof cost?</summary><p>The demo proof took about four minutes and about three Bobcoins: one Bob session to name the risks, one per assumption, and one to write the plan.</p></details>
-    <details><summary>What if Bob picks the wrong risks?</summary><p>The board shows exactly which assumptions were tested, so the team can challenge them. Settle proves or disproves what it tests; it does not claim to find every risk.</p></details>
+    <div class="shead"><div><span class="tag dotted">FAQ</span><h2>Questions, <em>answered.</em></h2></div></div>
+    <details><summary>Is this a chatbot?</summary><p>No. You name a feature and Settle runs experiments on your code. What you get back is tests that passed or failed, the exact errors, and a plan written from them.</p></details>
+    <details><summary>Can I run it on my code from this website?</summary><p>No, and that is on purpose: Settle has to run next to your code, with your Bob. The Try it page replays real runs on our demo store so you can see exactly what you would get.</p></details>
+    <details><summary>Why trust what Bob found?</summary><p>You don't have to. Settle reruns every test itself, and any test that changes an existing file is marked untrusted. Each finding shows the rerun output, Bob's own read, and the test code.</p></details>
+    <details><summary>Does it change my code?</summary><p>No. Experiments run in separate git worktrees and may only add files. Nothing is merged.</p></details>
+    <details><summary>What does it cost?</summary><p>About four minutes and about three Bobcoins per feature: one Bob session to find the risks, one per risk, and one to write the plan.</p></details>
   </section>
 
   <section class="cta-big">
     <h2>Know <em>before</em> you estimate.</h2>
-    <p>See the proof Settle produced for a real feature request, with every test, error and branch.</p>
-    <a class="pill-btn" href="${proofUrl}">See a real proof <span class="arr">↗</span></a>
+    <p>Pick a feature request and watch Settle find what would have gone wrong.</p>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><a class="pill-btn blue" href="${tryUrl}">Try it <span class="arr">↗</span></a><a class="pill-btn" href="#use">Use it in your repo <span class="arr">↓</span></a></div>
   </section>
 
   <footer class="foot">
     <div class="fcols">
-      <div style="max-width:320px"><b>Settle</b>Find the landmines before you estimate. Experiments built by IBM Bob, verified by Settle.</div>
-      <div><b>Product</b><a href="#how">How it works</a><a href="${proofUrl}">Real proof</a><a href="compare/">Design comparison</a></div>
-      <div><b>Project</b><a href="https://github.com/jenzylove/settle">GitHub</a><a href="#faq">FAQ</a></div>
+      <div style="max-width:320px"><b>Settle</b>Find the landmines before you estimate. Tests built by IBM Bob, checked by Settle.</div>
+      <div><b>Product</b><a href="${tryUrl}">Try it</a><a href="#how">How it works</a><a href="#use">Use it in your repo</a></div>
+      <div><b>Project</b><a href="https://github.com/jenzylove/settle">GitHub</a><a href="#faq">FAQ</a><a href="compare/">Design comparison</a></div>
     </div>
     <div class="wordmark">settle</div>
     <div class="fine"><span>Built for the IBM Bob 2.0 Hackathon</span><span>MIT license</span></div>
@@ -278,3 +291,39 @@ settle prove             <span class="c"># risks, experiments, evidence, plan</s
 </body>
 </html>`;
 }
+
+const ACCENT_CSS = `
+:root { --accent: #2f5bff; --accent-soft: #e8edff; }
+.pill-btn.blue { background: var(--accent); }
+.tag.dotted::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-right: 8px; vertical-align: 2px; }
+.shead h2 em, .cta-big h2 em { color: var(--accent); }
+.strip span::before { background: var(--accent); }
+.art-est i.hot { background: var(--accent); }
+.art-slip b { color: var(--accent); }
+.card.lift { transition: transform .25s ease, box-shadow .25s ease; }
+.card.lift:hover { transform: translateY(-4px); box-shadow: 0 0 0 1px #cfd6ff inset, 0 18px 40px -24px rgba(47,91,255,.45); }
+.flow { display: grid; gap: 0; border-radius: 26px; background: var(--card); box-shadow: 0 0 0 1px var(--line) inset; overflow: hidden; }
+.fstep { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 18px; padding: 22px 26px; border-top: 1px solid var(--line); transition: background .25s ease; }
+.fstep:first-child { border-top: 0; }
+.fstep:hover { background: #fafaff; }
+.fstep h3 { margin: 0 0 4px; font: 600 17px var(--sans); }
+.fstep p { margin: 0; color: var(--muted); font-size: 15px; }
+.fnum { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--soft); font: 600 15px var(--sans); }
+.fstep.hot { background: var(--accent-soft); }
+.fstep.hot .fnum { background: var(--accent); color: #fff; }
+.tgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.topt { display: flex; flex-direction: column; gap: 10px; text-decoration: none; background: var(--dark2); border-radius: 24px; padding: 26px; box-shadow: 0 0 0 1px var(--dline) inset; transition: transform .25s ease, box-shadow .25s ease; }
+.topt:hover { transform: translateY(-4px); box-shadow: 0 0 0 1.5px var(--accent) inset, 0 24px 50px -30px rgba(47,91,255,.6); }
+.topt small { font: 500 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: #7c7c83; }
+.topt b { font: 400 30px/1.2 var(--serif); color: #fff; }
+.topt .res { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: auto; padding-top: 10px; font: 600 13px var(--sans); color: #c9d4ff; }
+.topt .go { color: #fff; background: var(--accent); padding: 6px 12px; border-radius: 999px; }
+.use { display: grid; gap: 12px; }
+.ustep { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 18px; background: var(--card); border-radius: 22px; padding: 24px 26px; box-shadow: 0 0 0 1px var(--line) inset; }
+.unum { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: #fff; font: 600 15px var(--sans); }
+.ustep h3 { margin: 0 0 4px; font: 600 17px var(--sans); }
+.ustep p { margin: 0 0 12px; color: var(--muted); font-size: 15px; }
+.ustep pre { margin: 0; background: var(--dark); color: #e6e6e8; border-radius: 14px; padding: 16px 18px; font: 13px/1.7 var(--mono); overflow-x: auto; }
+.ustep pre .c { color: #7d7d84; }
+@media (max-width: 760px) { .fstep, .ustep { grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 20px; } }
+`;

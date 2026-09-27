@@ -1,0 +1,474 @@
+{
+  "id": "2026-09-27T03-36-05",
+  "question": "How do we make the top customers endpoint fast?",
+  "context": "GET /stats/top-customers ranks customers by paid revenue over the last 30 days. It scans about 200,000 orders on every call and is slow under load. The sales dashboard polls it, and account managers use it right after closing large orders, so results must not lag far behind new orders.\n",
+  "created_at": "2026-09-27T03:46:09.492Z",
+  "base_commit": "8e3008204c32bb77890b5566e2260ab718c9d16e",
+  "app_path": "demo/orders-api",
+  "constraints": {
+    "max_p95_ms": 50,
+    "max_staleness_seconds": 15,
+    "tests_must_pass": true
+  },
+  "load": {
+    "request": {
+      "method": "GET",
+      "path": "/stats/top-customers?limit=10"
+    },
+    "duration_seconds": 15,
+    "concurrency": 8,
+    "warmup_seconds": 3,
+    "repeats": 3
+  },
+  "baseline": {
+    "id": "baseline",
+    "name": "Today (no change)",
+    "description": "The code as it is now.",
+    "branch": "settle/2026-09-27T03-36-05/baseline",
+    "built": true,
+    "diff": {
+      "added": 0,
+      "removed": 0,
+      "files": [],
+      "test_added": 0,
+      "test_files": []
+    },
+    "new_dependencies": [],
+    "tests": {
+      "ok": true,
+      "passed": 3,
+      "failed": 0
+    },
+    "load": {
+      "requests": 587,
+      "errors": 0,
+      "rps": 12.7,
+      "p50_ms": 662.1,
+      "p95_ms": 698.1,
+      "p99_ms": 858.9,
+      "runs": [
+        {
+          "requests": 182,
+          "errors": 0,
+          "rps": 12.1,
+          "p50_ms": 664.6,
+          "p95_ms": 858
+        },
+        {
+          "requests": 190,
+          "errors": 0,
+          "rps": 12.7,
+          "p50_ms": 662.1,
+          "p95_ms": 698.1
+        },
+        {
+          "requests": 215,
+          "errors": 0,
+          "rps": 14.3,
+          "p50_ms": 573.2,
+          "p95_ms": 658.3
+        }
+      ],
+      "p95_range": [
+        658.3,
+        858
+      ]
+    },
+    "freshness": {
+      "probes": 3,
+      "lags_seconds": [
+        0.1,
+        0.1,
+        0.1
+      ],
+      "max_seconds": 0.1,
+      "median_seconds": 0.1,
+      "timed_out": 0
+    }
+  },
+  "options": [
+    {
+      "id": "cache",
+      "name": "Cache",
+      "description": "Cache the endpoint's response in memory with a 60 second time to live.",
+      "branch": "settle/2026-09-27T03-36-05/cache",
+      "built": true,
+      "bob": {
+        "duration_seconds": 134,
+        "summary": {
+          "type": "result",
+          "timestamp": "2026-09-27T03:38:21.265Z",
+          "status": "success",
+          "stats": {
+            "task_id": "a25da65cf42253255ce23c1a7bf0dc5f",
+            "duration_ms": 124185,
+            "session_costs": 0.63452,
+            "max_cost": 0,
+            "tool_calls": 17
+          }
+        }
+      },
+      "diff": {
+        "added": 42,
+        "removed": 2,
+        "files": [
+          "demo/orders-api/src/cache.ts",
+          "demo/orders-api/src/server.ts"
+        ],
+        "test_added": 105,
+        "test_files": [
+          "demo/orders-api/test/cache.test.ts"
+        ],
+        "patch": "diff --git a/demo/orders-api/src/cache.ts b/demo/orders-api/src/cache.ts\nnew file mode 100644\nindex 0000000..f987026\n--- /dev/null\n+++ b/demo/orders-api/src/cache.ts\n@@ -0,0 +1,33 @@\n+/** Minimal in-process TTL cache used by the top-customers endpoint. */\n+\n+interface Entry<T> {\n+  value: T;\n+  expiresAt: number; // epoch ms\n+}\n+\n+export class TtlCache<K, V> {\n+  private readonly store = new Map<K, Entry<V>>();\n+\n+  constructor(private readonly ttlMs: number) {}\n+\n+  get(key: K): V | undefined {\n+    const entry = this.store.get(key);\n+    if (!entry) return undefined;\n+    if (Date.now() > entry.expiresAt) {\n+      this.store.delete(key);\n+      return undefined;\n+    }\n+    return entry.value;\n+  }\n+\n+  set(key: K, value: V): void {\n+    this.store.set(key, { value, expiresAt: Date.now() + this.ttlMs });\n+  }\n+\n+  /** Remove all entries — useful in tests to avoid stale state. */\n+  clear(): void {\n+    this.store.clear();\n+  }\n+}\n+\n+export const TOP_CUSTOMERS_TTL_MS = 60_000;\ndiff --git a/demo/orders-api/src/server.ts b/demo/orders-api/src/server.ts\nindex a612221..f7aaa58 100644\n--- a/demo/orders-api/src/server.ts\n+++ b/demo/orders-api/src/server.ts\n@@ -1,4 +1,5 @@\n import { createServer, type IncomingMessage, type Server, type ServerResponse } from \"node:http\";\n import type { PGlite } from \"@electric-sql/pglite\";\n+import { TtlCache, TOP_CUSTOMERS_TTL_MS } from \"./cache.ts\";\n \n export interface TopCustomer {\n@@ -50,5 +51,5 @@ async function readJson(req: IncomingMessage): Promise<any> {\n }\n \n-export function buildServer(db: PGlite): Server {\n+export function buildServer(db: PGlite, cache = new TtlCache<number, TopCustomer[]>(TOP_CUSTOMERS_TTL_MS)): Server {\n   return createServer(async (req, res) => {\n     try {\n@@ -61,5 +62,11 @@ export function buildServer(db: PGlite): Server {\n       if (req.method === \"GET\" && url.pathname === \"/stats/top-customers\") {\n         const limit = Math.min(Math.max(Number(url.searchParams.get(\"limit\") ?? 10), 1), 100);\n-        return send(res, 200, await topCustomers(db, limit));\n+        const cached = cache.get(limit);\n+        if (cached) {\n+          return send(res, 200, cached);\n+        }\n+        const result = await topCustomers(db, limit);\n+        cache.set(limit, result);\n+        return send(res, 200, result);\n       }"
+      },
+      "integrity": {
+        "touched": []
+      },
+      "new_dependencies": [],
+      "tests": {
+        "ok": true,
+        "passed": 10,
+        "failed": 0
+      },
+      "load": {
+        "requests": 274267,
+        "errors": 0,
+        "rps": 6025.5,
+        "p50_ms": 1.1,
+        "p95_ms": 2.1,
+        "p99_ms": 7.7,
+        "runs": [
+          {
+            "requests": 90382,
+            "errors": 0,
+            "rps": 6025.5,
+            "p50_ms": 1.1,
+            "p95_ms": 2.1
+          },
+          {
+            "requests": 93753,
+            "errors": 0,
+            "rps": 6250.2,
+            "p50_ms": 1,
+            "p95_ms": 2
+          },
+          {
+            "requests": 90132,
+            "errors": 0,
+            "rps": 6008.8,
+            "p50_ms": 1.1,
+            "p95_ms": 2.2
+          }
+        ],
+        "p95_range": [
+          2,
+          2.2
+        ]
+      },
+      "freshness": {
+        "probes": 3,
+        "lags_seconds": [
+          0.1,
+          60.2,
+          60.1
+        ],
+        "max_seconds": 60.2,
+        "median_seconds": 60.1,
+        "timed_out": 0
+      }
+    },
+    {
+      "id": "matview",
+      "name": "Materialized view",
+      "description": "Precompute the ranking in a Postgres materialized view and refresh it in the background every 5 seconds.",
+      "branch": "settle/2026-09-27T03-36-05/matview",
+      "built": true,
+      "bob": {
+        "duration_seconds": 146,
+        "summary": {
+          "type": "result",
+          "timestamp": "2026-09-27T03:38:33.616Z",
+          "status": "success",
+          "stats": {
+            "task_id": "26d6565fa7d592acf02ea1427f464279",
+            "duration_ms": 136417,
+            "session_costs": 0.779616,
+            "max_cost": 0,
+            "tool_calls": 19
+          }
+        }
+      },
+      "diff": {
+        "added": 34,
+        "removed": 12,
+        "files": [
+          "demo/orders-api/src/db.ts",
+          "demo/orders-api/src/index.ts",
+          "demo/orders-api/src/server.ts"
+        ],
+        "test_added": 36,
+        "test_files": [
+          "demo/orders-api/test/api.test.ts"
+        ],
+        "patch": "diff --git a/demo/orders-api/src/db.ts b/demo/orders-api/src/db.ts\nindex fa3c0a9..8c10f60 100644\n--- a/demo/orders-api/src/db.ts\n+++ b/demo/orders-api/src/db.ts\n@@ -39,5 +39,32 @@ export async function openDb(): Promise<PGlite> {\n \n     ANALYZE;\n+\n+    CREATE MATERIALIZED VIEW top_customers_mv AS\n+      SELECT c.id AS customer_id,\n+             c.name,\n+             sum(o.amount_cents)::int AS revenue_cents,\n+             count(*)::int AS orders\n+      FROM orders o\n+      JOIN customers c ON c.id = o.customer_id\n+      WHERE o.status = 'paid'\n+        AND o.created_at > now() - interval '30 days'\n+      GROUP BY c.id, c.name\n+      ORDER BY revenue_cents DESC;\n+\n+    CREATE UNIQUE INDEX top_customers_mv_pk ON top_customers_mv (customer_id);\n   `);\n   return db;\n }\n+\n+// Refreshes the materialized view and returns a handle that can stop the loop.\n+export function startRefresh(db: PGlite, intervalMs = 5_000): { stop: () => void } {\n+  const id = setInterval(() => {\n+    // CONCURRENTLY requires a unique index and lets reads continue during refresh.\n+    db.exec(\"REFRESH MATERIALIZED VIEW CONCURRENTLY top_customers_mv;\").catch(() => {\n+      // Ignore transient errors (e.g. db closing during tests).\n+    });\n+  }, intervalMs);\n+  // Don't block Node.js exit if the caller forgets to stop.\n+  if (typeof id === \"object\" && \"unref\" in id) (id as NodeJS.Timeout).unref();\n+  return { stop: () => clearInterval(id) };\n+}\ndiff --git a/demo/orders-api/src/index.ts b/demo/orders-api/src/index.ts\nindex 559ae48..5e3325f 100644\n--- a/demo/orders-api/src/index.ts\n+++ b/demo/orders-api/src/index.ts\n@@ -1,3 +1,3 @@\n-import { openDb } from \"./db.ts\";\n+import { openDb, startRefresh } from \"./db.ts\";\n import { buildServer } from \"./server.ts\";\n \n@@ -5,4 +5,5 @@ const port = Number(process.env.PORT ?? 3000);\n const started = Date.now();\n const db = await openDb();\n+startRefresh(db);\n buildServer(db).listen(port, () => {\n   console.log(`orders-api listening on ${port} (seeded in ${Date.now() - started} ms)`);\ndiff --git a/demo/orders-api/src/server.ts b/demo/orders-api/src/server.ts\nindex a612221..3f4f2b0 100644\n--- a/demo/orders-api/src/server.ts\n+++ b/demo/orders-api/src/server.ts\n@@ -9,17 +9,11 @@ export interface TopCustomer {\n }\n \n-// Top customers by paid revenue over the last 30 days. This is the slow\n-// endpoint the Settle demo debates how to speed up.\n+// Top customers by paid revenue over the last 30 days.\n+// Reads from the precomputed materialized view; the background refresher keeps\n+// it at most ~5 s stale so results are always close to real-time.\n export async function topCustomers(db: PGlite, limit: number): Promise<TopCustomer[]> {\n   const { rows } = await db.query<TopCustomer>(\n-    `SELECT c.id AS customer_id,\n-            c.name,\n-            sum(o.amount_cents)::int AS revenue_cents,\n-            count(*)::int AS orders\n-     FROM orders o\n-     JOIN customers c ON c.id = o.customer_id\n-     WHERE o.status = 'paid'\n-       AND o.created_at > now() - interval '30 days'\n-     GROUP BY c.id, c.name\n+    `SELECT customer_id, name, revenue_cents, orders\n+     FROM top_customers_mv\n      ORDER BY revenue_cents DESC\n      LIMIT $1`,"
+      },
+      "integrity": {
+        "touched": [
+          "demo/orders-api/test/api.test.ts"
+        ]
+      },
+      "new_dependencies": [],
+      "tests": {
+        "ok": true,
+        "passed": 4,
+        "failed": 0
+      },
+      "load": {
+        "requests": 32342,
+        "errors": 0,
+        "rps": 718,
+        "p50_ms": 10.2,
+        "p95_ms": 15.5,
+        "p99_ms": 21.5,
+        "runs": [
+          {
+            "requests": 10629,
+            "errors": 0,
+            "rps": 708.6,
+            "p50_ms": 10.4,
+            "p95_ms": 15.4
+          },
+          {
+            "requests": 10770,
+            "errors": 0,
+            "rps": 718,
+            "p50_ms": 10.2,
+            "p95_ms": 16.6
+          },
+          {
+            "requests": 10943,
+            "errors": 0,
+            "rps": 729.5,
+            "p50_ms": 10.1,
+            "p95_ms": 15.5
+          }
+        ],
+        "p95_range": [
+          15.4,
+          16.6
+        ]
+      },
+      "freshness": {
+        "probes": 3,
+        "lags_seconds": [
+          0.9,
+          5,
+          5
+        ],
+        "max_seconds": 5,
+        "median_seconds": 5,
+        "timed_out": 0
+      }
+    },
+    {
+      "id": "index",
+      "name": "Index and rewrite",
+      "description": "Add the right index or indexes and rewrite the query so Postgres does less work. No caching and no precomputed tables.",
+      "branch": "settle/2026-09-27T03-36-05/index",
+      "built": true,
+      "bob": {
+        "duration_seconds": 141,
+        "summary": {
+          "type": "result",
+          "timestamp": "2026-09-27T03:38:28.900Z",
+          "status": "success",
+          "stats": {
+            "task_id": "6fb566d74475f266767a075b3c230e73",
+            "duration_ms": 131924,
+            "session_costs": 0.658588,
+            "max_cost": 0,
+            "tool_calls": 17
+          }
+        }
+      },
+      "diff": {
+        "added": 29,
+        "removed": 10,
+        "files": [
+          "demo/orders-api/src/db.ts",
+          "demo/orders-api/src/server.ts"
+        ],
+        "test_added": 42,
+        "test_files": [
+          "demo/orders-api/test/index-freshness.test.ts"
+        ],
+        "patch": "diff --git a/demo/orders-api/src/db.ts b/demo/orders-api/src/db.ts\nindex fa3c0a9..ca573ef 100644\n--- a/demo/orders-api/src/db.ts\n+++ b/demo/orders-api/src/db.ts\n@@ -23,4 +23,12 @@ export async function openDb(): Promise<PGlite> {\n     );\n \n+    -- Covering index for the top-customers query:\n+    --   equality on status, range on created_at (newest first),\n+    --   INCLUDE avoids heap fetches for customer_id and amount_cents\n+    --   so the aggregate can be satisfied by an index-only scan.\n+    CREATE INDEX orders_status_created_covering\n+      ON orders (status, created_at DESC)\n+      INCLUDE (customer_id, amount_cents);\n+\n     SELECT setseed(0.42);\n \ndiff --git a/demo/orders-api/src/server.ts b/demo/orders-api/src/server.ts\nindex a612221..6dacad6 100644\n--- a/demo/orders-api/src/server.ts\n+++ b/demo/orders-api/src/server.ts\n@@ -13,15 +13,26 @@ export interface TopCustomer {\n export async function topCustomers(db: PGlite, limit: number): Promise<TopCustomer[]> {\n   const { rows } = await db.query<TopCustomer>(\n-    `SELECT c.id AS customer_id,\n+    // Aggregate on orders first (index-only scan on orders_status_created_covering),\n+    // then join the small aggregated set to customers for the name.\n+    // This lets Postgres resolve the GROUP BY entirely from the index and only\n+    // touch the customers table for at most LIMIT rows.\n+    `WITH ranked AS (\n+       SELECT o.customer_id,\n+              sum(o.amount_cents)::int AS revenue_cents,\n+              count(*)::int           AS orders\n+       FROM   orders o\n+       WHERE  o.status     = 'paid'\n+         AND  o.created_at > now() - interval '30 days'\n+       GROUP  BY o.customer_id\n+       ORDER  BY revenue_cents DESC\n+       LIMIT  $1\n+     )\n+     SELECT r.customer_id,\n             c.name,\n-            sum(o.amount_cents)::int AS revenue_cents,\n-            count(*)::int AS orders\n-     FROM orders o\n-     JOIN customers c ON c.id = o.customer_id\n-     WHERE o.status = 'paid'\n-       AND o.created_at > now() - interval '30 days'\n-     GROUP BY c.id, c.name\n-     ORDER BY revenue_cents DESC\n-     LIMIT $1`,\n+            r.revenue_cents,\n+            r.orders\n+     FROM   ranked r\n+     JOIN   customers c ON c.id = r.customer_id\n+     ORDER  BY r.revenue_cents DESC`,\n     [limit],\n   );"
+      },
+      "integrity": {
+        "touched": []
+      },
+      "new_dependencies": [],
+      "tests": {
+        "ok": true,
+        "passed": 4,
+        "failed": 0
+      },
+      "load": {
+        "requests": 2234,
+        "errors": 0,
+        "rps": 49.7,
+        "p50_ms": 159.4,
+        "p95_ms": 188.8,
+        "p99_ms": 232.6,
+        "runs": [
+          {
+            "requests": 746,
+            "errors": 0,
+            "rps": 49.7,
+            "p50_ms": 159.4,
+            "p95_ms": 178.5
+          },
+          {
+            "requests": 738,
+            "errors": 0,
+            "rps": 49.2,
+            "p50_ms": 161.3,
+            "p95_ms": 193.2
+          },
+          {
+            "requests": 750,
+            "errors": 0,
+            "rps": 50,
+            "p50_ms": 158.6,
+            "p95_ms": 188.8
+          }
+        ],
+        "p95_range": [
+          178.5,
+          193.2
+        ]
+      },
+      "freshness": {
+        "probes": 3,
+        "lags_seconds": [
+          0,
+          0,
+          0
+        ],
+        "max_seconds": 0,
+        "median_seconds": 0,
+        "timed_out": 0
+      }
+    }
+  ],
+  "verdict": {
+    "winner": null,
+    "headline": "No option meets every constraint.",
+    "reason": "Closest is Index and rewrite, which misses p95 latency. Relax a constraint or add an option.",
+    "checks": {
+      "cache": [
+        {
+          "label": "Measured cleanly",
+          "limit": "no errors, ≤ 1% failed requests",
+          "actual": "0 of 274267 failed",
+          "pass": true
+        },
+        {
+          "label": "Existing tests untouched",
+          "limit": "unchanged",
+          "actual": "unchanged",
+          "pass": true
+        },
+        {
+          "label": "p95 latency",
+          "limit": "≤ 50 ms",
+          "actual": "2.1 ms",
+          "pass": true
+        },
+        {
+          "label": "Staleness",
+          "limit": "≤ 15 s",
+          "actual": "60.2 s",
+          "pass": false
+        },
+        {
+          "label": "Tests",
+          "limit": "pass",
+          "actual": "pass",
+          "pass": true
+        }
+      ],
+      "matview": [
+        {
+          "label": "Measured cleanly",
+          "limit": "no errors, ≤ 1% failed requests",
+          "actual": "0 of 32342 failed",
+          "pass": true
+        },
+        {
+          "label": "Existing tests untouched",
+          "limit": "unchanged",
+          "actual": "changed demo/orders-api/test/api.test.ts",
+          "pass": false
+        },
+        {
+          "label": "p95 latency",
+          "limit": "≤ 50 ms",
+          "actual": "15.5 ms",
+          "pass": true
+        },
+        {
+          "label": "Staleness",
+          "limit": "≤ 15 s",
+          "actual": "5 s",
+          "pass": true
+        },
+        {
+          "label": "Tests",
+          "limit": "pass",
+          "actual": "pass",
+          "pass": true
+        }
+      ],
+      "index": [
+        {
+          "label": "Measured cleanly",
+          "limit": "no errors, ≤ 1% failed requests",
+          "actual": "0 of 2234 failed",
+          "pass": true
+        },
+        {
+          "label": "Existing tests untouched",
+          "limit": "unchanged",
+          "actual": "unchanged",
+          "pass": true
+        },
+        {
+          "label": "p95 latency",
+          "limit": "≤ 50 ms",
+          "actual": "188.8 ms",
+          "pass": false
+        },
+        {
+          "label": "Staleness",
+          "limit": "≤ 15 s",
+          "actual": "0 s",
+          "pass": true
+        },
+        {
+          "label": "Tests",
+          "limit": "pass",
+          "actual": "pass",
+          "pass": true
+        }
+      ]
+    }
+  },
+  "environment": {
+    "node": "v24.15.0",
+    "platform": "win32 10.0.26200",
+    "cpus": 8,
+    "cpu": "11th Gen Intel(R) Core(TM) i5-1145G7 @ 2.60GHz",
+    "memory_gb": 16
+  }
+}
