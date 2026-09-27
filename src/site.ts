@@ -20,7 +20,7 @@ export function assertSafeOut(out: string, root: string, cwd: string): void {
   const why =
     inside(root, o) ? "it contains the repository"
     : inside(cwd, o) ? "it contains the current folder"
-    : ["src", "runs", "test", "demo", "docs", ".git", "bin", "node_modules"].some((d) => inside(o, join(root, d))) ? "it is inside the repository's sources or run data"
+    : ["src", "runs", "test", "demo", "docs", ".git", "bin", "node_modules", ".settle"].some((d) => inside(o, join(root, d))) ? "it is inside the repository's sources or run data"
     : "";
   if (why) throw new Error(`refusing to use ${o} as the site folder: ${why}`);
   if (existsSync(o) && readdirSync(o).length > 0 && !existsSync(join(o, "index.html"))) {

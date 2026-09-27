@@ -47,11 +47,22 @@ export function checksFor(r: OptionResult, c: Constraints): Check[] {
   // requests, so failures must disqualify on their own.
   const ok = r.load.requests - r.load.errors;
   const errorRate = r.load.requests > 0 ? r.load.errors / r.load.requests : 1;
+  // An all-error run lowers the median p95 (latency array is empty → 0 ms),
+  // which can make a crashy option look faster than it is.  Any run where
+  // every request failed is treated as a measurement failure regardless of
+  // how the combined totals average out.
+  const allErrorRun = r.load.runs?.find((run) => run.requests > 0 && run.errors === run.requests);
   checks.push({
     label: "Measured cleanly",
     limit: "no errors, ≤ 1% failed requests",
-    actual: r.measure_error ? "measurement failed" : ok <= 0 ? "no successful requests" : `${r.load.errors} of ${r.load.requests} failed`,
-    pass: !r.measure_error && ok > 0 && errorRate <= 0.01,
+    actual: r.measure_error
+      ? "measurement failed"
+      : allErrorRun
+        ? `one run had ${allErrorRun.errors} errors of ${allErrorRun.requests} requests`
+        : ok <= 0
+          ? "no successful requests"
+          : `${r.load.errors} of ${r.load.requests} failed`,
+    pass: !r.measure_error && !allErrorRun && ok > 0 && errorRate <= 0.01,
   });
   checks.push({
     label: "Existing tests untouched",

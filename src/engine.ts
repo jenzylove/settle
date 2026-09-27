@@ -68,10 +68,11 @@ export function prepareRun(configPath: string, opts: RunOptions = {}): Prepared 
   // repository (a sibling package the app imports, say) would silently be left
   // out. settle.yml may be edited (the UI saves it) since options are built
   // from the parsed config, and Settle's own output folders do not count.
+  const configRel = (appRel ? appRel.split(String.fromCharCode(92)).join("/") + "/" : "") + "settle.yml";
   const dirty = dirtyFiles(root, root).filter((l) => {
     const path = l.slice(3).trim().split(String.fromCharCode(92)).join("/");
     const own = ["runs/", ".settle/", "site/"].some((dir) => path === dir || path.startsWith(dir));
-    return !path.endsWith("settle.yml") && !own;
+    return path !== configRel && !own;
   });
   if (dirty.length) throw new Error(`commit your changes first; these would be missing from every option:\n${dirty.join("\n")}`);
   const id = stamp();
@@ -221,8 +222,17 @@ export function touchedYardstick(worktree: string, base: string, appRel: string)
   const touched: string[] = [];
   const status = git(worktree, ["diff", "--name-status", base, "HEAD", "--", appRel || "."]);
   for (const line of status.split(String.fromCharCode(10)).filter(Boolean)) {
-    const [code, file] = line.split(String.fromCharCode(9));
-    if ((code.startsWith("M") || code.startsWith("D") || code.startsWith("R")) && isTestFile(file)) touched.push(file);
+    const parts = line.split(String.fromCharCode(9));
+    const code = parts[0];
+    if (code.startsWith("M") || code.startsWith("D")) {
+      if (isTestFile(parts[1])) touched.push(parts[1]);
+    } else if (code.startsWith("R")) {
+      // Renames: parts[1] = old path, parts[2] = new path.
+      // Flag either end so a weakened test renamed away is caught, and a
+      // non-test file renamed INTO the test tree is also caught.
+      if (isTestFile(parts[1])) touched.push(parts[1]);
+      if (parts[2] && isTestFile(parts[2])) touched.push(parts[2]);
+    }
   }
   const pkg = appRel ? `${appRel.split(String.fromCharCode(92)).join("/")}/package.json` : "package.json";
   const scripts = (text: string | null) => (text ? (JSON.parse(text).scripts ?? {}) : {});

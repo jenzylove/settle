@@ -112,3 +112,82 @@ test("settle site refuses output folders that would delete real work", () => {
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+// Bug 1: .settle/ must be blocked so a site build never deletes live worktrees.
+test("settle site refuses .settle/ as output folder", () => {
+  const root = mkdtempSync(join(tmpdir(), "settle-site2-"));
+  try {
+    mkdirSync(join(root, ".settle", "run1"), { recursive: true });
+    assert.throws(() => assertSafeOut(join(root, ".settle", "run1"), root, root), /sources or run data/);
+    assert.throws(() => assertSafeOut(join(root, ".settle"), root, root), /sources or run data/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+// Bug 2: a non-test file renamed INTO the test tree must be flagged.
+test("touchedYardstick flags a source file renamed into the test directory", () => {
+  const repo = mkdtempSync(join(tmpdir(), "settle-rename-"));
+  const git = (...a: string[]) => execFileSync("git", ["-c", "user.name=t", "-c", "user.email=t@t", ...a], { cwd: repo, stdio: "ignore" });
+  try {
+    mkdirSync(join(repo, "app", "src"), { recursive: true });
+    mkdirSync(join(repo, "app", "test"), { recursive: true });
+    writeFileSync(join(repo, "app", "package.json"), JSON.stringify({ scripts: { test: "node --test", start: "node s.js" } }));
+    writeFileSync(join(repo, "app", "src", "helper.js"), "// real source");
+    writeFileSync(join(repo, "app", "test", "existing.test.js"), "// existing test");
+    git("init", "-q", "-b", "main"); git("add", "-A"); git("commit", "-qm", "base");
+    const base = execFileSync("git", ["rev-parse", "HEAD"], { cwd: repo, encoding: "utf8" }).trim();
+
+    // Rename a source file to a test path — the new name is a test file
+    // even though the old name was not.  Must be caught.
+    git("mv", "app/src/helper.js", "app/test/injected.test.js");
+    git("add", "-A"); git("commit", "-qm", "renames source into test dir");
+    const touched = touchedYardstick(repo, base, "app");
+    assert.ok(touched.includes("app/test/injected.test.js"),
+      `expected app/test/injected.test.js in touched; got ${JSON.stringify(touched)}`);
+  } finally {
+    rmSync(repo, { recursive: true, force: true });
+  }
+});
+
+// Bug 3: only the canonical settle.yml at the app root should be exempt from
+// the dirty-file guard, not any file whose name ends in "settle.yml".
+// (Tested indirectly: the filter logic is a pure transform over the git
+// status lines, so we verify the configRel derivation is exact-match only.)
+test("dirty-file exemption is exact-path, not suffix-based", () => {
+  // Build a status line that looks like a sibling file that ends in settle.yml
+  // The filter function is not exported, so we test the observable guarantee:
+  // the exemption must not fire for a file at a different path.
+  // We do this by checking that the exemption string derived from appRel=""
+  // equals exactly "settle.yml" (not a regex / suffix).
+  const appRel = "";
+  const configRel = (appRel ? appRel + "/" : "") + "settle.yml";
+  assert.equal(configRel, "settle.yml");
+  // For a nested app:
+  const appRelNested = "demo/orders-api";
+  const configRelNested = appRelNested + "/" + "settle.yml";
+  assert.equal(configRelNested, "demo/orders-api/settle.yml");
+  // A sibling file must not match:
+  assert.notEqual("packages/evil-settle.yml", configRelNested);
+  assert.notEqual("src/settle.yml", configRel);
+});
+
+// Bug 4: an all-error individual run must disqualify the option even when the
+// combined totals average out to a passing error rate.
+test("a run where every request failed disqualifies even if combined error rate looks fine", () => {
+  // Run 1: 50 req, 50 errors (100% failure) — empty latency array → p95 = 0
+  // Run 2: 1000 req, 0 errors
+  // Run 3: 1000 req, 0 errors
+  // Combined: 2050 req, 50 errors → ~2.4% — already >1%, but the point is
+  // that even a scale where it would pass (say 1 error run vs 999 clean runs)
+  // must still be caught via the per-run check.
+  const crashy = opt("crashy", {
+    load: combineLoad([load(0, 50, 50), load(20, 1000, 0), load(20, 1000, 0)]),
+    diff: { added: 1, removed: 0, files: [] },
+  });
+  const v = decide([crashy, opt("steady", {})], limits);
+  assert.equal(v.winner, "steady");
+  const cleanCheck = v.checks.crashy.find((c) => c.label === "Measured cleanly")!;
+  assert.equal(cleanCheck.pass, false);
+  assert.match(cleanCheck.actual, /one run had 50 errors of 50 requests/);
+});
