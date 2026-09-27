@@ -47,7 +47,7 @@ function rows(data: RunFile): Row[] {
     },
     {
       label: "Tests",
-      value: (r) => (r.tests ? `${r.tests.ok ? "pass" : "fail"}${r.tests.passed !== null ? ` · ${r.tests.passed}` : ""}` : dash),
+      value: (r) => (r.tests ? (r.tests.timed_out ? "hung, never exited" : `${r.tests.ok ? "pass" : "fail"}${r.tests.passed !== null ? ` · ${r.tests.passed}` : ""}`) : dash),
       check: "Tests",
     },
     { label: "Built by Bob in", value: (r) => (r.bob ? `${Math.floor(r.bob.duration_seconds / 60)}m ${r.bob.duration_seconds % 60}s` : dash) },

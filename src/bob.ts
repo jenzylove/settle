@@ -55,7 +55,7 @@ export function buildPrompt(config: SettleConfig, option: Option, appPath: strin
     `2. Keep every HTTP route, request and response shape exactly the same.`,
     `3. Do not edit or delete existing tests. You may add tests for your change.`,
     `4. Install any dependency you need with the package manager so package.json is updated.`,
-    `5. When done, run \`${config.app.test}\` and make sure it passes.`,
+    `5. When done, run \`${config.app.test}\` and make sure it passes and exits on its own (stop any timers, intervals or servers your code starts once the tests finish).`,
     `6. Do not start long running servers and do not run load tests; measurement happens after you finish.`,
     `7. Do not commit. Finish with a short summary of what you changed and any tradeoff you chose.`,
   ].join("\n");

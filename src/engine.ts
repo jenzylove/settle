@@ -166,15 +166,15 @@ async function measureOption(
   result.new_dependencies = newDependencies(showFile(worktree, base, pkg), showFile(worktree, "HEAD", pkg));
 
   emit({ kind: "measure", option: result.id, step: "install" });
-  const install = await run(config.app.install, appDir);
+  const install = await run(config.app.install, appDir, config.app.install_timeout_seconds * 1000);
   if (install.code !== 0) {
     result.measure_error = `install failed:\n${install.output.slice(-1500)}`;
     return;
   }
 
   emit({ kind: "measure", option: result.id, step: "tests" });
-  const tests = await runTests(config.app.test, appDir);
-  result.tests = { ok: tests.ok, passed: tests.passed, failed: tests.failed };
+  const tests = await runTests(config.app.test, appDir, config.app.test_timeout_seconds * 1000);
+  result.tests = { ok: tests.ok, passed: tests.passed, failed: tests.failed, timed_out: tests.timed_out };
 
   emit({ kind: "measure", option: result.id, step: "start" });
   let app;

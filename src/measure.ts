@@ -22,6 +22,8 @@ export interface FreshnessResult {
 
 export interface TestResult {
   ok: boolean;
+  // The suite passed its own checks but never exited, e.g. a timer left running.
+  timed_out?: boolean;
   passed: number | null;
   failed: number | null;
 }
@@ -51,13 +53,29 @@ function killTree(child: ChildProcess): Promise<void> {
   });
 }
 
-export function run(command: string, cwd: string): Promise<{ code: number; output: string }> {
+// A command that never exits (a test suite with a timer left running, say)
+// must not stall the whole run: after timeoutMs the tree is killed and the
+// command counts as failed.
+export function run(command: string, cwd: string, timeoutMs = 0): Promise<{ code: number; output: string; timedOut: boolean }> {
   return new Promise((resolve) => {
     const child = sh(command, cwd);
     let output = "";
+    let timedOut = false;
     child.stdout?.on("data", (d) => (output += d));
     child.stderr?.on("data", (d) => (output += d));
-    child.on("close", (code) => resolve({ code: code ?? 1, output }));
+    const timer = timeoutMs
+      ? setTimeout(() => {
+          timedOut = true;
+          output += `
+[settle] stopped after ${Math.round(timeoutMs / 1000)} s without exiting
+`;
+          void killTree(child);
+        }, timeoutMs)
+      : undefined;
+    child.on("close", (code) => {
+      if (timer) clearTimeout(timer);
+      resolve({ code: timedOut ? 124 : (code ?? 1), output, timedOut });
+    });
   });
 }
 
@@ -210,13 +228,13 @@ export async function freshnessTest(base: string, f: Freshness): Promise<Freshne
   };
 }
 
-export async function runTests(command: string, appDir: string): Promise<TestResult & { output: string }> {
-  const { code, output } = await run(command, appDir);
+export async function runTests(command: string, appDir: string, timeoutMs = 0): Promise<TestResult & { output: string }> {
+  const { code, output, timedOut } = await run(command, appDir, timeoutMs);
   const num = (label: string) => {
     const m = output.match(new RegExp(`(?:ℹ|#) ${label} (\\d+)`));
     return m ? Number(m[1]) : null;
   };
-  return { ok: code === 0, passed: num("pass"), failed: num("fail"), output };
+  return { ok: code === 0, passed: num("pass"), failed: num("fail"), timed_out: timedOut || undefined, output };
 }
 
 export function newDependencies(basePkg: string | null, headPkg: string | null): string[] {

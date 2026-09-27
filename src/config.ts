@@ -43,6 +43,8 @@ export interface SettleConfig {
     health: string;
     port_env: string;
     ready_timeout_seconds: number;
+    test_timeout_seconds: number;
+    install_timeout_seconds: number;
   };
   load: {
     request: Request;
@@ -92,6 +94,8 @@ export function parseConfig(text: string): SettleConfig {
       health: app.health ?? "/health",
       port_env: app.port_env ?? "PORT",
       ready_timeout_seconds: app.ready_timeout_seconds ?? 60,
+      test_timeout_seconds: app.test_timeout_seconds ?? 180,
+      install_timeout_seconds: app.install_timeout_seconds ?? 600,
     },
     load: {
       request: need(load.request, "load.request"),
