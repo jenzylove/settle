@@ -6,7 +6,7 @@ Settle
 
 ## Short description
 
-Find the blockers before you estimate. Settle has IBM Bob test the risky assumptions behind a feature against your real code, in parallel, and shows what is proven, what is blocked, and the evidence.
+Find the blockers before you estimate. Settle has IBM Bob test the risky assumptions behind a feature against your real code, in parallel, and shows what passed, what is blocked, and the evidence.
 
 ## Long description (problem and solution, max 500 words)
 
