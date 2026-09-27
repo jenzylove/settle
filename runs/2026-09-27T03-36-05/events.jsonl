@@ -1,0 +1,85 @@
+{"t":1790480165703,"kind":"start","id":"2026-09-27T03-36-05","question":"How do we make the top customers endpoint fast?","base":"8e3008204c32bb77890b5566e2260ab718c9d16e","options":[{"id":"cache","name":"Cache","description":"Cache the endpoint's response in memory with a 60 second time to live."},{"id":"matview","name":"Materialized view","description":"Precompute the ranking in a Postgres materialized view and refresh it in the background every 5 seconds."},{"id":"index","name":"Index and rewrite","description":"Add the right index or indexes and rewrite the query so Postgres does less work. No caching and no precomputed tables."}],"constraints":{"max_p95_ms":50,"max_staleness_seconds":15,"tests_must_pass":true}}
+{"t":1790480167126,"kind":"phase","phase":"build"}
+{"t":1790480182029,"kind":"bob","option":"index","tool":"list_files","label":"Listed C:/Users/LENOVO/settle/.settle/2026-09-27T03-36-05/index"}
+{"t":1790480182158,"kind":"bob","option":"cache","tool":"list_files","label":"Listed demo/orders-api"}
+{"t":1790480182779,"kind":"bob","option":"matview","tool":"list_files","label":"Listed C:/Users/LENOVO/settle/.settle/2026-09-27T03-36-05/matview"}
+{"t":1790480185059,"kind":"bob","option":"cache","tool":"read_file","label":"Read demo/orders-api/src/server.ts"}
+{"t":1790480185060,"kind":"bob","option":"cache","tool":"read_file","label":"Read demo/orders-api/src/db.ts"}
+{"t":1790480185061,"kind":"bob","option":"cache","tool":"read_file","label":"Read demo/orders-api/package.json"}
+{"t":1790480185062,"kind":"bob","option":"cache","tool":"read_file","label":"Read demo/orders-api/test/api.test.ts"}
+{"t":1790480185236,"kind":"bob","option":"index","tool":"read_file","label":"Read demo/orders-api/src/db.ts"}
+{"t":1790480185236,"kind":"bob","option":"index","tool":"read_file","label":"Read demo/orders-api/src/server.ts"}
+{"t":1790480185237,"kind":"bob","option":"index","tool":"read_file","label":"Read demo/orders-api/src/index.ts"}
+{"t":1790480185237,"kind":"bob","option":"index","tool":"read_file","label":"Read demo/orders-api/test/api.test.ts"}
+{"t":1790480185237,"kind":"bob","option":"index","tool":"read_file","label":"Read demo/orders-api/package.json"}
+{"t":1790480186023,"kind":"bob","option":"matview","tool":"read_file","label":"Read demo/orders-api/src/db.ts"}
+{"t":1790480186024,"kind":"bob","option":"matview","tool":"read_file","label":"Read demo/orders-api/src/server.ts"}
+{"t":1790480186024,"kind":"bob","option":"matview","tool":"read_file","label":"Read demo/orders-api/src/index.ts"}
+{"t":1790480186025,"kind":"bob","option":"matview","tool":"read_file","label":"Read demo/orders-api/test/api.test.ts"}
+{"t":1790480186025,"kind":"bob","option":"matview","tool":"read_file","label":"Read demo/orders-api/package.json"}
+{"t":1790480187717,"kind":"bob","option":"cache","tool":"read_file","label":"Read demo/orders-api/src/index.ts"}
+{"t":1790480193411,"kind":"bob","option":"matview","tool":"update_todo_list","label":"Updated its plan"}
+{"t":1790480193672,"kind":"bob","option":"cache","tool":"update_todo_list","label":"Updated its plan"}
+{"t":1790480195789,"kind":"bob","option":"index","tool":"update_todo_list","label":"Updated its plan"}
+{"t":1790480201010,"kind":"bob","option":"cache","tool":"write_file","label":"Wrote demo/orders-api/src/cache.ts"}
+{"t":1790480203592,"kind":"bob","option":"cache","tool":"update_todo_list","label":"Updated its plan"}
+{"t":1790480207675,"kind":"bob","option":"index","tool":"apply_diff","label":"Edited demo/orders-api/src/db.ts"}
+{"t":1790480209448,"kind":"bob","option":"matview","tool":"apply_diff","label":"Edited demo/orders-api/src/db.ts"}
+{"t":1790480211071,"kind":"bob","option":"cache","tool":"apply_diff","label":"Edited demo/orders-api/src/server.ts"}
+{"t":1790480212454,"kind":"bob","option":"matview","tool":"update_todo_list","label":"Updated its plan"}
+{"t":1790480215464,"kind":"bob","option":"cache","tool":"update_todo_list","label":"Updated its plan"}
+{"t":1790480217907,"kind":"bob","option":"index","tool":"apply_diff","label":"Edited demo/orders-api/src/server.ts"}
+{"t":1790480218947,"kind":"bob","option":"matview","tool":"apply_diff","label":"Edited demo/orders-api/src/server.ts"}
+{"t":1790480221687,"kind":"bob","option":"index","tool":"update_todo_list","label":"Updated its plan"}
+{"t":1790480223814,"kind":"bob","option":"matview","tool":"apply_diff","label":"Edited demo/orders-api/src/index.ts"}
+{"t":1790480225429,"kind":"bob","option":"index","tool":"read_file","label":"Read demo/orders-api/test/api.test.ts"}
+{"t":1790480229404,"kind":"bob","option":"cache","tool":"write_file","label":"Wrote demo/orders-api/test/cache.test.ts"}
+{"t":1790480229764,"kind":"bob","option":"matview","tool":"apply_diff","label":"Edited demo/orders-api/test/api.test.ts"}
+{"t":1790480232082,"kind":"bob","option":"matview","tool":"read_file","label":"Read demo/orders-api/test/api.test.ts"}
+{"t":1790480232844,"kind":"bob","option":"index","tool":"write_file","label":"Wrote demo/orders-api/test/index-freshness.test.ts"}
+{"t":1790480233339,"kind":"bob","option":"cache","tool":"update_todo_list","label":"Updated its plan"}
+{"t":1790480234984,"kind":"bob","option":"index","tool":"update_todo_list","label":"Updated its plan"}
+{"t":1790480238189,"kind":"bob","option":"matview","tool":"insert_content","label":"Edited demo/orders-api/test/api.test.ts"}
+{"t":1790480239732,"kind":"bob","option":"cache","tool":"execute_command","label":"Ran npm test"}
+{"t":1790480241644,"kind":"bob","option":"index","tool":"execute_command","label":"Ran npm test"}
+{"t":1790480242115,"kind":"bob","option":"matview","tool":"update_todo_list","label":"Updated its plan"}
+{"t":1790480251145,"kind":"bob","option":"cache","tool":"execute_command","label":"Ran npm install"}
+{"t":1790480251814,"kind":"bob","option":"matview","tool":"execute_command","label":"Ran npm test"}
+{"t":1790480254106,"kind":"bob","option":"index","tool":"execute_command","label":"Ran npm install"}
+{"t":1790480267610,"kind":"bob","option":"matview","tool":"execute_command","label":"Ran npm install"}
+{"t":1790480284957,"kind":"bob","option":"cache","tool":"execute_command","label":"Ran npm test"}
+{"t":1790480288967,"kind":"bob","option":"cache","tool":"update_todo_list","label":"Updated its plan"}
+{"t":1790480292020,"kind":"bob","option":"index","tool":"execute_command","label":"Ran npm test"}
+{"t":1790480295362,"kind":"bob","option":"index","tool":"update_todo_list","label":"Updated its plan"}
+{"t":1790480297871,"kind":"bob","option":"matview","tool":"execute_command","label":"Ran npm test"}
+{"t":1790480300932,"kind":"bob","option":"matview","tool":"update_todo_list","label":"Updated its plan"}
+{"t":1790480302037,"kind":"built","option":"cache","ok":true,"seconds":134,"tool_calls":17,"cost":0.63}
+{"t":1790480309579,"kind":"built","option":"index","ok":true,"seconds":141,"tool_calls":17,"cost":0.66}
+{"t":1790480314241,"kind":"built","option":"matview","ok":true,"seconds":146,"tool_calls":19,"cost":0.78}
+{"t":1790480314241,"kind":"phase","phase":"measure"}
+{"t":1790480314353,"kind":"measure","option":"baseline","step":"install"}
+{"t":1790480317613,"kind":"measure","option":"baseline","step":"tests"}
+{"t":1790480334816,"kind":"measure","option":"baseline","step":"start"}
+{"t":1790480340706,"kind":"measure","option":"baseline","step":"load"}
+{"t":1790480396430,"kind":"measure","option":"baseline","step":"freshness"}
+{"t":1790480397084,"kind":"measured","option":"baseline","load":{"requests":587,"errors":0,"rps":12.7,"p50_ms":662.1,"p95_ms":698.1,"p99_ms":858.9,"runs":[{"requests":182,"errors":0,"rps":12.1,"p50_ms":664.6,"p95_ms":858},{"requests":190,"errors":0,"rps":12.7,"p50_ms":662.1,"p95_ms":698.1},{"requests":215,"errors":0,"rps":14.3,"p50_ms":573.2,"p95_ms":658.3}],"p95_range":[658.3,858]},"freshness":{"probes":3,"lags_seconds":[0.1,0.1,0.1],"max_seconds":0.1,"median_seconds":0.1,"timed_out":0},"tests":{"ok":true,"passed":3,"failed":0},"lines":{"added":0,"removed":0}}
+{"t":1790480397396,"kind":"measure","option":"cache","step":"install"}
+{"t":1790480398447,"kind":"measure","option":"cache","step":"tests"}
+{"t":1790480416457,"kind":"measure","option":"cache","step":"start"}
+{"t":1790480422506,"kind":"measure","option":"cache","step":"load"}
+{"t":1790480476629,"kind":"measure","option":"cache","step":"freshness"}
+{"t":1790480597522,"kind":"measured","option":"cache","load":{"requests":274267,"errors":0,"rps":6025.5,"p50_ms":1.1,"p95_ms":2.1,"p99_ms":7.7,"runs":[{"requests":90382,"errors":0,"rps":6025.5,"p50_ms":1.1,"p95_ms":2.1},{"requests":93753,"errors":0,"rps":6250.2,"p50_ms":1,"p95_ms":2},{"requests":90132,"errors":0,"rps":6008.8,"p50_ms":1.1,"p95_ms":2.2}],"p95_range":[2,2.2]},"freshness":{"probes":3,"lags_seconds":[0.1,60.2,60.1],"max_seconds":60.2,"median_seconds":60.1,"timed_out":0},"tests":{"ok":true,"passed":10,"failed":0},"lines":{"added":42,"removed":2}}
+{"t":1790480598004,"kind":"measure","option":"matview","step":"install"}
+{"t":1790480599347,"kind":"measure","option":"matview","step":"tests"}
+{"t":1790480615388,"kind":"measure","option":"matview","step":"start"}
+{"t":1790480621722,"kind":"measure","option":"matview","step":"load"}
+{"t":1790480675763,"kind":"measure","option":"matview","step":"freshness"}
+{"t":1790480687068,"kind":"measured","option":"matview","load":{"requests":32342,"errors":0,"rps":718,"p50_ms":10.2,"p95_ms":15.5,"p99_ms":21.5,"runs":[{"requests":10629,"errors":0,"rps":708.6,"p50_ms":10.4,"p95_ms":15.4},{"requests":10770,"errors":0,"rps":718,"p50_ms":10.2,"p95_ms":16.6},{"requests":10943,"errors":0,"rps":729.5,"p50_ms":10.1,"p95_ms":15.5}],"p95_range":[15.4,16.6]},"freshness":{"probes":3,"lags_seconds":[0.9,5,5],"max_seconds":5,"median_seconds":5,"timed_out":0},"tests":{"ok":true,"passed":4,"failed":0},"lines":{"added":34,"removed":12}}
+{"t":1790480687521,"kind":"measure","option":"index","step":"install"}
+{"t":1790480688722,"kind":"measure","option":"index","step":"tests"}
+{"t":1790480707415,"kind":"measure","option":"index","step":"start"}
+{"t":1790480714517,"kind":"measure","option":"index","step":"load"}
+{"t":1790480769025,"kind":"measure","option":"index","step":"freshness"}
+{"t":1790480769491,"kind":"measured","option":"index","load":{"requests":2234,"errors":0,"rps":49.7,"p50_ms":159.4,"p95_ms":188.8,"p99_ms":232.6,"runs":[{"requests":746,"errors":0,"rps":49.7,"p50_ms":159.4,"p95_ms":178.5},{"requests":738,"errors":0,"rps":49.2,"p50_ms":161.3,"p95_ms":193.2},{"requests":750,"errors":0,"rps":50,"p50_ms":158.6,"p95_ms":188.8}],"p95_range":[178.5,193.2]},"freshness":{"probes":3,"lags_seconds":[0,0,0],"max_seconds":0,"median_seconds":0,"timed_out":0},"tests":{"ok":true,"passed":4,"failed":0},"lines":{"added":29,"removed":10}}
+{"t":1790480769555,"kind":"verdict","verdict":{"winner":null,"headline":"No option meets every constraint.","reason":"Closest is Index and rewrite, which misses p95 latency. Relax a constraint or add an option.","checks":{"cache":[{"label":"Measured cleanly","limit":"no errors, ≤ 1% failed requests","actual":"0 of 274267 failed","pass":true},{"label":"Existing tests untouched","limit":"unchanged","actual":"unchanged","pass":true},{"label":"p95 latency","limit":"≤ 50 ms","actual":"2.1 ms","pass":true},{"label":"Staleness","limit":"≤ 15 s","actual":"60.2 s","pass":false},{"label":"Tests","limit":"pass","actual":"pass","pass":true}],"matview":[{"label":"Measured cleanly","limit":"no errors, ≤ 1% failed requests","actual":"0 of 32342 failed","pass":true},{"label":"Existing tests untouched","limit":"unchanged","actual":"changed demo/orders-api/test/api.test.ts","pass":false},{"label":"p95 latency","limit":"≤ 50 ms","actual":"15.5 ms","pass":true},{"label":"Staleness","limit":"≤ 15 s","actual":"5 s","pass":true},{"label":"Tests","limit":"pass","actual":"pass","pass":true}],"index":[{"label":"Measured cleanly","limit":"no errors, ≤ 1% failed requests","actual":"0 of 2234 failed","pass":true},{"label":"Existing tests untouched","limit":"unchanged","actual":"unchanged","pass":true},{"label":"p95 latency","limit":"≤ 50 ms","actual":"188.8 ms","pass":false},{"label":"Staleness","limit":"≤ 15 s","actual":"0 s","pass":true},{"label":"Tests","limit":"pass","actual":"pass","pass":true}]}}}
+{"t":1790480769555,"kind":"phase","phase":"done"}

@@ -53,7 +53,7 @@ export function buildPrompt(config: SettleConfig, option: Option, appPath: strin
     `Rules:`,
     `1. Implement your option the way a careful senior engineer would for production. Smallest change that fully does the job.`,
     `2. Keep every HTTP route, request and response shape exactly the same.`,
-    `3. Do not edit or delete existing tests. You may add tests for your change.`,
+    `3. Do not modify, rename or delete any existing test file in any way, including its setup and teardown. Put any new tests in new test files. If your option needs something started or stopped, do it in your own code or your own test files.`,
     `4. Install any dependency you need with the package manager so package.json is updated.`,
     `5. When done, run \`${config.app.test}\` and make sure it passes and exits on its own (stop any timers, intervals or servers your code starts once the tests finish).`,
     `6. Do not start long running servers and do not run load tests; measurement happens after you finish.`,
