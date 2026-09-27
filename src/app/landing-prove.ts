@@ -37,8 +37,10 @@ const CSS = `
 .hero { text-align: center; padding: 64px 0 40px; }
 .hero h1 { font: 400 clamp(48px, 8.4vw, 108px)/1.0 var(--serif); letter-spacing: -0.02em; margin: 20px auto 26px; max-width: 13.5ch; }
 .hero h1 em { font-style: italic; color: #75757a; }
-.chip { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; height: 0.72em; width: 1.35em; border-radius: 999px; margin: -0.16em 0.05em 0; box-shadow: 0 10px 24px rgba(0,0,0,.22), inset 0 0 0 3px rgba(255,255,255,.8); }
-.chip span { font: 600 0.26em/1 var(--mono); letter-spacing: 0.02em; font-style: normal; }
+.chip { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; height: 0.62em; padding: 0 0.32em; border-radius: 999px; margin: -0.16em 0.04em 0; box-shadow: 0 10px 24px rgba(0,0,0,.18), inset 0 0 0 3px rgba(255,255,255,.8); }
+.chip span { font: 600 0.2em/1 var(--mono); letter-spacing: 0.08em; font-style: normal; }
+.chip.light { background: #fff; color: #0d0d0e; }
+.chip.light s { text-decoration-thickness: 0.12em; color: #8a8a90; }
 .chip.dark { background: #0d0d0e; color: #fff; }
 .chip.blue { background: linear-gradient(135deg, #3a64ff, #1b3fd6); color: #fff; }
 .hero p.sub { color: var(--muted); max-width: 52ch; margin: 0 auto 30px; }
@@ -163,7 +165,7 @@ ${PREMIUM_FONTS}
     </nav>
     <section class="hero">
       <span class="tag">Built with IBM Bob</span>
-      <h1>Find the <span class="chip dark"><span>✕</span></span> <em>landmines</em> before you <span class="chip blue"><span>{ }</span></span> <em>estimate.</em></h1>
+      <h1>Find the <em>landmines</em> <span class="chip dark" title="Settle's badge for an assumption that failed against the real code"><span>BLOCKED</span></span> before you <em>estimate</em> <span class="chip light" title="The estimate that would have been wrong"><span><s>2 days</s></span></span></h1>
       <p class="sub">A "two day" feature becomes two weeks because of something nobody knew was in the code. Settle has IBM Bob test the risky parts against your real code first.</p>
       <div class="ctas">
         <a class="pill-btn" href="${proofUrl}">See a real proof <span class="arr">↗</span></a>
