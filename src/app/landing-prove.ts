@@ -38,7 +38,7 @@ footer.end { border-top: 1px solid var(--line); padding: 72px 0 40px; }
 footer.end .big { font: 800 clamp(32px, 5vw, 64px)/1 var(--sans); letter-spacing: -0.04em; margin: 0 0 28px; }
 footer.end .fine { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 56px; font-size: 13px; color: var(--muted); }
 @media (max-width: 820px) {
-  section.band { grid-template-columns: 1fr; gap: 16px; padding: 48px 0; }
+  section.band { grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 48px 0; }
   .step, .not div, .item { grid-template-columns: 1fr; gap: 6px; }
 }
 `;
