@@ -1,0 +1,19 @@
+request: Let customers delete their account.
+context: >
+  A privacy request: customers want a "delete my account" button. When a
+  customer deletes their account, their personal data must go, the store must
+  keep working, and the top customers dashboard must stay correct.
+
+app:
+  install: npm install --no-audit --no-fund
+  test: npm test
+
+experiment:
+  command: node --import tsx --test {file}
+  timeout_seconds: 120
+
+assumptions: 3
+
+bob:
+  max_turns: 30
+  timeout_minutes: 15
