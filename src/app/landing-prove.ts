@@ -152,7 +152,7 @@ export function landingProve(p: ProofFile, all: ProofFile[] = [p]): string {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Settle</title>
-<meta name="description" content="Find the landmines before you estimate. Settle has IBM Bob test the risky assumptions behind a feature against your real code.">
+<meta name="description" content="Find the blockers before you estimate. Settle has IBM Bob test the risky assumptions behind a feature against your real code.">
 ${PREMIUM_FONTS}
 <style>${PREMIUM_CSS}${CSS}${ACCENT_CSS}</style>
 </head>
@@ -165,7 +165,7 @@ ${PREMIUM_FONTS}
     </nav>
     <section class="hero">
       <span class="tag dotted">Built with IBM Bob</span>
-      <h1>Find the <em>landmines</em> <span class="chip dark" title="Settle's badge for something the feature needs that is not true in the code today"><span>BLOCKED</span></span> before you <em>estimate</em> <span class="chip light" title="The estimate that would have been wrong"><span><s>2 days</s></span></span></h1>
+      <h1>Find the <em>blockers</em> <span class="chip blue" title="Settle's badge for something the feature needs that is not true in the code today"><span>BLOCKED</span></span> before you <em>estimate</em> <span class="chip light" title="The estimate that would have been wrong"><span><s>2 days</s></span></span></h1>
       <p class="sub">A "two day" feature becomes two weeks because of something nobody knew was in the code. Before your team commits to a date, Settle has IBM Bob check the risky parts against your real code, and shows you what will get in the way.</p>
       <div class="ctas">
         <a class="pill-btn blue" href="${tryUrl}">Try it <span class="arr">↗</span></a>
@@ -195,7 +195,7 @@ ${PREMIUM_FONTS}
       <p>A spike your team would spend days on, done against your real code in about four minutes.</p>
     </div>
     <div class="flow">
-      <div class="fstep"><span class="fnum">1</span><div><h3>Name the feature</h3><p>The thing you are about to estimate, like "let customers delete their account".</p></div></div>
+      <div class="fstep"><span class="fnum">1</span><div><h3>Name the feature, in Bob IDE or the terminal</h3><p>The thing you are about to estimate, like "let customers delete their account", on the repo you have open.</p></div></div>
       <div class="fstep"><span class="fnum">2</span><div><h3>Bob finds what it depends on</h3><p>Bob reads the code the feature touches and lists what must be true for it to be as easy as it looks.</p></div></div>
       <div class="fstep"><span class="fnum">3</span><div><h3>Bob tests each one, at once</h3><p>One Bob per item, each in its own copy of your repo, writes a real test against today's code.</p></div></div>
       <div class="fstep hot"><span class="fnum">4</span><div><h3>Settle checks Bob's work</h3><p>Every test is rerun by Settle, never taken on Bob's word. Tests may only add files, never change yours.</p></div></div>
@@ -213,7 +213,7 @@ ${PREMIUM_FONTS}
     <div class="tgrid">
       ${all
         .map(
-          (x) => `<a class="topt" href="${tryUrl}?run=${esc(x.id)}"><small>Feature request</small><b>"${esc(x.request)}"</b><span class="res">${x.summary.blocked ? `${x.summary.blocked} landmine${x.summary.blocked === 1 ? "" : "s"} found` : "No landmines"} <span class="go">Watch it run ↗</span></span></a>`,
+          (x) => `<a class="topt" href="${tryUrl}?run=${esc(x.id)}"><small>Feature request</small><b>"${esc(x.request)}"</b><span class="res">${x.summary.blocked ? `${x.summary.blocked} blocker${x.summary.blocked === 1 ? "" : "s"} found` : "No blockers"} <span class="go">Watch it run ↗</span></span></a>`,
         )
         .join("")}
     </div>
@@ -226,6 +226,18 @@ ${PREMIUM_FONTS}
       <div><span class="tag dotted">Use it in your repo</span><h2>Add it to your team's <em>planning.</em></h2></div>
       <p>Settle runs next to your code with your IBM Bob. Nothing is merged; every test stays on its own branch.</p>
     </div>
+    <div class="bobide">
+      <div><span class="tag">In IBM Bob IDE</span><h3>Open your repo, switch to <em>Settle Prove</em>, describe the feature.</h3><p>The Settle Prove mode writes <code>prove.yml</code> for the app you have open, asks before it spends anything, runs the proof on your code, and tells you the blockers in plain words. It can only ever write <code>prove.yml</code>.</p></div>
+      <pre><span class="c"># in Bob IDE, mode: Settle Prove</span>
+You: Before I estimate it, check "let customers
+     delete their account" in this repo.
+Bob: Wrote prove.yml. Run the proof? About four
+     minutes and three Bobcoins.
+You: Yes.
+Bob: 3 blockers. Deleting a customer with orders
+     is refused by the database...</pre>
+    </div>
+    <p class="or">Or from the terminal and CI:</p>
     <div class="use">
       <div class="ustep"><span class="unum">1</span><div><h3>Install</h3><p>Node 24, git, and IBM Bob Shell with an API key.</p><pre>git clone https://github.com/jenzylove/settle
 cd settle && npm install && npm link
@@ -280,7 +292,7 @@ jobs:
 
   <footer class="foot">
     <div class="fcols">
-      <div style="max-width:320px"><b>Settle</b>Find the landmines before you estimate. Tests built by IBM Bob, checked by Settle.</div>
+      <div style="max-width:320px"><b>Settle</b>Find the blockers before you estimate. Tests built by IBM Bob, checked by Settle.</div>
       <div><b>Product</b><a href="${tryUrl}">Try it</a><a href="#how">How it works</a><a href="#use">Use it in your repo</a></div>
       <div><b>Project</b><a href="https://github.com/jenzylove/settle">GitHub</a><a href="#faq">FAQ</a><a href="compare/">Design comparison</a></div>
     </div>
@@ -293,6 +305,16 @@ jobs:
 }
 
 const ACCENT_CSS = `
+.bobide { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: center; background: var(--accent); color: #fff; border-radius: 28px; padding: 32px; margin-bottom: 18px; box-shadow: 0 30px 60px -30px rgba(47,91,255,.6); }
+.bobide .tag { background: rgba(255,255,255,.16); color: #fff; box-shadow: none; }
+.bobide h3 { font: 400 clamp(26px, 3vw, 36px)/1.15 var(--serif); margin: 14px 0 10px; }
+.bobide h3 em { font-style: italic; color: #dfe6ff; }
+.bobide p { margin: 0; color: #e3e8ff; }
+.bobide code { background: rgba(255,255,255,.16); padding: 1px 6px; border-radius: 6px; }
+.bobide pre { margin: 0; background: #0d1a55; color: #eef1ff; border-radius: 18px; padding: 20px 22px; font: 13px/1.7 var(--mono); overflow-x: auto; }
+.bobide pre .c { color: #8ea2ff; }
+.or { color: var(--muted); margin: 26px 0 12px; font-size: 15px; }
+@media (max-width: 760px) { .bobide { grid-template-columns: minmax(0, 1fr); padding: 22px; } }
 :root { --accent: #2f5bff; --accent-soft: #e8edff; }
 .pill-btn.blue { background: var(--accent); }
 .tag.dotted::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-right: 8px; vertical-align: 2px; }

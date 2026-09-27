@@ -21,7 +21,7 @@ export function findingTitle(x: Experiment): string {
   return t.length > 120 ? t.slice(0, 117).replace(/\s+\S*$/, "") + "…" : t;
 }
 
-const LABEL: Record<string, string> = { proven: "Safe", blocked: "Landmine", unknown: "Unsure" };
+const LABEL: Record<string, string> = { proven: "Safe", blocked: "Blocker", unknown: "Unsure" };
 
 // Plan steps: the numbered items under the "Plan" heading, else all numbered items.
 function planSteps(md: string): string[] {
@@ -169,10 +169,10 @@ pre.code { font: 12.5px/1.55 var(--mono); background: var(--soft); border-radius
       <div class="answer">
         <div class="big">${s.blocked || s.proven}</div>
         <div>
-          <h1>${s.blocked > 0 ? `${s.blocked} landmine${s.blocked === 1 ? "" : "s"}. <em>${esc(answer)}</em>` : `<em>${esc(answer)}</em>`}</h1>
+          <h1>${s.blocked > 0 ? `${s.blocked} blocker${s.blocked === 1 ? "" : "s"}. <em>${esc(answer)}</em>` : `<em>${esc(answer)}</em>`}</h1>
           <p>${esc(sub)}</p>
           <div class="chips">
-            <span class="cchip blocked"><i></i>${s.blocked} landmine${s.blocked === 1 ? "" : "s"}</span>
+            <span class="cchip blocked"><i></i>${s.blocked} blocker${s.blocked === 1 ? "" : "s"}</span>
             <span class="cchip proven"><i></i>${s.proven} safe</span>
             <span class="cchip unknown"><i></i>${s.unknown} unsure</span>
           </div>
@@ -184,7 +184,7 @@ pre.code { font: 12.5px/1.55 var(--mono); background: var(--soft); border-radius
     <p class="lead">Each one is something the feature needs to be true. Open it to see why it matters and the proof.</p>
     ${d.experiments.map(finding).join("\n")}
 
-    ${steps.length ? `<h2 class="sec2">What to do <em>next</em></h2><p class="lead">Bob's plan, written from what the tests actually found. Landmines first.</p><div class="steps2">${steps.map((t, i) => `<div class="step2" style="--d:${i * 70}ms"><span>${inline(t)}</span></div>`).join("")}</div>` : ""}
+    ${steps.length ? `<h2 class="sec2">What to do <em>next</em></h2><p class="lead">Bob's plan, written from what the tests actually found. Blockers first.</p><div class="steps2">${steps.map((t, i) => `<div class="step2" style="--d:${i * 70}ms"><span>${inline(t)}</span></div>`).join("")}</div>` : ""}
 
     <div class="cta-row">
       <a class="pill-btn blue" href="../../#use">Run this on your repo <span class="arr">↗</span></a>

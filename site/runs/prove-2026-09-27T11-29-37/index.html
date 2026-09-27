@@ -109,10 +109,10 @@ pre.code { font: 12.5px/1.55 var(--mono); background: var(--soft); border-radius
       <div class="answer">
         <div class="big">3</div>
         <div>
-          <h1>3 landmines. <em>Harder than it looks.</em></h1>
+          <h1>3 blockers. <em>Harder than it looks.</em></h1>
           <p>Bob tested 3 things this feature depends on. 3 of them are not true in the code today. Fix them first, then estimate.</p>
           <div class="chips">
-            <span class="cchip blocked"><i></i>3 landmines</span>
+            <span class="cchip blocked"><i></i>3 blockers</span>
             <span class="cchip proven"><i></i>0 safe</span>
             <span class="cchip unknown"><i></i>0 unsure</span>
           </div>
@@ -125,7 +125,7 @@ pre.code { font: 12.5px/1.55 var(--mono); background: var(--soft); border-radius
     <details class="f blocked" style="--d:0ms">
   <summary>
     <span class="dot"></span>
-    <span class="flabel">Landmine</span>
+    <span class="flabel">Blocker</span>
     <span class="ftitle">The database money column uses a data type that can only hold numbers up to about 2 billion.</span>
     <span class="chev" aria-hidden="true"></span>
   </summary>
@@ -247,7 +247,7 @@ test(&quot;sum(amount_cents)::int overflows when IDR orders exceed INT_MAX&quot;
 <details class="f blocked" style="--d:90ms">
   <summary>
     <span class="dot"></span>
-    <span class="flabel">Landmine</span>
+    <span class="flabel">Blocker</span>
     <span class="ftitle">Right now each order record stores only an amount number, with no label for which currency it is.</span>
     <span class="chev" aria-hidden="true"></span>
   </summary>
@@ -321,7 +321,7 @@ describe(&quot;schema-has-currency-column&quot;, () =&gt; {
 <details class="f blocked" style="--d:180ms">
   <summary>
     <span class="dot"></span>
-    <span class="flabel">Landmine</span>
+    <span class="flabel">Blocker</span>
     <span class="ftitle">The leaderboard is built by adding up order amounts.</span>
     <span class="chev" aria-hidden="true"></span>
   </summary>
@@ -466,7 +466,7 @@ test(&quot;topCustomers ranks correctly when orders have mixed currencies&quot;,
   </div>
 </details>
 
-    <h2 class="sec2">What to do <em>next</em></h2><p class="lead">Bob's plan, written from what the tests actually found. Landmines first.</p><div class="steps2"><div class="step2" style="--d:0ms"><span>Migrate amount_cents to bigint; update cast, TypeScript type, and POST validation.</span></div><div class="step2" style="--d:70ms"><span>Add currency column to schema; update seed data, createOrder, and API contract.</span></div><div class="step2" style="--d:140ms"><span>Introduce a static exchange-rate table (or in-query constants) and rewrite the topCustomers sum to normalise amounts before aggregating.</span></div><div class="step2" style="--d:210ms"><span>Add / update tests to cover overflow values and mixed-currency ranking.</span></div><div class="step2" style="--d:280ms"><span>Document the exchange-rate update strategy for product (static constants, refreshed daily, or a rates microservice).</span></div></div>
+    <h2 class="sec2">What to do <em>next</em></h2><p class="lead">Bob's plan, written from what the tests actually found. Blockers first.</p><div class="steps2"><div class="step2" style="--d:0ms"><span>Migrate amount_cents to bigint; update cast, TypeScript type, and POST validation.</span></div><div class="step2" style="--d:70ms"><span>Add currency column to schema; update seed data, createOrder, and API contract.</span></div><div class="step2" style="--d:140ms"><span>Introduce a static exchange-rate table (or in-query constants) and rewrite the topCustomers sum to normalise amounts before aggregating.</span></div><div class="step2" style="--d:210ms"><span>Add / update tests to cover overflow values and mixed-currency ranking.</span></div><div class="step2" style="--d:280ms"><span>Document the exchange-rate update strategy for product (static constants, refreshed daily, or a rates microservice).</span></div></div>
 
     <div class="cta-row">
       <a class="pill-btn blue" href="../../#use">Run this on your repo <span class="arr">↗</span></a>

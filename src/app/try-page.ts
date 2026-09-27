@@ -130,7 +130,7 @@ main { padding: 16px 0 96px; }
             setStep(4);
             ticker.innerHTML = "&nbsp;";
             var s = p.summary;
-            document.getElementById("donetext").textContent = s.blocked ? s.blocked + " landmine" + (s.blocked === 1 ? "" : "s") + " found before anyone estimated." : "No landmines. As easy as it looks.";
+            document.getElementById("donetext").textContent = s.blocked ? s.blocked + " blocker" + (s.blocked === 1 ? "" : "s") + " found before anyone estimated." : "No blockers. As easy as it looks.";
             document.getElementById("open").href = "../runs/" + p.id + "/";
             done.classList.add("show");
           }
@@ -144,7 +144,7 @@ main { padding: 16px 0 96px; }
           var r = document.getElementById("r-" + e.id), f = p.findings[e.id] || {};
           if (r) {
             r.classList.remove("busy"); r.classList.add(e.status);
-            r.querySelector(".s").textContent = e.status === "blocked" ? "Landmine" : e.status === "proven" ? "Safe" : "Unsure";
+            r.querySelector(".s").textContent = e.status === "blocked" ? "Blocker" : e.status === "proven" ? "Safe" : "Unsure";
             r.querySelector(".p").textContent = f.proof || "";
           }
         }
