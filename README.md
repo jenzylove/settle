@@ -1,8 +1,8 @@
 # Settle
 
-**Find the landmines before you estimate.**
+**Find the blockers before you estimate.**
 
-Live, with a real proof: **https://settle-blush.vercel.app**
+Live: **https://settle-blush.vercel.app** (Try it replays real runs step by step)
 
 A "two day" feature turns into two weeks because of something nobody knew was in the code. Engineers estimate by reading the repo; the surprises only show up once someone builds it.
 
@@ -11,7 +11,7 @@ Settle moves the surprises to the start. You give it one sentence, the feature y
 1. **Bob finds the risks.** IBM Bob reads the code the feature would touch and names the assumptions it silently depends on, the ones that cost days if they are wrong.
 2. **Bob runs experiments.** One Bob Shell session per assumption, all at once, each in its own git worktree, writes the smallest test that proves or disproves that assumption against today's code.
 3. **Settle checks the work.** Settle reruns every experiment itself instead of trusting Bob's word: a passing experiment is **proven**, a failing one is **blocked** (with the exact error or wrong value), anything that could not run or touched existing files is **unknown**.
-4. **Bob writes the plan** from what was actually found: what we now know, the landmines to fix first, the build order, and how the findings change the estimate.
+4. **Bob writes the plan** from what was actually found: what we now know, the blockers to fix first, the build order, and how the findings change the estimate.
 
 Nothing is merged. Every experiment stays on its own branch.
 
@@ -19,7 +19,11 @@ Nothing is merged. Every experiment stays on its own branch.
 
 An AI can guess what might go wrong. Settle shows you, with a failing test against your real code, and it does not take the builder's word for it: every experiment is rerun independently, and experiments may only add files: one that changes any existing file is not trusted.
 
-## Run it
+## Use it
+
+**In IBM Bob IDE:** open your repo, switch to the **Settle Prove** mode (`.bob/custom_modes.yaml`), and describe the feature. The mode writes `prove.yml`, asks before spending Bobcoins, runs the proof on your code and reports the blockers in plain words. It can only write `prove.yml`.
+
+**From the terminal:**
 
 Requirements: Node 24, git, and [IBM Bob Shell](https://bob.ibm.com/docs/shell/getting-started/install-and-setup) with a `BOB_API_KEY` (Inference scope).
 
@@ -32,8 +36,8 @@ node ../../bin/settle.mjs prove        # reads prove.yml
 `prove.yml`:
 
 ```yaml
-request: Let customers pay in their own currency (USD, EUR, JPY and IDR), and keep the top customers ranking correct.
-context: Orders are stored in a single currency today.
+request: Let customers delete their account.
+context: Customers want a "delete my account" button.
 experiment:
   command: node --import tsx --test {file}
 assumptions: 3
@@ -67,7 +71,7 @@ Settle also includes `settle run`, which builds competing designs for the same c
 ## Limits
 
 - Experiments run against the code as it is today; Settle proves or disproves assumptions, it does not build the feature.
-- A failing experiment is reported as blocked. If Bob's experiment itself is wrong, that shows up as a false landmine, which is why every card shows the rerun output, Bob's own read and the test code for the team to check.
+- A failing experiment is reported as blocked. If Bob's experiment itself is wrong, that shows up as a false blocker, which is why every card shows the rerun output, Bob's own read and the test code for the team to check.
 - Bob chooses the assumptions. The plan is only as good as the risks it names, so the evidence board shows each one for the team to challenge.
 - Settle runs locally, next to your code. There is no hosted service.
 

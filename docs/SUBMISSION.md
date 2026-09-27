@@ -6,7 +6,7 @@ Settle
 
 ## Short description
 
-Find the landmines before you estimate. Settle has IBM Bob test the risky assumptions behind a feature against your real code, in parallel, and shows what is proven, what is blocked, and the evidence.
+Find the blockers before you estimate. Settle has IBM Bob test the risky assumptions behind a feature against your real code, in parallel, and shows what is proven, what is blocked, and the evidence.
 
 ## Long description (problem and solution, max 500 words)
 
@@ -17,13 +17,13 @@ Find the landmines before you estimate. Settle has IBM Bob test the risky assump
 1. **Bob finds the risks.** IBM Bob reads the code the feature would touch and names the assumptions the feature silently depends on, phrased as what must be true for the feature to be as easy as it looks.
 2. **Bob runs experiments.** One Bob Shell session per assumption, all at once, each in its own git worktree, writes the smallest test that proves or disproves that assumption against today's code.
 3. **Settle checks the work.** Settle reruns every experiment itself instead of trusting Bob's word. Passing means proven. Failing means blocked, with the exact error or wrong value. Anything that could not run, or that edited existing code or tests, is unknown.
-4. **Bob writes the plan** from what was actually found: what we now know, the landmines to fix first, the build order, and how the findings change the estimate.
+4. **Bob writes the plan** from what was actually found: what we now know, the blockers to fix first, the build order, and how the findings change the estimate.
 
-The result is an evidence board a whole team can read: plain words for the product manager, the failing test and the branch for the engineers.
+The result is a results page a whole team can read: plain words for the product manager, the failing test and the branch for the engineers.
 
 **Target users.** Engineering teams during planning and estimation: tech leads, engineers, and the product managers who need an honest size before committing to a date.
 
-**What the demo shows.** The request: "Let customers pay in their own currency (USD, EUR, JPY and IDR), and keep the top customers ranking correct." In about five minutes, Bob names three assumptions (revenue totals can hold large amounts, orders can record a currency, and the ranking compares revenue fairly across currencies), builds an experiment for each in parallel, and Settle reruns them. The evidence board shows which assumptions fail against today's code and why, with the real error output, then Bob's plan puts those landmines first.
+**What the demo shows.** The request: "Let customers delete their account." In about four minutes Bob names three things the feature depends on and tests them in parallel, and Settle reruns every test. All three are blockers: the database refuses to delete a customer who has orders (foreign key violation), a customer's name cannot be wiped while keeping their order history (not null constraint), and deleting a top customer quietly drops their revenue from the dashboard total. Bob's plan puts those first. On the site, Try it replays the real runs step by step, and the results page shows each finding with its test and output. Inside Bob IDE, the Settle Prove mode runs the same proof on the repo you have open.
 
 **Why it is new.** An AI can guess what might go wrong with a feature. Settle proves it, with experiments against the real code, verified independently of the agent that wrote them. Earlier planning tools predict risks from text; Settle turns each risk into a runnable test before anyone commits to an estimate.
 
@@ -37,7 +37,7 @@ IBM Bob is used in two places: as the engine inside the product, and in Bob IDE 
 
 1. **Tests, the Settle mode, and a fairness review.** Bob wrote verdict and config tests, wrote `.bob/custom_modes.yaml` (a project mode that drafts Settle's configuration from a plain English description and may edit nothing else), and reviewed the measurement harness, finding and fixing two real bugs.
 2. **Building block tests and CI.** Bob wrote tests for the process runner, templates, file detection and activity labels, plus the GitHub Actions workflow.
-3. **Settle mode as the front door.** From a plain English description, the Settle mode drafted a configuration and asked for confirmation.
+3. **Settle modes as the front door.** The Settle mode drafted a configuration from plain English. The Settle Prove mode (`settle-prove` in `.bob/custom_modes.yaml`) turns a described feature into `prove.yml`, asks before spending Bobcoins, runs the proof on the open repo and reports the blockers.
 4. **A trust review.** Asked to find any way a broken or tampering result could still be trusted, Bob found four gaps and fixed them with tests.
 
 Settle grew out of an earlier mode of the same engine that builds competing designs and measures them; in one of those real runs Bob edited an existing test to make its option pass, and Settle's integrity check refused it. That lesson is why `settle prove` reruns every experiment independently and distrusts any experiment that touches existing files.
