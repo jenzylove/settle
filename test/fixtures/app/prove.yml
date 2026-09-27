@@ -1,0 +1,11 @@
+request: Let the value endpoint support more than one currency.
+app:
+  install: npm install --no-audit --no-fund
+  test: npm test
+experiment:
+  command: node --test {file}
+  timeout_seconds: 60
+assumptions: 3
+bob:
+  max_turns: 5
+  timeout_minutes: 1

@@ -36,7 +36,11 @@ export interface TestResult {
 }
 
 function sh(command: string, cwd: string, env: NodeJS.ProcessEnv = process.env): ChildProcess {
-  return spawn(command, { cwd, env, shell: true, detached: process.platform !== "win32" });
+  // When Settle itself runs under node:test, this variable makes a child
+  // `node --test` skip its files. The app's commands must run as they would
+  // for a developer.
+  const { NODE_TEST_CONTEXT: _, ...clean } = env;
+  return spawn(command, { cwd, env: clean, shell: true, detached: process.platform !== "win32" });
 }
 
 // npm start → tsx → node: killing only the shell leaves the server alive and

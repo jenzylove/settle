@@ -17,7 +17,7 @@ Nothing is merged. Every experiment stays on its own branch.
 
 ## Why not just ask an AI
 
-An AI can guess what might go wrong. Settle shows you, with a failing test against your real code, and it does not take the builder's word for it: every experiment is rerun independently, and one that edits existing code or tests is not trusted.
+An AI can guess what might go wrong. Settle shows you, with a failing test against your real code, and it does not take the builder's word for it: every experiment is rerun independently, and experiments may only add files: one that changes any existing file is not trusted.
 
 ## Run it
 
@@ -62,11 +62,12 @@ Settle also includes `settle run`, which builds competing designs for the same c
 
 ## Tests
 
-`npm test` runs the suite, including an end to end run of the comparison pipeline on a fixture app with a stand in for Bob Shell. GitHub Actions runs typecheck and tests on every push.
+`npm test` runs 73 tests, including end to end runs of `settle prove` (proven, blocked, and an experiment that edits an existing file being distrusted even though Bob claimed it held) and of the comparison pipeline, both on a fixture app with a stand in for Bob Shell. GitHub Actions runs typecheck and tests on every push.
 
 ## Limits
 
 - Experiments run against the code as it is today; Settle proves or disproves assumptions, it does not build the feature.
+- A failing experiment is reported as blocked. If Bob's experiment itself is wrong, that shows up as a false landmine, which is why every card shows the rerun output, Bob's own read and the test code for the team to check.
 - Bob chooses the assumptions. The plan is only as good as the risks it names, so the evidence board shows each one for the team to challenge.
 - Settle runs locally, next to your code. There is no hosted service.
 

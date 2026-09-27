@@ -7,7 +7,7 @@ import { dirname, join, relative } from "node:path";
 import { parse } from "yaml";
 import { runBobPrompt } from "./bob.ts";
 import { describeTool } from "./events.ts";
-import { addWorktree, commitAll, dirtyFiles, git, headCommit, isTestFile, repoRoot } from "./git.ts";
+import { addWorktree, commitAll, dirtyFiles, git, headCommit, repoRoot } from "./git.ts";
 import { run } from "./measure.ts";
 import { renderProof } from "./proof-page.ts";
 
@@ -43,6 +43,7 @@ export interface Experiment extends Assumption {
   branch: string;
   bob_seconds: number;
   bob_cost?: number;
+  // Existing files the experiment modified, deleted or renamed. Must be empty.
   touched_existing_tests: string[];
 }
 
@@ -224,7 +225,9 @@ export async function prove(configPath: string, listen: (e: StampedProve) => voi
       for (const line of status.split(String.fromCharCode(10)).filter(Boolean)) {
         const parts = line.split(String.fromCharCode(9));
         files.push(parts[parts.length - 1]);
-        if (!parts[0].startsWith("A") && isTestFile(parts[1])) touched.push(parts[1]);
+        // Experiments may only add files. Any change to an existing file, code or
+        // test, could manufacture the result, so the experiment is not trusted.
+        if (!parts[0].startsWith("A")) touched.push(parts[1]);
       }
       const testAbs = join(tree, appRel, fileRel);
       return {

@@ -94,7 +94,7 @@ ${FONTS}
     <div>
       <h2>One sentence in, evidence out. On your code, on your machine.</h2>
       <div class="steps">
-        <div class="step"><b>Write the feature</b><span>One sentence in <code>prove.yml</code>, like "let customers pay in their own currency". Or describe it to the Settle mode in Bob IDE.</span></div>
+        <div class="step"><b>Write the feature</b><span>One sentence in <code>prove.yml</code>, like "let customers pay in their own currency".</span></div>
         <div class="step"><b>Bob finds the risks</b><span>Bob reads your code and names the assumptions the feature silently depends on, the ones that cost days if they are wrong.</span></div>
         <div class="step"><b>Bob runs experiments</b><span>One Bob per assumption, all at once, each in its own copy of your repo, writes the smallest test that proves or disproves it.</span></div>
         <div class="step"><b>Settle checks the work</b><span>Settle reruns every experiment itself instead of trusting Bob's word, then Bob writes the plan from what was actually found.</span></div>
@@ -109,7 +109,7 @@ ${FONTS}
       <div class="not">
         <div><b>A guess</b><span>"Mixed currencies might affect your ranking." Maybe. How much? Nobody knows until someone builds it.</span></div>
         <div><b>Evidence</b><span>A real test against your real code, the exact error or wrong number it produced, and the branch you can open.</span></div>
-        <div><b>A checked result</b><span>Bob builds the experiments; Settle reruns them. An experiment that edits existing code or tests is not trusted.</span></div>
+        <div><b>A checked result</b><span>Bob builds the experiments; Settle reruns them. Experiments may only add files; one that changes any existing file is not trusted.</span></div>
       </div>
     </div>
   </section>
