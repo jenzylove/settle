@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settle</title>
+<meta name="description" content="When your team argues about how to build something, Settle builds each option with IBM Bob and shows you the numbers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #ffffff; --fg: #0b0b0c; --muted: #6b6b70; --faint: #a1a1a6; --line: #e4e4e7; --soft: #f5f5f6; --strong: #0b0b0c;
+  --sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #0b0b0c; --fg: #f4f4f5; --muted: #9a9aa2; --faint: #5c5c62; --line: #26262b; --soft: #141417; --strong: #f4f4f5; }
+}
+:root[data-theme="dark"] { --bg: #0b0b0c; --fg: #f4f4f5; --muted: #9a9aa2; --faint: #5c5c62; --line: #26262b; --soft: #141417; --strong: #f4f4f5; }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+.bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.brand { font-weight: 800; letter-spacing: -0.02em; font-size: 18px; text-decoration: none; }
+.nav { display: flex; gap: 22px; align-items: center; }
+.nav a { text-decoration: none; color: var(--muted); }
+.nav a:hover, .nav a.on { color: var(--fg); }
+.muted { color: var(--muted); }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+code, .mono { font-family: var(--mono); font-size: 0.9em; }
+.btn { display: inline-flex; align-items: center; gap: 10px; font: 600 15px/1 var(--sans); background: var(--fg); color: var(--bg); border: 1px solid var(--fg); padding: 14px 20px; cursor: pointer; text-decoration: none; }
+.btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+.rule { border: 0; border-top: 1px solid var(--line); margin: 0; }
+
+.hero { text-align: center; padding: 104px 0 88px; }
+.hero h1 { font: 800 clamp(44px, 8vw, 104px)/0.98 var(--sans); letter-spacing: -0.05em; margin: 22px auto 26px; max-width: 12ch; }
+.hero .sub { color: var(--muted); font-size: clamp(17px, 2vw, 21px); max-width: 58ch; margin: 0 auto 36px; }
+.ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.by { margin-top: 22px; font: 500 12px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); }
+section.band { border-top: 1px solid var(--line); padding: 64px 0; display: grid; grid-template-columns: 240px 1fr; gap: 40px; }
+section.band > .eyebrow { padding-top: 8px; }
+section.band > div { min-width: 0; }
+.stat strong { overflow-wrap: anywhere; }
+.band h2 { font: 700 clamp(26px, 3.4vw, 40px)/1.1 var(--sans); letter-spacing: -0.03em; margin: 0 0 28px; max-width: 24ch; }
+.rows { border-top: 1px solid var(--line); }
+.row { display: grid; grid-template-columns: 200px 1fr; gap: 32px; padding: 20px 0; border-bottom: 1px solid var(--line); }
+.row b { font-weight: 600; }
+.row span { color: var(--muted); }
+.steps { counter-reset: s; border-top: 1px solid var(--line); }
+.step { display: grid; grid-template-columns: 56px 200px 1fr; gap: 24px; padding: 22px 0; border-bottom: 1px solid var(--line); }
+.step::before { counter-increment: s; content: "0" counter(s); font: 500 14px var(--mono); color: var(--muted); padding-top: 3px; }
+.step b { font-weight: 600; }
+.step span { color: var(--muted); }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 32px; }
+.stat { padding: 26px 24px 26px 0; }
+.stat + .stat { border-left: 1px solid var(--line); padding-left: 24px; }
+.stat strong { display: block; font: 800 clamp(34px, 5vw, 56px)/1 var(--sans); letter-spacing: -0.04em; margin-bottom: 10px; }
+.stat span { color: var(--muted); font-size: 14px; }
+.mini { width: 100%; border-collapse: collapse; }
+.mini th, .mini td { text-align: left; padding: 14px 10px 14px 0; border-bottom: 1px solid var(--line); font: 500 14px var(--mono); }
+.mini thead th { color: var(--muted); font-size: 12px; border-bottom: 2px solid var(--strong); }
+.mini tbody th { font: 600 15px var(--sans); }
+.mini tr.win td, .mini tr.win th { font-weight: 800; }
+.tablewrap { overflow-x: auto; }
+pre.code { font: 14px/1.7 var(--mono); background: var(--soft); padding: 22px 24px; overflow-x: auto; margin: 0 0 16px; }
+.links { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; }
+footer.end { border-top: 1px solid var(--line); padding: 72px 0 40px; }
+footer.end .big { font: 800 clamp(32px, 5vw, 64px)/1 var(--sans); letter-spacing: -0.04em; margin: 0 0 28px; }
+footer.end .fine { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 56px; font-size: 13px; color: var(--muted); }
+.race { border-top: 1px solid var(--line); padding: 28px 0 56px; }
+.race-head { display: flex; justify-content: space-between; margin-bottom: 14px; }
+.race-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 2px solid var(--strong); }
+.rc { padding: 18px 20px 16px 0; min-width: 0; }
+.rc + .rc { border-left: 1px solid var(--line); padding-left: 20px; }
+.rc h3 { margin: 0 0 4px; font-size: 18px; letter-spacing: -0.01em; }
+.rc .st { font: 500 12px var(--mono); color: var(--muted); margin: 0 0 12px; }
+.rc .st.live { color: var(--fg); }
+.rc ol { list-style: none; margin: 0; padding: 0; height: 96px; overflow: hidden; font: 13px/1.5 var(--mono); color: var(--muted); display: flex; flex-direction: column; justify-content: flex-end; }
+.rc li { padding: 4px 0; border-top: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; animation: tick .35s ease both; }
+.rc li:last-child { color: var(--fg); }
+@keyframes tick { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.rc .meter { height: 4px; background: var(--soft); margin-top: 12px; position: relative; overflow: hidden; }
+.rc .meter b { position: absolute; inset: 0 auto 0 0; background: var(--fg); transition: width .4s linear; }
+.rc.win h3 { text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 2px; }
+.race-verdict { margin: 18px 0 0; font: 700 clamp(18px, 2.2vw, 24px)/1.3 var(--sans); letter-spacing: -0.01em; min-height: 1.3em; }
+.race-verdict.in { animation: tick .6s ease both; }
+@media (max-width: 820px) {
+  .race-cols { grid-template-columns: 1fr; }
+  .rc + .rc { border-left: 0; border-top: 1px solid var(--line); padding-left: 0; }
+  section.band { grid-template-columns: 1fr; gap: 16px; padding: 48px 0; }
+  .row, .step { grid-template-columns: 1fr; gap: 4px; }
+  .step::before { padding: 0; }
+  .stats { grid-template-columns: 1fr; }
+  .stat + .stat { border-left: 0; border-top: 1px solid var(--line); padding-left: 0; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="bar">
+    <a class="brand" href="./">Settle</a>
+    <nav class="nav">
+      <a href="#how">How it works</a>
+      <a href="app/#/run/2026-09-27T03-47-21">Watch a run</a>
+      <a href="https://github.com/jenzylove/settle">GitHub</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <p class="eyebrow">For design reviews</p>
+    <h1>Build every option. Then decide.</h1>
+    <p class="sub">When your team argues about how to build something, Settle has IBM Bob build every option at once, measures them all the same way, and shows you which one fits your limits.</p>
+    <div class="ctas">
+      <a class="btn" href="app/#/run/2026-09-27T03-47-21">Watch a real run</a>
+      <a class="btn ghost" href="runs/2026-09-27T03-47-21/">See the results</a>
+    </div>
+    <p class="by">Built with IBM Bob</p>
+  </section>
+
+  <section class="race" aria-label="A real recorded run, replaying">
+    <div class="race-head"><span class="eyebrow">Replaying a real run</span><span class="eyebrow" id="race-clock">Bob builds</span></div>
+    <div class="race-cols" id="race"></div>
+    <p class="race-verdict" id="race-verdict">&nbsp;</p>
+  </section>
+
+  <section class="band">
+    <p class="eyebrow">The argument</p>
+    <div>
+      <h2>Cache or materialized view? Queue or direct call? Every team argues. Nobody builds every option.</h2>
+      <div class="rows">
+        <div class="row"><b>Opinion</b><span>The most senior voice decides, and nobody can check it.</span></div>
+        <div class="row"><b>One spike</b><span>An engineer spends days building one option. The others are never built, so there is nothing to compare.</span></div>
+        <div class="row"><b>A guess</b><span>Most teams skip even that. A wrong guess shows up months later, under everything built on top of it.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="how">
+    <p class="eyebrow">How it works</p>
+    <div>
+      <h2>One file, one command, every option built and measured.</h2>
+      <div class="steps">
+        <div class="step"><b>Write the debate</b><span>The question, the options and your limits in <code>settle.yml</code>. Or paste your design doc into the Settle mode in Bob IDE.</span></div>
+        <div class="step"><b>Bob builds each option</b><span>Every option gets its own branch and its own IBM Bob Shell session, all running at once. Each Bob reads your code, builds its option and adds tests.</span></div>
+        <div class="step"><b>Same yardstick</b><span>One load test, one freshness probe and your test suite run on every branch, one at a time so nothing competes for the CPU.</span></div>
+        <div class="step"><b>A plain verdict</b><span>Meet every limit. Among the options that do, the smallest change wins. Move a limit on the results page and watch the pick change.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band">
+    <p class="eyebrow">A real run</p>
+    <div>
+      <h2>How do we make the top customers endpoint fast?</h2>
+      <div class="stats">
+        <div class="stat"><strong>3 of 3</strong><span>options built by Bob in parallel, in 2m 23s</span></div>
+        <div class="stat"><strong>46×</strong><span>faster at p95 with the picked option</span></div>
+        <div class="stat"><strong>Materialized view</strong><span>Materialized view meets every constraint with the smallest change.</span></div>
+      </div>
+      <div class="tablewrap">
+        <table class="mini">
+          <thead><tr><th></th><th>p95 latency</th><th>Staleness</th><th>Code changed</th></tr></thead>
+          <tbody>
+            <tr class=""><th>Today (no change)</th><td>695 ms</td><td>instant</td><td>—</td></tr><tr class=""><th>Cache</th><td>2 ms</td><td>60.2 s</td><td>+48 −1</td></tr><tr class="win"><th>Materialized view</th><td>15 ms</td><td>5.2 s</td><td>+47 −9</td></tr><tr class=""><th>Index and rewrite</th><td>198 ms</td><td>instant</td><td>+32 −10</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="links">
+        <a class="btn" href="app/#/run/2026-09-27T03-47-21">Watch Bob build it</a>
+        <a class="btn ghost" href="runs/2026-09-27T03-47-21/">Open the results</a>
+        <a class="btn ghost" href="app/#/runs">All recorded runs</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="band">
+    <p class="eyebrow">It checks the builder too</p>
+    <div>
+      <h2>In one real run, Bob edited an existing test to make its option pass. Settle refused the option.</h2>
+      <div class="rows">
+        <div class="row"><b>Materialized view</b><span>Fastest option inside the staleness limit, but it changed <code>test/api.test.ts</code>. Its green tests no longer meant the same thing, so it was disqualified.</span></div>
+        <div class="row"><b>The rule</b><span>An option loses if it errors, fails more than 1% of requests, cannot be probed for freshness, or touches an existing test or the test and start scripts.</span></div>
+      </div>
+      <div class="links"><a class="btn ghost" href="runs/2026-09-27T03-36-05/">See the run Settle refused</a></div>
+    </div>
+  </section>
+  <section class="band">
+    <p class="eyebrow">Run it</p>
+    <div>
+      <h2>On your code, with your Bob.</h2>
+      <pre class="code">npm install -g ./settle          # from a clone of the repo
+cd your-app                      # a git repo with settle.yml
+export BOB_API_KEY=...           # IBM Bob Shell, Inference scope
+settle ui                        # edit the debate, press Build, watch it live
+settle run                       # or straight from the terminal</pre>
+      <p class="muted">Settle runs next to your code. Numbers come from your machine and your data.</p>
+    </div>
+  </section>
+
+  <footer class="end">
+    <p class="big">Stop arguing.<br>Build them all.</p>
+    <a class="btn" href="app/#/run/2026-09-27T03-47-21">Watch a real run</a>
+    <div class="fine"><span>Settle · built with IBM Bob for the IBM Bob 2.0 Hackathon</span><span><a href="https://github.com/jenzylove/settle">github.com/jenzylove/settle</a></span></div>
+  </footer>
+</div>
+<script>
+// Replays the recorded run's real event log on a loop: three Bob sessions
+// building at once, then the verdict. Plain JS, no dependencies.
+(function () {
+  var race = document.getElementById("race"), clock = document.getElementById("race-clock"), verdict = document.getElementById("race-verdict");
+  var SPEED = 30, MAXGAP = 900;
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function label(e) { return e.label === "update todo list" ? "Updated its plan" : e.label; }
+  fetch("runs/2026-09-27T03-47-21/events.jsonl").then(function (r) { return r.text(); }).then(function (text) {
+    var events = text.split("\n").filter(Boolean).map(function (l) { return JSON.parse(l); });
+    var start = events[0];
+    if (!start || start.kind !== "start") return;
+    var cut = events.findIndex(function (e) { return e.kind === "phase" && e.phase === "measure"; });
+    var build = events.slice(0, cut < 0 ? events.length : cut);
+    var v = events.find(function (e) { return e.kind === "verdict"; });
+    var names = {};
+    start.options.forEach(function (o) { names[o.id] = o.name; });
+    function play() {
+      race.innerHTML = ""; verdict.textContent = "\u00a0"; verdict.className = "race-verdict"; clock.textContent = "Bob builds";
+      var cols = {};
+      start.options.forEach(function (o) {
+        var c = el("div", "rc"); c.appendChild(el("h3", null, o.name));
+        var st = el("p", "st live", "Building"); c.appendChild(st);
+        var ol = el("ol"); c.appendChild(ol);
+        var meter = el("div", "meter"); var fill = el("b"); fill.style.width = "0%"; meter.appendChild(fill); c.appendChild(meter);
+        race.appendChild(c); cols[o.id] = { c: c, st: st, ol: ol, fill: fill, n: 0 };
+      });
+      var i = 1;
+      (function step() {
+        if (i >= build.length) {
+          setTimeout(function () {
+            if (v) {
+              clock.textContent = "Measured · verdict";
+              if (v.verdict.winner && cols[v.verdict.winner]) cols[v.verdict.winner].c.classList.add("win");
+              verdict.textContent = v.verdict.headline; verdict.className = "race-verdict in";
+            }
+            setTimeout(play, 5200);
+          }, 700);
+          return;
+        }
+        var e = build[i], prev = build[i - 1];
+        var col = cols[e.option];
+        if (e.kind === "bob" && col) {
+          var li = el("li", null, label(e)); col.ol.appendChild(li);
+          while (col.ol.children.length > 4) col.ol.removeChild(col.ol.firstChild);
+          col.n++; col.fill.style.width = Math.min(92, col.n * 6) + "%";
+        } else if (e.kind === "built" && col) {
+          col.st.textContent = (e.ok ? "Built in " : "Not built after ") + Math.floor(e.seconds / 60) + "m " + String(e.seconds % 60).padStart(2, "0") + "s";
+          col.st.className = "st"; col.fill.style.width = "100%";
+        }
+        var secs = Math.round((e.t - start.t) / 1000);
+        clock.textContent = "Bob builds · " + Math.floor(secs / 60) + "m " + String(secs % 60).padStart(2, "0") + "s";
+        i++;
+        setTimeout(step, Math.min((e.t - prev.t) / SPEED, MAXGAP));
+      })();
+    }
+    play();
+  }).catch(function () { document.querySelector(".race").hidden = true; });
+})();
+</script>
+</body>
+</html>

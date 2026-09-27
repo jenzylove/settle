@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settle Proof</title>
+<meta name="description" content="Let customers pay in their own currency (USD, EUR, JPY and IDR), and keep the top customers ranking correct.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #ffffff; --fg: #0b0b0c; --muted: #6b6b70; --faint: #a1a1a6; --line: #e4e4e7; --soft: #f5f5f6; --strong: #0b0b0c;
+  --sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #0b0b0c; --fg: #f4f4f5; --muted: #9a9aa2; --faint: #5c5c62; --line: #26262b; --soft: #141417; --strong: #f4f4f5; }
+}
+:root[data-theme="dark"] { --bg: #0b0b0c; --fg: #f4f4f5; --muted: #9a9aa2; --faint: #5c5c62; --line: #26262b; --soft: #141417; --strong: #f4f4f5; }
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+.bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.brand { font-weight: 800; letter-spacing: -0.02em; font-size: 18px; text-decoration: none; }
+.nav { display: flex; gap: 22px; align-items: center; }
+.nav a { text-decoration: none; color: var(--muted); }
+.nav a:hover, .nav a.on { color: var(--fg); }
+.muted { color: var(--muted); }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+code, .mono { font-family: var(--mono); font-size: 0.9em; }
+.btn { display: inline-flex; align-items: center; gap: 10px; font: 600 15px/1 var(--sans); background: var(--fg); color: var(--bg); border: 1px solid var(--fg); padding: 14px 20px; cursor: pointer; text-decoration: none; }
+.btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+.rule { border: 0; border-top: 1px solid var(--line); margin: 0; }
+
+main { padding: 56px 0 96px; }
+.req { font: 800 clamp(30px, 4.6vw, 54px)/1.06 var(--sans); letter-spacing: -0.035em; margin: 14px 0 18px; max-width: 24ch; }
+.sub { color: var(--muted); max-width: 70ch; margin: 0 0 36px; }
+.score { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 2px solid var(--strong); border-bottom: 1px solid var(--line); }
+.score div { padding: 22px 20px 22px 0; }
+.score div + div { border-left: 1px solid var(--line); padding-left: 20px; }
+.score strong { display: block; font: 800 56px/1 var(--sans); letter-spacing: -0.04em; }
+.score span { color: var(--muted); font-size: 14px; }
+.headline { font: 700 clamp(22px, 2.8vw, 32px)/1.2 var(--sans); letter-spacing: -0.02em; margin: 34px 0 8px; max-width: 34ch; }
+.cards { display: grid; gap: 0; margin-top: 28px; border-top: 1px solid var(--line); }
+.card { padding: 30px 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 1fr; }
+.head { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+.n { font: 500 13px var(--mono); color: var(--muted); }
+.badge { font: 700 12px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; padding: 5px 9px; border: 1.5px solid var(--fg); }
+.badge.proven { background: transparent; }
+.badge.blocked { background: var(--fg); color: var(--bg); }
+.badge.unknown { border-style: dashed; color: var(--muted); border-color: var(--muted); }
+.card h3 { font: 700 24px/1.25 var(--sans); letter-spacing: -0.02em; margin: 0 0 6px; max-width: 46ch; }
+.tech { font: 13px/1.5 var(--mono); color: var(--muted); margin: 0 0 14px; max-width: 90ch; }
+.why, .means { margin: 0 0 8px; max-width: 80ch; }
+.means { color: var(--muted); }
+.ev { margin-top: 14px; border-left: 3px solid var(--fg); padding: 4px 0 4px 18px; }
+.card.proven .ev { border-left-color: var(--line); }
+.evk { font: 500 12px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+.ev pre { margin: 0; font: 13px/1.55 var(--mono); white-space: pre-wrap; word-break: break-word; }
+.claim { font-size: 14px; color: var(--muted); margin: 10px 0 0; }
+details { margin-top: 16px; }
+summary { cursor: pointer; font: 500 12px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+pre.code { font: 12.5px/1.55 var(--mono); background: var(--soft); padding: 16px; overflow: auto; max-height: 420px; white-space: pre; margin: 10px 0 0; }
+.meta { font-size: 13px; color: var(--muted); margin: 14px 0 0; }
+h2 { font: 500 12px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin: 64px 0 12px; }
+.plan { border-top: 1px solid var(--line); padding-top: 12px; max-width: 80ch; }
+.plan h4 { font: 700 18px var(--sans); margin: 22px 0 8px; }
+.plan li { margin: 6px 0; }
+.foot { padding: 40px 0; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 56px; }
+@media (max-width: 720px) { .score { grid-template-columns: 1fr; } .score div + div { border-left: 0; border-top: 1px solid var(--line); padding-left: 0; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="bar"><a class="brand" href="../../">Settle</a><span class="muted">Proved 2026-09-27 11:33 UTC · base <code>cc274a5</code></span></header>
+  <main>
+    <p class="eyebrow">The feature request</p>
+    <h1 class="req">Let customers pay in their own currency (USD, EUR, JPY and IDR), and keep the top customers ranking correct.</h1>
+    <p class="sub">Before anyone estimated it, IBM Bob named the assumptions most likely to make the estimate wrong, built a small experiment for each against the real code, and Settle reran every experiment itself.</p>
+    <div class="score">
+      <div><strong>0</strong><span>proven, safe to build on</span></div>
+      <div><strong>3</strong><span>blocked, landmines found</span></div>
+      <div><strong>0</strong><span>unknown, still a risk</span></div>
+    </div>
+    <p class="headline">3 of 3 assumptions are false today. Fix them before you estimate.</p>
+    <div class="cards">
+      <article class="card blocked">
+  <div class="head">
+    <span class="n">01</span>
+    <span class="badge blocked">Blocked</span>
+  </div>
+  <h3>The database money column uses a data type that can only hold numbers up to about 2 billion. A single large order in Indonesian rupiah (e.g. Rp 15,000,000 stored as 1,500,000,000 units) nearly maxes it out, and the running total across several orders will silently wrap around to a wrong number, breaking the leaderboard.</h3>
+  <p class="tech">The `amount_cents` column (PostgreSQL `integer`, 32-bit, max 2,147,483,647) and the `sum(o.amount_cents)::int` cast in the ranking query can hold IDR-sized amounts without overflowing.</p>
+  <p class="why"><b>Why it matters.</b> A single IDR order of 15,000,000 IDR stored as minor units (1,500,000,000) is already close to the 32-bit limit; any customer with multiple large IDR orders causes a silent integer overflow in the SUM, corrupting the ranking. Fixing it requires a schema migration to `bigint`, changes to the TypeScript type, the API response type, and any downstream consumer that reads `revenue_cents`.</p>
+  <p class="means">A landmine. The experiment failed against today's code; this needs work before the feature.</p>
+  <div class="ev">
+    <p class="evk">What Settle saw when it reran Bob's experiment</p>
+    <pre>✖ sum(amount_cents)::int overflows when IDR orders exceed INT_MAX (5448.3609ms)
+ℹ fail 1
+✖ failing tests:
+✖ sum(amount_cents)::int overflows when IDR orders exceed INT_MAX (5448.3609ms)
+  error: integer out of range</pre>
+    <p class="claim">Bob's own read: <b>broken</b>. Inserting 2 IDR orders of 1,500,000,000 cents each (sum = 3,000,000,000) causes PostgreSQL to throw &#39;integer out of range&#39; (error code 22003) from the ::int cast in sum(o.amount_cents)::int — the column DDL is confirmed as 32-bit integer (max 2,147,483,647), and the ranking query crashes rather than returning a corrupted value.</p>
+  </div>
+  <details><summary>The experiment Bob wrote · settle-experiments/integer-overflow-idr.test.ts</summary><pre class="code">/**
+ * Experiment: integer-overflow-idr
+ *
+ * Assumption under test:
+ *   The `amount_cents` column (PostgreSQL `integer`, 32-bit) and the
+ *   `sum(o.amount_cents)::int` cast in topCustomers() can hold IDR-sized
+ *   amounts without overflowing.
+ *
+ * How it works:
+ *   1. Confirms the column DDL is `integer` (not `bigint`).
+ *   2. Inserts enough large IDR orders (1,500,000,000 cents each, representing
+ *      15,000,000 IDR) for one customer so the SUM exceeds 2,147,483,647.
+ *   3. Calls the real topCustomers() function and checks whether the returned
+ *      revenue_cents for that customer is a positive number greater than the
+ *      individual order amount — i.e., the sum is correct.
+ *
+ * PASSES  → assumption holds (no overflow detected)
+ * FAILS   → assumption is broken (overflow detected, wrong value shown as evidence)
+ */
+
+import { test } from &quot;node:test&quot;;
+import assert from &quot;node:assert/strict&quot;;
+import { openDb } from &quot;../src/db.ts&quot;;
+import { topCustomers, createOrder } from &quot;../src/server.ts&quot;;
+
+// One IDR order of 15,000,000 IDR stored as minor units (sen/subunit × 100)
+const IDR_ORDER_CENTS = 1_500_000_000; // 1.5 billion — near the 32-bit ceiling
+
+// Two such orders sum to 3,000,000,000 which exceeds INT_MAX (2,147,483,647)
+const ORDER_COUNT = 2;
+const EXPECTED_TOTAL = IDR_ORDER_CENTS * ORDER_COUNT; // 3_000_000_000
+
+test(&quot;column DDL is integer (32-bit), confirming the assumption is worth testing&quot;, async () =&gt; {
+  const db = await openDb();
+  try {
+    const { rows } = await db.query&lt;{ data_type: string }&gt;(
+      `SELECT data_type
+       FROM information_schema.columns
+       WHERE table_name = &#39;orders&#39;
+         AND column_name = &#39;amount_cents&#39;`,
+    );
+    assert.ok(rows.length === 1, &quot;column amount_cents not found in information_schema&quot;);
+    // This is informational: we expect &#39;integer&#39;. If someone already migrated to
+    // bigint this assertion would fail and the experiment becomes moot.
+    assert.equal(
+      rows[0].data_type,
+      &quot;integer&quot;,
+      `Expected column to be &#39;integer&#39; (32-bit) but got &#39;${rows[0].data_type}&#39;. ` +
+        &quot;If this is &#39;bigint&#39; the migration already happened and this experiment is moot.&quot;,
+    );
+  } finally {
+    await db.close();
+  }
+});
+
+test(&quot;sum(amount_cents)::int overflows when IDR orders exceed INT_MAX&quot;, async () =&gt; {
+  const db = await openDb();
+  try {
+    // Use customer_id = 1 (guaranteed to exist after openDb seed)
+    const CUSTOMER_ID = 1;
+
+    // Insert ORDER_COUNT large IDR orders for this customer so the SUM overflows
+    for (let i = 0; i &lt; ORDER_COUNT; i++) {
+      await createOrder(db, CUSTOMER_ID, IDR_ORDER_CENTS);
+    }
+
+    // Call the real ranking query — this is the code path under test
+    const ranking = await topCustomers(db, 100);
+
+    // Find the customer we just loaded with IDR orders
+    const row = ranking.find((r) =&gt; r.customer_id === CUSTOMER_ID);
+
+    assert.ok(
+      row !== undefined,
+      `Customer ${CUSTOMER_ID} not found in top-customers ranking after inserting IDR orders`,
+    );
+
+    // The correct total should be EXPECTED_TOTAL (3,000,000,000).
+    // With a 32-bit overflow the value wraps or postgres throws an error.
+    // Either way, we assert the returned value equals the mathematically correct total.
+    assert.equal(
+      row.revenue_cents,
+      EXPECTED_TOTAL,
+      `Integer overflow detected in revenue_cents! ` +
+        `Inserted ${ORDER_COUNT} orders of ${IDR_ORDER_CENTS} cents each. ` +
+        `Expected sum = ${EXPECTED_TOTAL} but got ${row.revenue_cents}. ` +
+        `The ::int cast in sum(o.amount_cents)::int wraps/corrupts at 2,147,483,647.`,
+    );
+  } finally {
+    await db.close();
+  }
+});
+</pre></details>
+  <p class="meta">Branch <code>settle/prove-2026-09-27T11-29-37/integer-overflow-idr</code> · built by Bob in 1m 58s · 0.62 Bobcoins</p>
+</article>
+<article class="card blocked">
+  <div class="head">
+    <span class="n">02</span>
+    <span class="badge blocked">Blocked</span>
+  </div>
+  <h3>Right now each order record stores only an amount number, with no label for which currency it is. To support four currencies the database needs a new &#39;currency&#39; field on every order. That field does not exist today, so every order ever placed would need to be labelled retroactively and every piece of code that writes or reads orders must be updated.</h3>
+  <p class="tech">The `orders` table already has a `currency` column (or equivalent) so each row knows which currency its `amount_cents` is denominated in.</p>
+  <p class="why"><b>Why it matters.</b> Without a currency column there is no way to know whether a stored amount is USD cents, EUR cents, JPY yen, or IDR rupiah. Every existing row becomes ambiguous. Adding the column requires a schema migration on a live table, a backfill strategy for the 200k existing rows, updates to `createOrder`, the POST `/orders` handler, input validation, and all tests — before any FX logic can even start.</p>
+  <p class="means">A landmine. The experiment failed against today's code; this needs work before the feature.</p>
+  <div class="ev">
+    <p class="evk">What Settle saw when it reran Bob's experiment</p>
+    <pre>  ✖ orders table has a currency column (5432.2573ms)
+✖ schema-has-currency-column (5434.8587ms)
+ℹ fail 1
+✖ failing tests:
+✖ orders table has a currency column (5432.2573ms)
+  AssertionError [ERR_ASSERTION]: Assumption BROKEN: orders table has no &#39;currency&#39; column.
+  Actual columns today: [id, customer_id, amount_cents, status, created_at]
+    generatedMessage: false,
+    actual: false,
+    expected: true,</pre>
+    <p class="claim">Bob's own read: <b>broken</b>. information_schema.columns for table &#39;orders&#39; returns exactly [id, customer_id, amount_cents, status, created_at] — no &#39;currency&#39; column exists. Every stored amount_cents is currency-ambiguous.</p>
+  </div>
+  <details><summary>The experiment Bob wrote · settle-experiments/schema-has-currency-column.test.ts</summary><pre class="code">/**
+ * Experiment: schema-has-currency-column
+ *
+ * Assumption: The `orders` table already has a `currency` column (or
+ * equivalent) so each row knows which currency its `amount_cents` is
+ * denominated in.
+ *
+ * The test PASSES when the assumption HOLDS (column exists).
+ * The test FAILS  when the assumption is BROKEN (column absent), and the
+ * assertion message shows the concrete evidence: the actual column list
+ * returned by information_schema.
+ */
+
+import { describe, it } from &quot;node:test&quot;;
+import assert from &quot;node:assert/strict&quot;;
+import { openDb } from &quot;../src/db.ts&quot;;
+
+describe(&quot;schema-has-currency-column&quot;, () =&gt; {
+  it(&quot;orders table has a currency column&quot;, async () =&gt; {
+    const db = await openDb();
+
+    const { rows } = await db.query&lt;{ column_name: string }&gt;(
+      `SELECT column_name
+       FROM information_schema.columns
+       WHERE table_name = &#39;orders&#39;
+       ORDER BY ordinal_position`,
+    );
+
+    const columns = rows.map((r) =&gt; r.column_name);
+
+    const hasCurrency = columns.includes(&quot;currency&quot;);
+
+    assert.ok(
+      hasCurrency,
+      `Assumption BROKEN: orders table has no &#39;currency&#39; column.\n` +
+        `Actual columns today: [${columns.join(&quot;, &quot;)}]`,
+    );
+  });
+});
+</pre></details>
+  <p class="meta">Branch <code>settle/prove-2026-09-27T11-29-37/schema-has-currency-column</code> · built by Bob in 1m 22s · 0.33 Bobcoins</p>
+</article>
+<article class="card blocked">
+  <div class="head">
+    <span class="n">03</span>
+    <span class="badge blocked">Blocked</span>
+  </div>
+  <h3>The leaderboard is built by adding up order amounts. If those amounts are in different currencies — dollars, euros, yen, rupiah — you cannot just add them together; 10,000 yen is not the same as 10,000 dollars. Today there is no currency-conversion logic anywhere in the code, so the leaderboard would rank customers by a meaningless mixed-currency total the moment the first non-USD order is saved.</h3>
+  <p class="tech">The top-customers ranking query (`topCustomers`) produces a correct result when orders contain mixed currencies, because it normalises amounts to a common unit before summing.</p>
+  <p class="why"><b>Why it matters.</b> The current query does `SUM(o.amount_cents)` with no currency conversion. If a customer has one USD order (10,000 cents = $100) and one JPY order (10,000 yen = ~$67), the query adds 10,000 + 10,000 = 20,000 and treats it as $200 — ranking them above a customer with a genuine $150 order. Correct ranking requires an FX rates table, a conversion step in the query or application layer, and a strategy for stale rates — none of which exist in the codebase today.</p>
+  <p class="means">A landmine. The experiment failed against today's code; this needs work before the feature.</p>
+  <div class="ev">
+    <p class="evk">What Settle saw when it reran Bob's experiment</p>
+    <pre>✖ topCustomers ranks correctly when orders have mixed currencies (2383.5933ms)
+ℹ fail 1
+✖ failing tests:
+✖ topCustomers ranks correctly when orders have mixed currencies (2383.5933ms)
+  AssertionError [ERR_ASSERTION]: Expected Bob (id=2, true USD $150) to rank first, but got customer_id=1 (Alice) with revenue_cents=16700. Second place: customer_id=2 (Bob) revenue_cents=15000. The query sums amount_cents without currency conversion: Alice raw=16700 (USD10000+JPY6700) was ranked above Bob raw=15000 (USD15000), which is incorrect — Bob&#39;s $150 is worth more than Alice&#39;s ~$145.
+    generatedMessage: false,
+    actual: 1,
+    expected: 2,</pre>
+    <p class="claim">Bob's own read: <b>broken</b>. topCustomers ranked Alice first with revenue_cents=16700 (USD 10000 + JPY 6700 summed raw) above Bob&#39;s revenue_cents=15000 (USD 15000 = $150), even though Bob&#39;s true USD value ($150) exceeds Alice&#39;s (~$145); the query performs SUM(amount_cents) with no currency conversion or FX rates table.</p>
+  </div>
+  <details><summary>The experiment Bob wrote · settle-experiments/ranking-query-normalises-currenc.test.ts</summary><pre class="code">/**
+ * Experiment: does topCustomers normalise mixed currencies before summing?
+ *
+ * Assumption under test:
+ *   The ranking query produces a correct result when orders contain mixed
+ *   currencies, because it normalises amounts to a common unit before summing.
+ *
+ * Strategy:
+ *   Create two customers in a fresh PGlite instance:
+ *     - Alice: one USD order of 10 000 cents ($100) + one JPY order of 10 000
+ *       yen (~$67).  Raw sum = 20 000.
+ *     - Bob:   one USD order of 15 000 cents ($150).  Raw sum = 15 000.
+ *
+ *   If the query normalises correctly Bob should rank first ($150 &gt; ~$167 is
+ *   actually Alice still higher — let&#39;s tighten the numbers so the bug is
+ *   unambiguous):
+ *
+ *     - Alice: USD 10 000 cents ($100) + JPY 6 700 yen (~$45).
+ *       True USD value ≈ $145. Raw sum = 16 700.
+ *     - Bob:   USD 15 000 cents ($150).  Raw sum = 15 000.
+ *
+ *   Correct ranking:  Bob ($150) &gt; Alice (~$145).
+ *   Buggy raw ranking: Alice (16 700) &gt; Bob (15 000).
+ *
+ *   The test asserts that Bob is ranked first.  If the assumption holds
+ *   (conversion logic exists) the assertion passes.  If the raw sum is used
+ *   (today&#39;s code) Alice will appear first and the test FAILS, showing the
+ *   wrong value.
+ *
+ *   No application code is modified.  The real topCustomers() function from
+ *   server.ts is called directly against a real PGlite database.
+ */
+
+import { test } from &quot;node:test&quot;;
+import assert from &quot;node:assert/strict&quot;;
+import { PGlite } from &quot;@electric-sql/pglite&quot;;
+import { topCustomers } from &quot;../src/server.ts&quot;;
+
+test(&quot;topCustomers ranks correctly when orders have mixed currencies&quot;, async () =&gt; {
+  // ── build a minimal in-memory DB ──────────────────────────────────────────
+  const db = new PGlite();
+  await db.exec(`
+    CREATE TABLE customers (
+      id     integer PRIMARY KEY,
+      name   text NOT NULL,
+      region text NOT NULL
+    );
+
+    CREATE TABLE orders (
+      id           serial PRIMARY KEY,
+      customer_id  integer NOT NULL REFERENCES customers(id),
+      amount_cents integer NOT NULL,
+      status       text NOT NULL,
+      created_at   timestamptz NOT NULL
+    );
+
+    INSERT INTO customers VALUES
+      (1, &#39;Alice&#39;, &#39;north&#39;),
+      (2, &#39;Bob&#39;,   &#39;north&#39;);
+  `);
+
+  // Alice: one USD order ($100 = 10 000 cents) + one JPY order (6 700 yen).
+  //   True value in USD ≈ $100 + $45 = $145.
+  //   Raw sum of amount_cents = 10 000 + 6 700 = 16 700.
+  await db.exec(`
+    INSERT INTO orders (customer_id, amount_cents, status, created_at) VALUES
+      (1, 10000, &#39;paid&#39;, now()),   -- USD $100
+      (1,  6700, &#39;paid&#39;, now());   -- JPY ¥6700 ≈ $45
+  `);
+
+  // Bob: one USD order ($150 = 15 000 cents).
+  //   True value = $150.  Raw sum = 15 000.
+  await db.exec(`
+    INSERT INTO orders (customer_id, amount_cents, status, created_at) VALUES
+      (2, 15000, &#39;paid&#39;, now());   -- USD $150
+  `);
+
+  // ── call the real query ───────────────────────────────────────────────────
+  const rows = await topCustomers(db, 10);
+
+  await db.close();
+
+  // ── assert correct ranking ────────────────────────────────────────────────
+  // Bob&#39;s true USD value ($150) &gt; Alice&#39;s true USD value (~$145), so Bob
+  // must appear first if the query converts currencies correctly.
+  //
+  // If the query just sums amount_cents without conversion:
+  //   Alice raw = 16 700, Bob raw = 15 000 → Alice ranked first → WRONG.
+  //
+  // The assertion will FAIL with today&#39;s code, showing Alice (revenue_cents=16700)
+  // at position 0 instead of Bob (revenue_cents=15000).
+
+  const first = rows[0];
+  const second = rows[1];
+
+  assert.equal(
+    rows.length,
+    2,
+    `Expected 2 rows, got ${rows.length}: ${JSON.stringify(rows)}`,
+  );
+
+  assert.equal(
+    first.customer_id,
+    2,
+    `Expected Bob (id=2, true USD $150) to rank first, but got ` +
+      `customer_id=${first.customer_id} (${first.name}) with ` +
+      `revenue_cents=${first.revenue_cents}. ` +
+      `Second place: customer_id=${second.customer_id} (${second.name}) ` +
+      `revenue_cents=${second.revenue_cents}. ` +
+      `The query sums amount_cents without currency conversion: ` +
+      `Alice raw=16700 (USD10000+JPY6700) was ranked above Bob raw=15000 (USD15000), ` +
+      `which is incorrect — Bob&#39;s $150 is worth more than Alice&#39;s ~$145.`,
+  );
+});
+</pre></details>
+  <p class="meta">Branch <code>settle/prove-2026-09-27T11-29-37/ranking-query-normalises-currenc</code> · built by Bob in 2m 7s · 0.67 Bobcoins</p>
+</article>
+    </div>
+    <h2>The plan Bob wrote from the evidence</h2><div class="plan"><h4>Multi-currency feature — implementation plan</h4>
+<h4>What we now know</h4>
+<ul>
+<li><b>INTEGER overflow is real (BLOCKED).</b> The <code>amount_cents</code> column and the <code>::int</code> cast in the ranking query cannot hold IDR-sized amounts; they will silently corrupt data at scale.</li>
+<li><b>No <code>currency</code> column exists (BLOCKED).</b> The <code>orders</code> table has no way to record which currency an order is in, so the data model cannot support multi-currency at all today.</li>
+<li><b>Ranking is wrong with mixed currencies (BLOCKED).</b> Because there is no normalisation step, summing USD cents alongside IDR cents produces a meaningless number; the top-customers query is incorrect by design the moment a second currency appears.</li>
+</ul>
+<p>---</p>
+<h4>Landmines to fix first</h4>
+<ol>
+<li><b>Change the column type from <code>integer</code> to <code>bigint</code></b> (<code>demo/orders-api/src/db.ts</code>, <code>demo/orders-api/src/server.ts</code>).</li>
+</ol>
+<p>   The <code>amount_cents</code> column definition and the <code>sum(o.amount_cents)::int</code> cast must both become <code>bigint</code>. A single IDR order can easily be 1 000 000 × an equivalent USD order; <code>INT_MAX</code> (~2.1 B) is reached with a handful of large IDR transactions. The TypeScript interface <code>TopCustomer.revenue_cents</code> must change to <code>number</code> (JS handles up to 2^53 safely).</p>
+<ol>
+<li><b>Add a <code>currency</code> column to <code>orders</code></b> (<code>demo/orders-api/src/db.ts</code>, <code>demo/orders-api/src/server.ts</code>).</li>
+</ol>
+<p>   Without knowing the currency of each row, normalisation is impossible. The column should be <code>text NOT NULL</code> with a check constraint (<code>USD</code>, <code>EUR</code>, <code>JPY</code>, <code>IDR</code>). The seed data, <code>createOrder</code>, and the POST <code>/orders</code> endpoint all need updating.</p>
+<ol>
+<li><b>Normalise to a common unit before summing in <code>topCustomers</code></b> (<code>demo/orders-api/src/server.ts</code>).</li>
+</ol>
+<p>   The ranking query must convert each row&#39;s <code>amount_cents</code> to a single reference currency (e.g. USD micro-units) using a static exchange-rate table before aggregating. Without this the ranking is undefined once orders span currencies.</p>
+<p>---</p>
+<h4>Plan</h4>
+<ol>
+<li>Migrate <code>amount_cents</code> to <code>bigint</code>; update cast, TypeScript type, and POST validation.</li>
+<li>Add <code>currency</code> column to schema; update seed data, <code>createOrder</code>, and API contract.</li>
+<li>Introduce a static exchange-rate table (or in-query constants) and rewrite the <code>topCustomers</code> sum to normalise amounts before aggregating.</li>
+<li>Add / update tests to cover overflow values and mixed-currency ranking.</li>
+<li>Document the exchange-rate update strategy for product (static constants, refreshed daily, or a rates microservice).</li>
+</ol>
+<p>---</p>
+<h4>Estimate impact</h4>
+<p>All three assumptions are blocked, meaning <b>none of the planned feature work can start safely on the current schema</b>. The landmines are not cosmetic: two require schema changes (column type + new column) and one requires a query rewrite with a new exchange-rate dependency. A feature that might have been scoped as pure new work is now preceded by mandatory remediation on the data model. Expect the fix phase to add meaningful scope before the first line of multi-currency feature code is written. The exchange-rate strategy (static vs. live) is the largest remaining unknown and will drive the biggest variance in total effort.</p></div>
+    <div class="foot"><span>Settle · experiments built by IBM Bob, verified by Settle</span><span>Every experiment is on its own branch. Nothing was merged.</span></div>
+  </main>
+</div>
+</body>
+</html>

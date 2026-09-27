@@ -6,44 +6,43 @@ Settle
 
 ## Short description
 
-When your team argues about how to build something, Settle builds each option with IBM Bob in parallel, measures them all the same way, and shows you which one fits your constraints.
+Find the landmines before you estimate. Settle has IBM Bob test the risky assumptions behind a feature against your real code, in parallel, and shows what is proven, what is blocked, and the evidence.
 
 ## Long description (problem and solution, max 500 words)
 
-**The problem.** Every engineering team makes design calls every week: cache or materialized view, queue or direct call, library A or library B. Today those calls are settled by whoever argues best, or by one engineer spending days on a throwaway version of one option. Most teams skip even that and guess, and a wrong call shows up months later, after other code is built on top of it.
+**The problem.** A product manager asks for a feature: multi currency, team accounts, single sign on. Engineers read the code and estimate "about two days". Three days in, they hit something nobody knew was there: a column that cannot hold the new values, a query that silently gives wrong answers, a cache shared across customers. The estimate was not wrong because the engineers were careless. It was wrong because the risky parts were only discovered by building them.
 
-The numbers that would end the argument (speed, data freshness, code added, tests passing) only exist once every option is actually built in the real codebase. That has always been too slow to do for every decision.
+**The solution.** Settle moves those discoveries to the start. You give it one sentence, the feature you are about to estimate, and it runs against your real repository:
 
-**The solution.** Settle makes building every option cheap. A tech lead writes the question, the options and the team's constraints in a short settle.yml file, or pastes a design doc into the Settle mode in Bob IDE and gets the file drafted for them. Then one command:
+1. **Bob finds the risks.** IBM Bob reads the code the feature would touch and names the assumptions the feature silently depends on, phrased as what must be true for the feature to be as easy as it looks.
+2. **Bob runs experiments.** One Bob Shell session per assumption, all at once, each in its own git worktree, writes the smallest test that proves or disproves that assumption against today's code.
+3. **Settle checks the work.** Settle reruns every experiment itself instead of trusting Bob's word. Passing means proven. Failing means blocked, with the exact error or wrong value. Anything that could not run, or that edited existing code or tests, is unknown.
+4. **Bob writes the plan** from what was actually found: what we now know, the landmines to fix first, the build order, and how the findings change the estimate.
 
-1. Gives every option its own git branch and worktree from the same commit.
-2. Starts one IBM Bob Shell session per option, all in parallel. Each Bob builds a working, tested version of its option.
-3. Runs the same load test (three times), freshness probe and test suite on every branch, one at a time.
-4. Applies a transparent rule: an option qualifies if it meets every constraint, and the smallest change among qualifying options wins.
-5. Writes a results page and a design doc appendix the team can paste straight into their review.
+The result is an evidence board a whole team can read: plain words for the product manager, the failing test and the branch for the engineers.
 
-**Target users.** Tech leads who write design docs, and the reviewers who approve them. The review gets evidence instead of opinions.
+**Target users.** Engineering teams during planning and estimation: tech leads, engineers, and the product managers who need an honest size before committing to a date.
 
-**What the demo shows.** An orders API has a slow top customers endpoint: about 0.7 seconds at the 95th percentile under load. Bob builds three fixes in parallel (an in memory cache, a materialized view, an index with a query rewrite), each on its own branch with its own tests, in about two minutes. The measurements tell a story no opinion would: the cache is fastest (2 ms) but serves results up to a minute old; the index keeps data fresh but still takes 198 ms; the materialized view lands at 15 ms with results at most 5 seconds behind. With the team's limits (under 50 ms, at most 15 seconds stale) the materialized view wins. Drag the staleness limit to 90 seconds on the results page and the cache wins with less code; accept 500 ms and the index wins with the smallest change. The measurements never change; only the constraints do.
+**What the demo shows.** The request: "Let customers pay in their own currency (USD, EUR, JPY and IDR), and keep the top customers ranking correct." In about five minutes, Bob names three assumptions (revenue totals can hold large amounts, orders can record a currency, and the ranking compares revenue fairly across currencies), builds an experiment for each in parallel, and Settle reruns them. The evidence board shows which assumptions fail against today's code and why, with the real error output, then Bob's plan puts those landmines first.
 
-**It checks the builder too.** In one real run Bob edited an existing test file to make its option pass; Settle refused that option. Options that error, fail requests, skip the freshness probe or touch existing tests can never win.
-
-**Why it is new.** Coding assistants answer "how would I build this". Settle answers "which should we build" by building all of them.
+**Why it is new.** An AI can guess what might go wrong with a feature. Settle proves it, with experiments against the real code, verified independently of the agent that wrote them. Earlier planning tools predict risks from text; Settle turns each risk into a runnable test before anyone commits to an estimate.
 
 ## IBM Bob usage statement (max 500 words)
 
 IBM Bob is used in two places: as the engine inside the product, and in Bob IDE to build, test and harden it.
 
-**Inside the product: Bob Shell builds every option in parallel.** For each option in settle.yml, Settle creates a git worktree and starts a headless Bob Shell session with a prompt built from the question, that option's description, the competing options it must not build, and strict rules: keep every route and response shape identical, never edit existing tests, add tests for your change, make sure the suite passes and exits. The sessions run at the same time, so three options take about as long as one. In the recorded run Bob built a TTL cache, a materialized view with a background refresher, and a covering partial index, each with its own tests, in about two minutes per option. Settle streams every Bob tool call (file reads, edits, test runs) into the live view, saves them so the hosted site can replay the run, and records each session's duration, tool calls and Bobcoin cost. A full run costs about two Bobcoins. Without Bob, Settle has nothing to compare.
+**Inside the product: Bob Shell does the investigating.** Settle runs three kinds of headless Bob Shell session. First, one session reads the code the feature would touch and writes the risky assumptions as structured JSON. Second, one session per assumption runs in parallel, each in its own git worktree, and writes the smallest experiment that proves or disproves its assumption against the real database setup, queries and handlers, with strict rules: do not mock what is being tested, do not change application code to make the assumption true, do not touch existing files. Third, a session writes the implementation plan from the verified results. Settle streams every Bob tool call, saves each session's log and Bobcoin cost with the proof, and reruns every experiment itself, so the verdict never rests on the agent's own claim. A full proof costs about three Bobcoins and takes about five minutes.
 
 **Bob IDE, in Agent mode and the Settle custom mode (task summaries in bob_sessions):**
 
-1. **Tests, the Settle mode, and a fairness review.** Bob wrote the verdict and config test suite; wrote `.bob/custom_modes.yaml`, a project mode that turns a design question into a valid settle.yml and may edit nothing else; and reviewed the measurement harness, finding and fixing two real bugs: the next option could start before the previous server had exited, and a timed out freshness probe could leak into the next one.
-2. **Building block tests and CI.** Bob wrote the tests for the load test, probe templates, dependency diff, test file detection and activity labels, plus the GitHub Actions workflow.
-3. **Settle mode as the front door.** From a plain English description of the debate, the Settle mode drafted the settle.yml for the demo and asked for confirmation. It also nudged the cache's time to live to fit the staleness limit, a reminder that the team, not the assistant, owns the options.
-4. **A trust review.** Asked to find any way a broken or tampering option could still win, Bob found four gaps and fixed them with tests: a renamed test file slipping past the integrity check, the site builder not protecting Settle's worktree folder, the dirty check exempting any file named settle.yml, and a run where every request failed dragging the median latency down.
+1. **Tests, the Settle mode, and a fairness review.** Bob wrote verdict and config tests, wrote `.bob/custom_modes.yaml` (a project mode that drafts Settle's configuration from a plain English description and may edit nothing else), and reviewed the measurement harness, finding and fixing two real bugs.
+2. **Building block tests and CI.** Bob wrote tests for the process runner, templates, file detection and activity labels, plus the GitHub Actions workflow.
+3. **Settle mode as the front door.** From a plain English description, the Settle mode drafted a configuration and asked for confirmation.
+4. **A trust review.** Asked to find any way a broken or tampering result could still be trusted, Bob found four gaps and fixed them with tests.
 
-Settle's orchestration, measurement harness, verdict rules and interface were written outside Bob; Bob built every compared option and did the testing, review and hardening work listed above. All Bob assisted changes are in the repository history.
+Settle grew out of an earlier mode of the same engine that builds competing designs and measures them; in one of those real runs Bob edited an existing test to make its option pass, and Settle's integrity check refused it. That lesson is why `settle prove` reruns every experiment independently and distrusts any experiment that touches existing files.
+
+Settle's orchestration, verification, pages and command line were written outside Bob; Bob does all of the investigating inside the product and did the testing, review and hardening work listed above. All Bob assisted changes are in the repository history.
 
 watsonx.ai and watsonx Orchestrate were not used.
 
@@ -54,4 +53,4 @@ watsonx.ai and watsonx Orchestrate were not used.
 
 ## Tags
 
-IBM Bob, Bob Shell, developer tools, design review, benchmarking, parallel agents, TypeScript
+IBM Bob, Bob Shell, developer tools, estimation, planning, risk, experiments, TypeScript
