@@ -116,16 +116,18 @@ The full example is [demo/orders-api/settle.yml](demo/orders-api/settle.yml).
 
 **Repeatable verdict.** The verdict is rules, not a model call: an option qualifies if it meets every constraint, and the smallest change among qualifying options wins, ties going to lower p95. The results page runs the same verdict code in the browser.
 
+**Candidates that cannot be trusted never win.** An option is disqualified if its measurement errored, it served no successful requests, more than 1% of requests failed (or any single load run failed completely), its freshness could not be measured while a staleness limit is set, or it modified, deleted or renamed an existing test or changed the app's test or start script. Every option is load tested three times and the median is reported with the spread. The results page has a "Trust this comparison" panel with all of this per option.
+
 **Honest failure.** If Bob cannot build an option, times out, or the app fails to start, the page says so instead of hiding the option.
 
 ## How IBM Bob is used
 
 - **Inside the product:** every option is built by its own Bob Shell session (`bob run`, headless) in its own worktree, in parallel. Session stats (duration, tool calls, cost) are saved with each run.
-- **Building Settle:** Bob IDE sessions wrote the verdict tests, the Settle custom mode and a fairness review of the harness. Session summaries are in [bob_sessions/](bob_sessions/).
+- **Building Settle:** four Bob IDE tasks wrote the test suites and CI, the Settle custom mode, and two reviews (harness fairness, verdict trust) that found and fixed six real bugs. The Settle mode drafted the demo's `settle.yml`. Session summaries are in [bob_sessions/](bob_sessions/).
 
 ## Tests
 
-`npm test` runs 59 tests, including an end to end run of the whole pipeline (worktrees, parallel builds, install, tests, load test, freshness probe, verdict, report, event log) on a small fixture app with a stand in for Bob Shell. GitHub Actions runs typecheck and tests on every push.
+`npm test` runs 72 tests, including an end to end run of the whole pipeline (worktrees, parallel builds, install, tests, load test, freshness probe, verdict, report, event log) on a small fixture app with a stand in for Bob Shell. GitHub Actions runs typecheck and tests on every push.
 
 ## Limits
 
