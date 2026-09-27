@@ -144,7 +144,7 @@ main { padding: 16px 0 96px; }
           var r = document.getElementById("r-" + e.id), f = p.findings[e.id] || {};
           if (r) {
             r.classList.remove("busy"); r.classList.add(e.status);
-            r.querySelector(".s").textContent = e.status === "blocked" ? "Blocker" : e.status === "proven" ? "Safe" : "Unsure";
+            r.querySelector(".s").textContent = e.status === "blocked" ? "Blocker" : e.status === "proven" ? "Test passed" : "Unsure";
             r.querySelector(".p").textContent = f.proof || "";
           }
         }

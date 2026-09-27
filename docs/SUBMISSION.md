@@ -16,7 +16,7 @@ Find the blockers before you estimate. Settle has IBM Bob test the risky assumpt
 
 1. **Bob finds the risks.** IBM Bob reads the code the feature would touch and names the assumptions the feature silently depends on, phrased as what must be true for the feature to be as easy as it looks.
 2. **Bob runs experiments.** One Bob Shell session per assumption, all at once, each in its own git worktree, writes the smallest test that proves or disproves that assumption against today's code.
-3. **Settle checks the work.** Settle reruns every experiment itself instead of trusting Bob's word. Passing means proven. Failing means blocked, with the exact error or wrong value. Anything that could not run, or that edited existing code or tests, is unknown.
+3. **Settle checks the work.** Settle reruns every experiment itself instead of trusting Bob's word. Passing means test passed. Failing means blocked, with the exact error or wrong value. Anything that could not run, or that edited existing code or tests, is unknown.
 4. **Bob writes the plan** from what was actually found: what we now know, the blockers to fix first, the build order, and how the findings change the estimate.
 
 The result is a results page a whole team can read: plain words for the product manager, the failing test and the branch for the engineers.

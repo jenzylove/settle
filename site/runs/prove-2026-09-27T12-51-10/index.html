@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Settle Results</title>
 <meta name="description" content="Let customers delete their account.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2216%22%20fill%3D%22%232f5bff%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20text-anchor%3D%22middle%22%20font-family%3D%22Georgia%2C%20%27Times%20New%20Roman%27%2C%20serif%22%20font-style%3D%22italic%22%20font-size%3D%2242%22%20fill%3D%22%23ffffff%22%3ES%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -110,10 +111,10 @@ pre.code { font: 12.5px/1.55 var(--mono); background: var(--soft); border-radius
         <div class="big">3</div>
         <div>
           <h1>3 blockers. <em>Harder than it looks.</em></h1>
-          <p>Bob tested 3 things this feature depends on. 3 of them are not true in the code today. Fix them first, then estimate.</p>
+          <p>Bob tested 3 things this feature depends on. 3 of them failed against the code today, so each rules out an easy way to build it. Decide how to handle them before you estimate.</p>
           <div class="chips">
             <span class="cchip blocked"><i></i>3 blockers</span>
-            <span class="cchip proven"><i></i>0 safe</span>
+            <span class="cchip proven"><i></i>0 passed</span>
             <span class="cchip unknown"><i></i>0 unsure</span>
           </div>
         </div>
@@ -138,7 +139,7 @@ pre.code { font: 12.5px/1.55 var(--mono); background: var(--soft); border-radius
       <div>
         <p class="k">What Bob's test found</p>
         <p class="proofline">FK violation raised while deleting customer 1 who has 33 orders: update or delete on table &quot;customers&quot; violates foreign key constraint &quot;orders_customer_id_fk…</p>
-        <p class="small">Settle reran the test itself and got the same result Bob reported (broken).</p>
+        <p class="small">Settle reran Bob's test itself and got this result; Bob had reported "broken". A rerun shows the test's outcome, not that the test is the right one: read it below.</p>
       </div>
     </div>
     <div class="more">
@@ -228,7 +229,7 @@ test(&quot;assumption: FK allows customer delete when orders exist (no cascade)&
       <div>
         <p class="k">What Bob's test found</p>
         <p class="proofline">customers.name is_nullable=NO (expected YES). UPDATE error: null value in column &quot;name&quot; of relation &quot;customers&quot; violates not-null constraint</p>
-        <p class="small">Settle reran the test itself and got the same result Bob reported (broken).</p>
+        <p class="small">Settle reran Bob's test itself and got this result; Bob had reported "broken". A rerun shows the test's outcome, not that the test is the right one: read it below.</p>
       </div>
     </div>
     <div class="more">
@@ -348,7 +349,7 @@ test(&quot;customers.name and customers.region are nullable (anonymisation assum
       <div>
         <p class="k">What Bob's test found</p>
         <p class="proofline">Revenue total changed after customer deletion! Before: 42275239 cents, After: 41153801 cents. Difference: 1121438 cents (whale had 1500000 cents). The INNER …</p>
-        <p class="small">Settle reran the test itself and got the same result Bob reported (broken).</p>
+        <p class="small">Settle reran Bob's test itself and got this result; Bob had reported "broken". A rerun shows the test's outcome, not that the test is the right one: read it below.</p>
       </div>
     </div>
     <div class="more">

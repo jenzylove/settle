@@ -21,7 +21,7 @@ export function findingTitle(x: Experiment): string {
   return t.length > 120 ? t.slice(0, 117).replace(/\s+\S*$/, "") + "…" : t;
 }
 
-const LABEL: Record<string, string> = { proven: "Safe", blocked: "Blocker", unknown: "Unsure" };
+const LABEL: Record<string, string> = { proven: "Test passed", blocked: "Blocker", unknown: "Unsure" };
 
 // Plan steps: the numbered items under the "Plan" heading, else all numbered items.
 function planSteps(md: string): string[] {
@@ -58,7 +58,7 @@ function finding(x: Experiment, i: number): string {
       <div>
         <p class="k">What Bob's test found</p>
         <p class="proofline">${esc(keyEvidence(x))}</p>
-        <p class="small">Settle reran the test itself and got the same result${x.bob_claim ? ` Bob reported (${esc(x.bob_claim)})` : ""}.</p>
+        <p class="small">Settle reran Bob's test itself and got this result${x.bob_claim ? `; Bob had reported "${esc(x.bob_claim)}"` : ""}. A rerun shows the test's outcome, not that the test is the right one: read it below.</p>
       </div>
     </div>
     <div class="more">
@@ -77,7 +77,7 @@ export function renderProof(d: ProofFile): string {
     s.blocked > 0 ? `Harder than it looks.` : s.unknown > 0 ? `Probably fine, with open questions.` : `As easy as it looks.`;
   const sub =
     s.blocked > 0
-      ? `Bob tested ${n} things this feature depends on. ${s.blocked} of them ${s.blocked === 1 ? "is" : "are"} not true in the code today. Fix ${s.blocked === 1 ? "it" : "them"} first, then estimate.`
+      ? `Bob tested ${n} things this feature depends on. ${s.blocked} of them failed against the code today, so each rules out an easy way to build it. Decide how to handle ${s.blocked === 1 ? "it" : "them"} before you estimate.`
       : s.unknown > 0
         ? `Bob tested ${n} things this feature depends on. None failed, but ${s.unknown} could not be settled.`
         : `Bob tested ${n} things this feature depends on, and every one held against the real code.`;
@@ -173,7 +173,7 @@ pre.code { font: 12.5px/1.55 var(--mono); background: var(--soft); border-radius
           <p>${esc(sub)}</p>
           <div class="chips">
             <span class="cchip blocked"><i></i>${s.blocked} blocker${s.blocked === 1 ? "" : "s"}</span>
-            <span class="cchip proven"><i></i>${s.proven} safe</span>
+            <span class="cchip proven"><i></i>${s.proven} passed</span>
             <span class="cchip unknown"><i></i>${s.unknown} unsure</span>
           </div>
         </div>

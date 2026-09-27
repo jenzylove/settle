@@ -85,7 +85,13 @@ export async function build(args: string[]) {
   const featuredProof = flag("proof") ?? proofs[0];
   if (featuredProof) {
     mkdirSync(join(tmp, "compare"), { recursive: true });
-    renameSync(join(tmp, "index.html"), join(tmp, "compare", "index.html"));
+    // The comparison landing now lives one level down: rebase its relative links.
+    const cmp = readFileSync(join(tmp, "index.html"), "utf8")
+      .replace(/href="(app\/|runs\/)/g, 'href="../$1')
+      .replace(/href="\.\/"/g, 'href="../"')
+      .replace(/fetch\("runs\//g, 'fetch("../runs/');
+    writeFileSync(join(tmp, "compare", "index.html"), cmp);
+    rmSync(join(tmp, "index.html"));
     const p: ProofFile = JSON.parse(readFileSync(join(runsDir, featuredProof, "proof.json"), "utf8"));
     const allProofs: ProofFile[] = proofs.map((id) => JSON.parse(readFileSync(join(runsDir, id, "proof.json"), "utf8")));
     writeFileSync(join(tmp, "index.html"), landingProve(p, allProofs));

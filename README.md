@@ -1,8 +1,34 @@
-# Settle
+<p align="center">
+  <img src="docs/media/brand/mark.svg" alt="Settle" width="72">
+</p>
 
-**Find the blockers before you estimate.**
+<h1 align="center">Settle</h1>
 
-Live: **https://settle-blush.vercel.app** (Try it replays real runs step by step)
+<p align="center">
+  <b>Find the blockers before you estimate.</b><br>
+  Before your team commits to a date, IBM Bob tests what a feature depends on against your real code, and Settle reruns every test.
+</p>
+
+<p align="center">
+  <a href="https://settle-blush.vercel.app"><img src="https://img.shields.io/badge/live-settle--blush.vercel.app-2f5bff" alt="Live site"></a>
+  <a href="https://settle-blush.vercel.app/try/"><img src="https://img.shields.io/badge/try%20it-real%20recorded%20runs-111111" alt="Try it"></a>
+  <a href="https://github.com/jenzylove/settle/actions/workflows/test.yml"><img src="https://github.com/jenzylove/settle/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
+  <a href="https://lablab.ai/ai-hackathons/ibm-bob-2-hackathon"><img src="https://img.shields.io/badge/built%20for-IBM%20Bob%202.0%20Hackathon-2f5bff" alt="Built for the IBM Bob 2.0 Hackathon"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-lightgrey" alt="MIT"></a>
+</p>
+
+<p align="center">
+  <img src="docs/media/hero.png" alt="Settle landing page" width="100%">
+</p>
+
+| Start here | |
+| --- | --- |
+| Live site | https://settle-blush.vercel.app |
+| Try it (real recorded runs, replayed) | https://settle-blush.vercel.app/try/ |
+| A full results page | https://settle-blush.vercel.app/runs/prove-2026-09-27T12-51-10/ |
+| Use it in Bob IDE | the **Settle Prove** mode in [.bob/custom_modes.yaml](.bob/custom_modes.yaml) |
+| Bob IDE task evidence | [bob_sessions/](bob_sessions/) |
+| Submission copy | [docs/SUBMISSION.md](docs/SUBMISSION.md) |
 
 A "two day" feature turns into two weeks because of something nobody knew was in the code. Engineers estimate by reading the repo; the surprises only show up once someone builds it.
 
@@ -10,10 +36,12 @@ Settle moves the surprises to the start. You give it one sentence, the feature y
 
 1. **Bob finds the risks.** IBM Bob reads the code the feature would touch and names the assumptions it silently depends on, the ones that cost days if they are wrong.
 2. **Bob runs experiments.** One Bob Shell session per assumption, all at once, each in its own git worktree, writes the smallest test that proves or disproves that assumption against today's code.
-3. **Settle checks the work.** Settle reruns every experiment itself instead of trusting Bob's word: a passing experiment is **proven**, a failing one is **blocked** (with the exact error or wrong value), anything that could not run or touched existing files is **unknown**.
+3. **Settle checks the work.** Settle reruns every experiment itself instead of trusting Bob's word: a passing experiment is marked **test passed**, a failing one is **blocked** (with the exact error or wrong value), anything that could not run or touched existing files is **unknown**.
 4. **Bob writes the plan** from what was actually found: what we now know, the blockers to fix first, the build order, and how the findings change the estimate.
 
 Nothing is merged. Every experiment stays on its own branch.
+
+<p align="center"><img src="docs/media/results.png" alt="A Settle results page" width="100%"></p>
 
 ## Why not just ask an AI
 

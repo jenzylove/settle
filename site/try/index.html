@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Try Settle</title>
 <meta name="description" content="Pick a feature request and watch Settle have IBM Bob test the risky parts against real code.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2216%22%20fill%3D%22%232f5bff%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20text-anchor%3D%22middle%22%20font-family%3D%22Georgia%2C%20%27Times%20New%20Roman%27%2C%20serif%22%20font-style%3D%22italic%22%20font-size%3D%2242%22%20fill%3D%22%23ffffff%22%3ES%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -152,7 +153,7 @@ main { padding: 16px 0 96px; }
           var r = document.getElementById("r-" + e.id), f = p.findings[e.id] || {};
           if (r) {
             r.classList.remove("busy"); r.classList.add(e.status);
-            r.querySelector(".s").textContent = e.status === "blocked" ? "Blocker" : e.status === "proven" ? "Safe" : "Unsure";
+            r.querySelector(".s").textContent = e.status === "blocked" ? "Blocker" : e.status === "proven" ? "Test passed" : "Unsure";
             r.querySelector(".p").textContent = f.proof || "";
           }
         }

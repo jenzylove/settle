@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Settle</title>
 <meta name="description" content="When your team argues about how to build something, Settle builds each option with IBM Bob and shows you the numbers.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2216%22%20fill%3D%22%232f5bff%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20text-anchor%3D%22middle%22%20font-family%3D%22Georgia%2C%20%27Times%20New%20Roman%27%2C%20serif%22%20font-style%3D%22italic%22%20font-size%3D%2242%22%20fill%3D%22%23ffffff%22%3ES%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -102,10 +103,10 @@ footer.end .fine { display: flex; justify-content: space-between; gap: 16px; fle
 <body>
 <div class="wrap">
   <header class="bar">
-    <a class="brand" href="./">Settle</a>
+    <a class="brand" href="../">Settle</a>
     <nav class="nav">
       <a href="#how">How it works</a>
-      <a href="app/#/run/2026-09-27T03-47-21">Watch a run</a>
+      <a href="../app/#/run/2026-09-27T03-47-21">Watch a run</a>
       <a href="https://github.com/jenzylove/settle">GitHub</a>
     </nav>
   </header>
@@ -115,8 +116,8 @@ footer.end .fine { display: flex; justify-content: space-between; gap: 16px; fle
     <h1>Build every option. Then decide.</h1>
     <p class="sub">When your team argues about how to build something, Settle has IBM Bob build every option at once, measures them all the same way, and shows you which one fits your limits.</p>
     <div class="ctas">
-      <a class="btn" href="app/#/run/2026-09-27T03-47-21">Watch a real run</a>
-      <a class="btn ghost" href="runs/2026-09-27T03-47-21/">See the results</a>
+      <a class="btn" href="../app/#/run/2026-09-27T03-47-21">Watch a real run</a>
+      <a class="btn ghost" href="../runs/2026-09-27T03-47-21/">See the results</a>
     </div>
     <p class="by">Built with IBM Bob</p>
   </section>
@@ -170,9 +171,9 @@ footer.end .fine { display: flex; justify-content: space-between; gap: 16px; fle
         </table>
       </div>
       <div class="links">
-        <a class="btn" href="app/#/run/2026-09-27T03-47-21">Watch Bob build it</a>
-        <a class="btn ghost" href="runs/2026-09-27T03-47-21/">Open the results</a>
-        <a class="btn ghost" href="app/#/runs">All recorded runs</a>
+        <a class="btn" href="../app/#/run/2026-09-27T03-47-21">Watch Bob build it</a>
+        <a class="btn ghost" href="../runs/2026-09-27T03-47-21/">Open the results</a>
+        <a class="btn ghost" href="../app/#/runs">All recorded runs</a>
       </div>
     </div>
   </section>
@@ -185,7 +186,7 @@ footer.end .fine { display: flex; justify-content: space-between; gap: 16px; fle
         <div class="row"><b>Materialized view</b><span>Fastest option inside the staleness limit, but it changed <code>test/api.test.ts</code>. Its green tests no longer meant the same thing, so it was disqualified.</span></div>
         <div class="row"><b>The rule</b><span>An option loses if it errors, fails more than 1% of requests, cannot be probed for freshness, or touches an existing test or the test and start scripts.</span></div>
       </div>
-      <div class="links"><a class="btn ghost" href="runs/2026-09-27T03-36-05/">See the run Settle refused</a></div>
+      <div class="links"><a class="btn ghost" href="../runs/2026-09-27T03-36-05/">See the run Settle refused</a></div>
     </div>
   </section>
   <section class="band">
@@ -203,7 +204,7 @@ settle run                       # or straight from the terminal</pre>
 
   <footer class="end">
     <p class="big">Stop arguing.<br>Build them all.</p>
-    <a class="btn" href="app/#/run/2026-09-27T03-47-21">Watch a real run</a>
+    <a class="btn" href="../app/#/run/2026-09-27T03-47-21">Watch a real run</a>
     <div class="fine"><span>Settle · built with IBM Bob for the IBM Bob 2.0 Hackathon</span><span><a href="https://github.com/jenzylove/settle">github.com/jenzylove/settle</a></span></div>
   </footer>
 </div>
@@ -215,7 +216,7 @@ settle run                       # or straight from the terminal</pre>
   var SPEED = 30, MAXGAP = 900;
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
   function label(e) { return e.label === "update todo list" ? "Updated its plan" : e.label; }
-  fetch("runs/2026-09-27T03-47-21/events.jsonl").then(function (r) { return r.text(); }).then(function (text) {
+  fetch("../runs/2026-09-27T03-47-21/events.jsonl").then(function (r) { return r.text(); }).then(function (text) {
     var events = text.split("\n").filter(Boolean).map(function (l) { return JSON.parse(l); });
     var start = events[0];
     if (!start || start.kind !== "start") return;

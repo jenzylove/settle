@@ -162,7 +162,7 @@ export async function prove(configPath: string, listen: (e: StampedProve) => voi
   const appRel = relative(root, appDirAbs).split(String.fromCharCode(92)).join("/");
   const dirty = dirtyFiles(root, root).filter((l) => {
     const p = l.slice(3).trim().split(String.fromCharCode(92)).join("/");
-    return p !== `${appRel}/settle.yml` && !["runs/", ".settle/", "site/"].some((d) => p.startsWith(d));
+    return p !== `${appRel}/settle.yml` && p !== `${appRel}/prove.yml` && !p.endsWith("/prove.yml") && !["runs/", ".settle/", "site/"].some((d) => p.startsWith(d));
   });
   if (dirty.length) throw new Error(`commit your changes first; these would be missing from every experiment:\n${dirty.join("\n")}`);
 
