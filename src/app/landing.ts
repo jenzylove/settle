@@ -10,6 +10,8 @@ const CSS = `
 .by { margin-top: 22px; font: 500 12px var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); }
 section.band { border-top: 1px solid var(--line); padding: 64px 0; display: grid; grid-template-columns: 240px 1fr; gap: 40px; }
 section.band > .eyebrow { padding-top: 8px; }
+section.band > div { min-width: 0; }
+.stat strong { overflow-wrap: anywhere; }
 .band h2 { font: 700 clamp(26px, 3.4vw, 40px)/1.1 var(--sans); letter-spacing: -0.03em; margin: 0 0 28px; max-width: 24ch; }
 .rows { border-top: 1px solid var(--line); }
 .row { display: grid; grid-template-columns: 200px 1fr; gap: 32px; padding: 20px 0; border-bottom: 1px solid var(--line); }
