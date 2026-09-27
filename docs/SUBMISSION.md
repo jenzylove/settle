@@ -18,15 +18,17 @@ The numbers that would end the argument (speed, data freshness, code added, test
 
 1. Gives every option its own git branch and worktree from the same commit.
 2. Starts one IBM Bob Shell session per option, all in parallel. Each Bob builds a working, tested version of its option.
-3. Runs the same load test, the same data freshness probe and the same test suite against every branch, one at a time so no option steals CPU from another.
+3. Runs the same load test (three times), freshness probe and test suite on every branch, one at a time.
 4. Applies a transparent rule: an option qualifies if it meets every constraint, and the smallest change among qualifying options wins.
 5. Writes a results page and a design doc appendix the team can paste straight into their review.
 
 **Target users.** Tech leads who write design docs, and the reviewers who approve them. The review gets evidence instead of opinions.
 
-**What the demo shows.** An orders API has a slow top customers endpoint: almost 2 seconds at the 95th percentile under load. Settle asks Bob to build three fixes in parallel: an in memory cache, a materialized view, and an index with a query rewrite. About two minutes later all three exist on their own branches, each with its own tests. The measurements tell a story no opinion would: the cache is fastest (7 ms) but serves results up to a minute old; the index keeps data fresh but still takes 236 ms; the materialized view lands at 47 ms with results at most 5 seconds behind. With the team's limits (under 50 ms, at most 15 seconds stale) the materialized view wins. Drag the staleness limit to 90 seconds on the results page and the cache wins with less code; accept 500 ms and the index wins with nine lines. The measurements never change, only the constraints do, which is exactly the conversation a design review should be having.
+**What the demo shows.** An orders API has a slow top customers endpoint: about 0.7 seconds at the 95th percentile under load. Bob builds three fixes in parallel (an in memory cache, a materialized view, an index with a query rewrite), each on its own branch with its own tests, in about two minutes. The measurements tell a story no opinion would: the cache is fastest (2 ms) but serves results up to a minute old; the index keeps data fresh but still takes 198 ms; the materialized view lands at 15 ms with results at most 5 seconds behind. With the team's limits (under 50 ms, at most 15 seconds stale) the materialized view wins. Drag the staleness limit to 90 seconds on the results page and the cache wins with less code; accept 500 ms and the index wins with the smallest change. The measurements never change; only the constraints do.
 
-**Why it is new.** Coding assistants answer "how would I build this". Settle answers "which of these should we build" by building all of them at once. Parallel agents are what make comparing every option affordable.
+**It checks the builder too.** In one real run Bob edited an existing test file to make its option pass; Settle refused that option. Options that error, fail requests, skip the freshness probe or touch existing tests can never win.
+
+**Why it is new.** Coding assistants answer "how would I build this". Settle answers "which should we build" by building all of them.
 
 ## IBM Bob usage statement (max 500 words)
 

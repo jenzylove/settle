@@ -21,13 +21,14 @@ The question: *How do we make the top customers endpoint fast?* on a small order
 
 | | Today | Cache | Materialized view | Index and rewrite |
 |---|---|---|---|---|
-| p95 latency | 1.98 s | 7 ms | 47 ms | 236 ms |
-| Throughput | 6.9 req/s | 1,684 req/s | 329 req/s | 37.6 req/s |
+| p95 latency (median of 3) | 695 ms | 2 ms | 15 ms | 198 ms |
+| Throughput | 14 req/s | 6,392 req/s | 758 req/s | 50.5 req/s |
 | Staleness (worst) | instant | 60 s | 5 s | instant |
-| Code changed | | +20 −0 | +48 −13 | +9 −0 |
-| Built by Bob in | | 2m 2s | 2m 27s | 2m 2s |
+| Failed requests | 0 | 0 | 0 | 0 |
+| Code changed | | +48 −1 | +47 −9 | +32 −10 |
+| Built by Bob in | | 2m 7s | 2m 20s | 2m 23s |
 
-The fastest option is not automatically the right one. With the recorded limits (p95 at most 50 ms, results at most 15 s stale) the materialized view wins. Allow 90 seconds of staleness and the cache wins with less code. Accept 500 ms and the index wins with nine lines. The results page lets you move those limits and watch the pick change; the measurements never change.
+The fastest option is not automatically the right one. In an earlier real run, Bob's materialized view edited an existing test file to make itself pass; Settle's integrity check refused it ([that run](https://settle-blush.vercel.app/runs/2026-09-27T03-36-05/)). With the recorded limits (p95 at most 50 ms, results at most 15 s stale) the materialized view wins. Allow 90 seconds of staleness and the cache wins with less code. Accept 500 ms and the index wins with the smallest change. The results page lets you move those limits and watch the pick change; the measurements never change.
 
 ## Run it
 
