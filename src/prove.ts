@@ -100,8 +100,10 @@ function planPrompt(c: ProveConfig, app: string): string {
     ``,
     `Read the code that the feature would touch (schema, queries, API handlers, tests). Then write exactly ${c.assumptions} assumptions the feature silently depends on, the ones where being wrong would add days of work. Prefer assumptions you can prove or disprove by running code against this repository in a few minutes.`,
     ``,
+    `Phrase every assumption as something the feature NEEDS to be true for it to be as easy as it looks, never as the risk itself. Good: "Revenue totals can hold IDR sized amounts without overflowing." Bad: "The total will overflow." If the needed thing turns out false in today's code, that is the landmine the team must know about.`,
+    ``,
     `Write them as JSON to the file settle-plan.json at the root of the workspace, in this shape:`,
-    `[{"id": "short-kebab-id", "assumption": "one sentence that is either true or false for this codebase", "why_risky": "what breaks or costs days if it is false", "experiment": "the smallest runnable test that proves or disproves it", "plain": "the same assumption in plain words a product manager understands"}]`,
+    `[{"id": "short-kebab-id", "assumption": "one sentence the feature needs to be true, that is either true or false for this codebase today", "why_risky": "what breaks or costs days if it is false", "experiment": "the smallest runnable test that proves or disproves it", "plain": "the same assumption in plain words a product manager understands"}]`,
     ``,
     `Rules: do not change any other file. Do not write code yet. Finish with a one line summary.`,
   ].join("\n");

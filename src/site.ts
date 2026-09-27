@@ -1,6 +1,9 @@
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { landingPage } from "./app/landing.ts";
+import { landingProve } from "./app/landing-prove.ts";
+import { renderProof } from "./proof-page.ts";
+import type { ProofFile } from "./prove.ts";
 import { appPage } from "./app/page.ts";
 import { writeRun, type RunFile } from "./engine.ts";
 import { repoRoot } from "./git.ts";
@@ -67,6 +70,23 @@ export async function build(args: string[]) {
     if (o) { caught = { id: r.id, option: o.name, file: o.integrity!.touched[0].split("/").slice(-2).join("/") }; break; }
   }
   writeFileSync(join(tmp, "index.html"), landingPage(featuredRun, featured, caught));
+
+  // Proofs (settle prove): each gets its evidence page; the newest becomes
+  // the landing page, and the design comparison moves to /compare/.
+  const proofs = readdirSync(runsDir).filter((id) => existsSync(join(runsDir, id, "proof.json"))).sort().reverse();
+  for (const id of proofs) {
+    const p: ProofFile = JSON.parse(readFileSync(join(runsDir, id, "proof.json"), "utf8"));
+    mkdirSync(join(tmp, "runs", id), { recursive: true });
+    writeFileSync(join(tmp, "runs", id, "index.html"), renderProof(p));
+    writeFileSync(join(tmp, "runs", id, "proof.json"), JSON.stringify(p));
+  }
+  const featuredProof = flag("proof") ?? proofs[0];
+  if (featuredProof) {
+    mkdirSync(join(tmp, "compare"), { recursive: true });
+    renameSync(join(tmp, "index.html"), join(tmp, "compare", "index.html"));
+    const p: ProofFile = JSON.parse(readFileSync(join(runsDir, featuredProof, "proof.json"), "utf8"));
+    writeFileSync(join(tmp, "index.html"), landingProve(p));
+  }
   writeFileSync(join(tmp, "app", "index.html"), appPage({ mode: "static", script: bundleApp(), home: "../" }));
   writeFileSync(join(tmp, "app", "data", "debate.json"), JSON.stringify(readDebate(config)));
   // Only replayable runs are listed in the app; the rest stay reachable by URL.

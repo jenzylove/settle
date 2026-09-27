@@ -1,34 +1,23 @@
 # Settle
 
-**When your team argues about how to build something, Settle builds each option and shows you the numbers.**
+**Find the landmines before you estimate.**
 
-Live site, with a replay of a real run and its results: **https://settle-blush.vercel.app**
+Live, with a real proof: **https://settle-blush.vercel.app**
 
-Teams make design calls every week. Cache or materialized view. Queue or direct call. Library A or library B. Today those calls are settled by whoever argues best, or by one engineer spending days on a throwaway version of one option. The numbers that would end the argument only exist once every option is actually built, in your codebase, on your data.
+A "two day" feature turns into two weeks because of something nobody knew was in the code. Engineers estimate by reading the repo; the surprises only show up once someone builds it.
 
-Settle gets you those numbers in minutes:
+Settle moves the surprises to the start. You give it one sentence, the feature you are about to estimate:
 
-1. You write the question, the options and your constraints in `settle.yml`.
-2. Settle gives every option its own git worktree and starts one **IBM Bob Shell** session per option, all in parallel. Each Bob builds a working version of its option.
-3. The same load test and the same freshness probe run against every branch.
-4. A rule based verdict picks the option that meets every constraint with the smallest change, and a results page shows why.
+1. **Bob finds the risks.** IBM Bob reads the code the feature would touch and names the assumptions it silently depends on, the ones that cost days if they are wrong.
+2. **Bob runs experiments.** One Bob Shell session per assumption, all at once, each in its own git worktree, writes the smallest test that proves or disproves that assumption against today's code.
+3. **Settle checks the work.** Settle reruns every experiment itself instead of trusting Bob's word: a passing experiment is **proven**, a failing one is **blocked** (with the exact error or wrong value), anything that could not run or touched existing files is **unknown**.
+4. **Bob writes the plan** from what was actually found: what we now know, the landmines to fix first, the build order, and how the findings change the estimate.
 
-Nothing is merged. Every option stays on its own branch for review.
+Nothing is merged. Every experiment stays on its own branch.
 
-## The demo run
+## Why not just ask an AI
 
-The question: *How do we make the top customers endpoint fast?* on a small orders API ([demo/orders-api](demo/orders-api)) that aggregates 200,000 orders on every call.
-
-| | Today | Cache | Materialized view | Index and rewrite |
-|---|---|---|---|---|
-| p95 latency (median of 3) | 695 ms | 2 ms | 15 ms | 198 ms |
-| Throughput | 14 req/s | 6,392 req/s | 758 req/s | 50.5 req/s |
-| Staleness (worst) | instant | 60 s | 5 s | instant |
-| Failed requests | 0 | 0 | 0 | 0 |
-| Code changed | | +48 −1 | +47 −9 | +32 −10 |
-| Built by Bob in | | 2m 7s | 2m 20s | 2m 23s |
-
-The fastest option is not automatically the right one. In an earlier real run, Bob's materialized view edited an existing test file to make itself pass; Settle's integrity check refused it ([that run](https://settle-blush.vercel.app/runs/2026-09-27T03-36-05/)). With the recorded limits (p95 at most 50 ms, results at most 15 s stale) the materialized view wins. Allow 90 seconds of staleness and the cache wins with less code. Accept 500 ms and the index wins with the smallest change. The results page lets you move those limits and watch the pick change; the measurements never change.
+An AI can guess what might go wrong. Settle shows you, with a failing test against your real code, and it does not take the builder's word for it: every experiment is rerun independently, and one that edits existing code or tests is not trusted.
 
 ## Run it
 
@@ -37,103 +26,48 @@ Requirements: Node 24, git, and [IBM Bob Shell](https://bob.ibm.com/docs/shell/g
 ```bash
 npm install
 cd demo/orders-api && npm install
-node ../../bin/settle.mjs ui             # the Settle app: edit the debate, press Build, watch Bob live
-node ../../bin/settle.mjs run            # build every option with Bob, measure, decide
-node ../../bin/settle.mjs run --baseline-only   # measure today's code only, no Bob calls
-node ../../bin/settle.mjs report ../../runs/<id> --set max_staleness_seconds=90
+node ../../bin/settle.mjs prove        # reads prove.yml
 ```
 
-Each run writes `runs/<id>/results.json`, `index.html` (the results page), `appendix.md` (paste into your design doc) and one log per Bob session.
-
-## Settle mode (Bob IDE)
-
-The repo ships a **Settle custom mode** at [`.bob/custom_modes.yaml`](.bob/custom_modes.yaml).
-Open this workspace in Bob, pick **Settle** from the mode picker, and paste in a design question
-or a section of a design doc. The mode will:
-
-1. Ask one follow-up question at most (e.g. which endpoint to probe) if something essential is missing.
-2. Write a `settle.yml` next to your app that is valid against the schema in [`src/config.ts`](src/config.ts).
-3. List the options and constraints it chose and ask you to confirm or adjust them.
-4. Tell you how to start the run from that folder.
-
-The mode is scoped to this workspace and may **only edit `settle.yml` files** -- it cannot touch
-application source, tests, or any other file. Use a normal Agent session if you need code changes.
-
-```
-# quick start
-# 1. Open this repo in Bob
-# 2. Switch to Settle mode (mode picker, top-right)
-# 3. Paste your design question:
-#      "GET /reports/monthly scans 500 k rows. Options: add an index, or
-#       materialise into a summary table. p95 must be under 100 ms."
-# 4. Confirm the generated settle.yml
-# 5. cd <your-app> && node <path-to-settle>/bin/settle.mjs run
-```
-
-## settle.yml
+`prove.yml`:
 
 ```yaml
-question: How do we make the top customers endpoint fast?
-app:
-  start: npm start            # must listen on $PORT
-  test: npm test
-load:
-  request: { method: GET, path: /stats/top-customers?limit=10 }
-  duration_seconds: 15
-  concurrency: 8
-freshness:                    # optional: how long until a write is visible
-  write: { method: POST, path: /orders, body: { customer_id: "{{random 1 5000}}", amount_cents: "{{increasing}}" } }
-  read: { method: GET, path: /stats/top-customers?limit=1 }
-  read_field: 0.customer_id
-  equals: customer_id
-constraints:
-  max_p95_ms: 50
-  max_staleness_seconds: 15
-  tests_must_pass: true
-options:
-  - { id: cache, name: Cache, description: Cache the response in memory with a 60 second TTL. }
-  - { id: matview, name: Materialized view, description: Precompute the ranking and refresh it on a schedule. }
-  - { id: index, name: Index and rewrite, description: Add the right index and rewrite the query. }
+request: Let customers pay in their own currency (USD, EUR, JPY and IDR), and keep the top customers ranking correct.
+context: Orders are stored in a single currency today.
+experiment:
+  command: node --import tsx --test {file}
+assumptions: 3
 ```
 
-The full example is [demo/orders-api/settle.yml](demo/orders-api/settle.yml).
+Each proof writes `runs/prove-<time>/proof.json`, `index.html` (the evidence board), `events.jsonl` and one log per Bob session.
 
 ## How it works
 
 | Part | File |
 |---|---|
-| Config parsing and validation | [src/config.ts](src/config.ts) |
-| Worktrees, commits, diff stats | [src/git.ts](src/git.ts) |
-| Bob Shell runner (headless, parallel) | [src/bob.ts](src/bob.ts) |
-| Load test, freshness probe, tests, dependency diff | [src/measure.ts](src/measure.ts) |
-| Verdict rules | [src/verdict.ts](src/verdict.ts) |
-| Results page and appendix | [src/view.ts](src/view.ts), [src/report.ts](src/report.ts), [src/client.ts](src/client.ts) |
-| Run engine and event stream | [src/engine.ts](src/engine.ts), [src/events.ts](src/events.ts) |
-| The Settle app (`settle ui`) | [src/ui.ts](src/ui.ts), [src/app/](src/app/) |
-| Hosted site and replay (`settle site`) | [src/site.ts](src/site.ts), [src/app/landing.ts](src/app/landing.ts) |
+| The prove pipeline: plan, parallel experiments, independent rerun, plan | [src/prove.ts](src/prove.ts) |
+| Evidence board page | [src/proof-page.ts](src/proof-page.ts) |
+| Landing page | [src/app/landing-prove.ts](src/app/landing-prove.ts) |
+| Bob Shell runner (headless, parallel, streams tool calls) | [src/bob.ts](src/bob.ts) |
+| Worktrees, commits, test file detection | [src/git.ts](src/git.ts) |
+| Process control with time limits | [src/measure.ts](src/measure.ts) |
 | Command line | [src/cli.ts](src/cli.ts) |
 
-**Fair comparison.** Every option starts from the same commit. Options are measured one at a time so they never compete for CPU. The same seeded data, load and probe apply to every branch. Tests are counted apart from application code so an option is never penalised for being better tested.
-
-**Repeatable verdict.** The verdict is rules, not a model call: an option qualifies if it meets every constraint, and the smallest change among qualifying options wins, ties going to lower p95. The results page runs the same verdict code in the browser.
-
-**Candidates that cannot be trusted never win.** An option is disqualified if its measurement errored, it served no successful requests, more than 1% of requests failed (or any single load run failed completely), its freshness could not be measured while a staleness limit is set, or it modified, deleted or renamed an existing test or changed the app's test or start script. Every option is load tested three times and the median is reported with the spread. The results page has a "Trust this comparison" panel with all of this per option.
-
-**Honest failure.** If Bob cannot build an option, times out, or the app fails to start, the page says so instead of hiding the option.
+Settle also includes `settle run`, which builds competing designs for the same change and measures them with one load test (the engine `settle prove` grew out of). Its results are at [/compare/](https://settle-blush.vercel.app/compare/).
 
 ## How IBM Bob is used
 
-- **Inside the product:** every option is built by its own Bob Shell session (`bob run`, headless) in its own worktree, in parallel. Session stats (duration, tool calls, cost) are saved with each run.
-- **Building Settle:** four Bob IDE tasks wrote the test suites and CI, the Settle custom mode, and two reviews (harness fairness, verdict trust) that found and fixed six real bugs. The Settle mode drafted the demo's `settle.yml`. Session summaries are in [bob_sessions/](bob_sessions/).
+- **Inside the product:** Bob Shell names the risky assumptions, builds every experiment in parallel (one headless session per assumption, each in its own worktree), and writes the final plan. Session logs and costs are saved with each proof.
+- **Building Settle:** Bob IDE tasks wrote test suites and CI, the Settle custom mode, and two reviews of the harness and verdict that found and fixed six real bugs. Session summaries are in [bob_sessions/](bob_sessions/).
 
 ## Tests
 
-`npm test` runs 72 tests, including an end to end run of the whole pipeline (worktrees, parallel builds, install, tests, load test, freshness probe, verdict, report, event log) on a small fixture app with a stand in for Bob Shell. GitHub Actions runs typecheck and tests on every push.
+`npm test` runs the suite, including an end to end run of the comparison pipeline on a fixture app with a stand in for Bob Shell. GitHub Actions runs typecheck and tests on every push.
 
 ## Limits
 
-- Measurement ships for HTTP services. Other kinds of debate (background jobs, frontend bundles) need their own probe.
-- Numbers are from the machine Settle runs on. They are for comparing options with each other, not for capacity planning.
+- Experiments run against the code as it is today; Settle proves or disproves assumptions, it does not build the feature.
+- Bob chooses the assumptions. The plan is only as good as the risks it names, so the evidence board shows each one for the team to challenge.
 - Settle runs locally, next to your code. There is no hosted service.
 
-Built for the IBM Bob 2.0 Hackathon.
+Built for the IBM Bob 2.0 Hackathon. MIT license.
