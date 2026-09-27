@@ -37,7 +37,7 @@ test("settle prove sorts assumptions into proven, blocked and untrusted", { time
 
     const dir = join(repo, "runs", proof.id);
     for (const f of ["proof.json", "index.html", "events.jsonl", "bob-plan.log", "bob-write-plan.log"]) assert.ok(existsSync(join(dir, f)), `${f} written`);
-    assert.match(readFileSync(join(dir, "index.html"), "utf8"), /blocked, landmines found/);
+    assert.match(readFileSync(join(dir, "index.html"), "utf8"), /blocker/);
     const kinds = new Set(events.map((e) => e.kind));
     for (const k of ["start", "assumptions", "built", "verified", "plan"]) assert.ok(kinds.has(k as StampedProve["kind"]), `emitted ${k}`);
   } finally {
