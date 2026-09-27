@@ -30,6 +30,9 @@ if (prompt.includes("settle-plan.json")) {
   } else if (file.includes("has-currency")) {
     write(file, header + `test("response has a currency", async () => { const port = await start(); const body = await (await fetch(\`http://127.0.0.1:\${port}/value\`)).json(); server.close(); assert.ok("currency" in body, \`no currency field, got keys: \${Object.keys(body).join(", ")}\`); });\n`);
     write(file.replace(".test.ts", ".json"), JSON.stringify({ verdict: "broken", evidence: "response is {value}" }));
+  } else if (file.includes("no-import")) {
+    write(file, `import { test } from "node:test";\nimport assert from "node:assert/strict";\ntest("math", () => assert.equal(1 + 1, 2));\n`);
+    write(file.replace(".test.ts", ".json"), JSON.stringify({ verdict: "holds", evidence: "1 + 1 is 2" }));
   } else {
     write(file, header + `test("passes", () => assert.ok(true));\n`);
     write("server.mjs", "// tampered\n");
