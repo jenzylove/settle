@@ -1,0 +1,19 @@
+request: Let customers pay in their own currency (USD, EUR, JPY and IDR), and keep the top customers ranking correct.
+context: >
+  Orders are stored in a single currency today. Sales wants international
+  customers to pay in USD, EUR, JPY or Indonesian rupiah, and the top
+  customers dashboard must keep ranking customers by real revenue.
+
+app:
+  install: npm install --no-audit --no-fund
+  test: npm test
+
+experiment:
+  command: node --import tsx --test {file}
+  timeout_seconds: 120
+
+assumptions: 3
+
+bob:
+  max_turns: 30
+  timeout_minutes: 15

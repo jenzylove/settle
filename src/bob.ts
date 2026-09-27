@@ -69,7 +69,18 @@ export async function runBob(
   logFile: string,
   onTool: (call: BobToolCall) => void = () => {},
 ): Promise<BobResult> {
-  const prompt = buildPrompt(config, option, appPath);
+  return runBobPrompt(buildPrompt(config, option, appPath), workspace, logFile, config.bob, onTool);
+}
+
+// Runs one headless Bob Shell session with any prompt.
+export async function runBobPrompt(
+  prompt: string,
+  workspace: string,
+  logFile: string,
+  limits: { max_turns: number; timeout_minutes: number },
+  onTool: (call: BobToolCall) => void = () => {},
+): Promise<BobResult> {
+  const config = { bob: limits };
   const args = [
     bobEntry(),
     "run",

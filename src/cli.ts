@@ -87,7 +87,34 @@ function cmdReport(args: string[]) {
   console.log(`Verdict  ${data.verdict.headline}\n         ${data.verdict.reason}`);
 }
 
-const usage = `settle run [--config settle.yml] [--baseline-only]   build every option with IBM Bob, measure, decide
+async function cmdProve(args: string[]) {
+  const { prove } = await import("./prove.ts");
+  const t0 = Date.now();
+  const say = (m: string) => {
+    const s = Math.round((Date.now() - t0) / 1000);
+    console.log(`${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}  ${m}`);
+  };
+  const phases: Record<string, string> = {
+    plan: "Bob is naming the risky assumptions",
+    experiments: "Bob is building one experiment per assumption, in parallel",
+    verify: "Settle is rerunning every experiment itself",
+    "write-plan": "Bob is writing the plan from the evidence",
+    done: "Done",
+  };
+  const d = await prove(resolve(flag(args, "config") ?? "prove.yml"), (e) => {
+    if (e.kind === "start") say(`Request   ${e.request}`);
+    else if (e.kind === "phase") say(phases[e.phase]);
+    else if (e.kind === "assumptions") e.assumptions.forEach((a, i) => say(`  ${i + 1}. ${a.assumption}`));
+    else if (e.kind === "built") say(`  ${e.step}: Bob finished in ${e.seconds}s${e.ok ? "" : " (with errors)"}`);
+    else if (e.kind === "verified") say(`  ${e.status.toUpperCase().padEnd(8)} ${e.id}`);
+    else if (process.env.SETTLE_VERBOSE && e.kind === "bob") say(`  ${e.step}: ${e.label}`);
+  });
+  say(`Proven ${d.summary.proven} · Blocked ${d.summary.blocked} · Unknown ${d.summary.unknown}`);
+  say(`Report    runs/${d.id}/index.html`);
+}
+
+const usage = `settle prove [--config prove.yml]                   test the risky assumptions behind a feature before you estimate it
+settle run [--config settle.yml] [--baseline-only]   build every option with IBM Bob, measure, decide
 settle report <run dir> [--set k=v,...] [--out dir]  re-decide a finished run under different constraints
 settle ui [--config settle.yml] [--port 4300]        open the Settle app in your browser
 settle site [--out site]                             build the static site from runs/`;
@@ -96,6 +123,7 @@ const [cmd, ...rest] = process.argv.slice(2);
 try {
   if (cmd === "run") await cmdRun(rest);
   else if (cmd === "report") cmdReport(rest);
+  else if (cmd === "prove") await cmdProve(rest);
   else if (cmd === "ui") await (await import("./ui.ts")).serve(rest);
   else if (cmd === "site") await (await import("./site.ts")).build(rest);
   else {
