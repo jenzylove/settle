@@ -138,6 +138,7 @@ export function renderOptions(data: RunFile): string {
   <p class="meta">Branch <code>${esc(o.branch)}</code></p>
   ${o.diff?.files.length ? `<ul class="files">${o.diff.files.map((f) => `<li><code>${esc(f)}</code></li>`).join("")}</ul>` : ""}
   ${o.diff?.test_files?.length ? `<ul class="files">${o.diff.test_files.map((f) => `<li><code>${esc(f)}</code> <span class="muted">test</span></li>`).join("")}</ul>` : ""}
+  ${o.diff?.patch ? `<details class="codebox"${o.id === winner ? " open" : ""}><summary>The code Bob wrote</summary>${renderCode(o.diff.patch, data.app_path)}</details>` : ""}
 </section>`,
     )
     .join("\n");
@@ -171,4 +172,130 @@ export function renderControls(data: RunFile): string {
 </label>`;
   };
   return [slider("max_p95_ms", "p95 latency", "ms"), slider("max_staleness_seconds", "Staleness", "s")].join("\n");
+}
+
+// ---------- Decision map ----------
+// One dot per option: p95 latency across (log scale), staleness up. The
+// limits are two lines the reader drags; the shaded corner is "good enough".
+
+export interface MapScale {
+  w: number; h: number; left: number; right: number; top: number; bottom: number;
+  lmin: number; lmax: number; smax: number;
+}
+
+export function mapScale(data: RunFile): MapScale {
+  const all = [data.baseline, ...data.options].filter((o) => o.load);
+  const maxP95 = Math.max(...all.map((o) => o.load!.p95_ms), data.constraints.max_p95_ms ?? 0);
+  const maxStale = Math.max(...all.map((o) => o.freshness?.max_seconds ?? 0), data.constraints.max_staleness_seconds ?? 0);
+  return {
+    w: 1000, h: 500, left: 86, right: 40, top: 28, bottom: 64,
+    lmin: 0, // log10(1 ms)
+    lmax: Math.max(3.7, Math.ceil(Math.log10(maxP95 * 2) * 2) / 2),
+    smax: Math.max(75, Math.ceil((maxStale * 1.15) / 15) * 15),
+  };
+}
+
+export const sx = (s: MapScale, p95: number) => s.left + ((Math.log10(Math.max(p95, 1)) - s.lmin) / (s.lmax - s.lmin)) * (s.w - s.left - s.right);
+export const sy = (s: MapScale, sec: number) => s.h - s.bottom - (Math.min(sec, s.smax) / s.smax) * (s.h - s.top - s.bottom);
+export const invX = (s: MapScale, x: number) => 10 ** (s.lmin + ((x - s.left) / (s.w - s.left - s.right)) * (s.lmax - s.lmin));
+export const invY = (s: MapScale, y: number) => ((s.h - s.bottom - y) / (s.h - s.top - s.bottom)) * s.smax;
+
+const fmtMs = (n: number) => (n >= 1000 ? `${+(n / 1000).toFixed(n >= 10000 ? 0 : 1)} s` : `${+n.toFixed(n < 10 ? 1 : 0)} ms`);
+
+export function renderMap(data: RunFile): string {
+  const s = mapScale(data);
+  const c = data.constraints;
+  const x0 = s.left, x1 = s.w - s.right, y0 = s.top, y1 = s.h - s.bottom;
+  const xl = c.max_p95_ms !== undefined ? sx(s, c.max_p95_ms) : x1;
+  const yl = c.max_staleness_seconds !== undefined ? sy(s, c.max_staleness_seconds) : y0;
+  const ticksX = [1, 10, 100, 1000, 10000].filter((v) => Math.log10(v) <= s.lmax);
+  const ticksY = Array.from({ length: s.smax / 15 + 1 }, (_, i) => i * 15);
+
+  const grid = [
+    ...ticksX.map((v) => `<line class="gl" x1="${sx(s, v)}" x2="${sx(s, v)}" y1="${y0}" y2="${y1}"/><text class="tk" x="${sx(s, v)}" y="${y1 + 24}" text-anchor="middle">${fmtMs(v)}</text>`),
+    ...ticksY.map((v) => `<line class="gl" x1="${x0}" x2="${x1}" y1="${sy(s, v)}" y2="${sy(s, v)}"/><text class="tk" x="${x0 - 12}" y="${sy(s, v) + 4}" text-anchor="end">${v === 0 ? "fresh" : `${v} s`}</text>`),
+  ].join("");
+
+  // Labels sit beside their dot; when two would overlap, the later one moves up.
+  const placed: { x0: number; x1: number; y: number }[] = [];
+  const placeLabel = (x: number, y: number, right: boolean, width: number) => {
+    let ly = y - 12;
+    const bx0 = right ? x + 18 : x - 18 - width;
+    const bx1 = bx0 + width;
+    while (placed.some((b) => b.x0 < bx1 && bx0 < b.x1 && Math.abs(b.y - ly) < 36)) ly -= 38;
+    placed.push({ x0: bx0, x1: bx1, y: ly });
+    return ly;
+  };
+  const pts = [...data.options, data.baseline]
+    .filter((o) => o.load)
+    .map((o) => {
+      const x = sx(s, o.load!.p95_ms);
+      const stale = o.freshness ? (o.freshness.timed_out ? s.smax : o.freshness.max_seconds) : 0;
+      const y = sy(s, stale);
+      const checks = data.verdict.checks[o.id];
+      const ok = o.id !== "baseline" && checks && checks.every((k) => k.pass);
+      const win = o.id === data.verdict.winner;
+      const base = o.id === "baseline";
+      const cls = base ? "pt base" : win ? "pt win" : ok ? "pt ok" : "pt no";
+      const right = x < x1 - 220;
+      const lines = o.diff && !base ? `+${o.diff.added} −${o.diff.removed} lines` : "today's code";
+      const tip = `${o.name}|p95 ${fmtMs(o.load!.p95_ms)}|${stale < 1 ? "fresh" : `up to ${stale} s stale`}|${lines}`;
+      const label = `${o.name}${win ? " · pick" : ""}`;
+      const ly = placeLabel(x, y, right, Math.max(label.length * 9.5, 150));
+      const lx = right ? x + 18 : x - 18;
+      const leader = ly < y - 30 ? `<line class="ld" x1="${x}" y1="${y - 10}" x2="${lx}" y2="${ly + 14}"/>` : "";
+      return `<g class="${cls}" data-tip="${esc(tip)}" tabindex="0" aria-label="${esc(tip.replace(/\|/g, ", "))}">
+  <circle class="hit" cx="${x}" cy="${y}" r="22"/>
+  ${leader}
+  ${base ? `<rect class="mk" x="${x - 7}" y="${y - 7}" width="14" height="14" transform="rotate(45 ${x} ${y})"/>` : `<circle class="mk" cx="${x}" cy="${y}" r="${win ? 11 : 9}"/>`}
+  <text class="pl" x="${lx}" y="${ly}" text-anchor="${right ? "start" : "end"}">${esc(label)}</text>
+  <text class="pv" x="${lx}" y="${ly + 20}" text-anchor="${right ? "start" : "end"}">${fmtMs(o.load!.p95_ms)} · ${stale < 1 ? "fresh" : `${stale} s stale`}</text>
+</g>`;
+    })
+    .join("");
+
+  const limitX = c.max_p95_ms === undefined ? "" : `<g class="lim-x" tabindex="0" role="slider" aria-label="p95 latency limit" aria-valuenow="${c.max_p95_ms}" aria-valuetext="${fmtMs(c.max_p95_ms)}">
+  <rect class="drag" x="${xl - 14}" y="${y0}" width="28" height="${y1 - y0}"/>
+  <line class="ll" x1="${xl}" x2="${xl}" y1="${y0}" y2="${y1}"/>
+  <rect class="knob" x="${xl - 34}" y="${y0 - 2}" width="68" height="22" rx="11"/>
+  <text class="kt" x="${xl}" y="${y0 + 13}" text-anchor="middle">≤ ${fmtMs(c.max_p95_ms)}</text>
+</g>`;
+  const limitY = c.max_staleness_seconds === undefined ? "" : `<g class="lim-y" tabindex="0" role="slider" aria-label="Staleness limit" aria-valuenow="${c.max_staleness_seconds}" aria-valuetext="${c.max_staleness_seconds} seconds">
+  <rect class="drag" x="${x0}" y="${yl - 14}" width="${x1 - x0}" height="28"/>
+  <line class="ll" x1="${x0}" x2="${x1}" y1="${yl}" y2="${yl}"/>
+  <rect class="knob" x="${x1 - 70}" y="${yl - 11}" width="70" height="22" rx="11"/>
+  <text class="kt" x="${x1 - 35}" y="${yl + 4}" text-anchor="middle">≤ ${c.max_staleness_seconds} s</text>
+</g>`;
+
+  return `<svg viewBox="0 0 ${s.w} ${s.h}" role="img" aria-label="Decision map: p95 latency against staleness, with your limits" data-scale='${JSON.stringify(s)}'>
+  <rect class="zone" x="${x0}" y="${yl}" width="${Math.max(0, xl - x0)}" height="${Math.max(0, y1 - yl)}"/>
+  ${grid}
+  <line class="ax" x1="${x0}" x2="${x1}" y1="${y1}" y2="${y1}"/>
+  <text class="at" x="${x1}" y="${y1 + 50}" text-anchor="end">p95 latency, log scale →</text>
+  <text class="at" x="${x0 - 12}" y="${y0 - 10}" text-anchor="end">↑ staleness</text>
+  ${limitX}${limitY}
+  ${pts}
+</svg>`;
+}
+
+// ---------- Code Bob wrote ----------
+
+export function renderCode(patch: string | undefined, appPath: string): string {
+  if (!patch) return "";
+  const prefix = appPath ? `${appPath.replace(/\/$/, "")}/` : "";
+  const out: string[] = [];
+  for (const line of patch.split("\n")) {
+    const file = line.match(/^diff --git a\/(\S+)/);
+    if (file) {
+      out.push(`<span class="cf">${esc(file[1].startsWith(prefix) ? file[1].slice(prefix.length) : file[1])}</span>`);
+      continue;
+    }
+    if (/^(index |--- |\+\+\+ |new file|deleted file)/.test(line)) continue;
+    if (line.startsWith("@@")) out.push(`<span class="ch">⋯</span>`);
+    else if (line.startsWith("+")) out.push(`<span class="ca">${esc(line)}</span>`);
+    else if (line.startsWith("-")) out.push(`<span class="cd">${esc(line)}</span>`);
+    else out.push(`<span class="cc">${esc(line)}</span>`);
+  }
+  // Each line is a block span, so no newlines between them.
+  return `<pre class="code">${out.join("")}</pre>`;
 }

@@ -15,7 +15,7 @@ export interface OptionResult {
   load?: LoadResult;
   freshness?: FreshnessResult;
   tests?: TestResult;
-  diff?: { added: number; removed: number; files: string[]; test_added?: number; test_files?: string[] };
+  diff?: { added: number; removed: number; files: string[]; test_added?: number; test_files?: string[]; patch?: string };
   new_dependencies?: string[];
   measure_error?: string;
 }

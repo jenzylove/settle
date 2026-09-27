@@ -3,7 +3,7 @@ import { dirname, join, relative } from "node:path";
 import { runBob } from "./bob.ts";
 import { loadConfig, type Constraints, type Option, type SettleConfig } from "./config.ts";
 import { describeTool, type Listener, type RunEvent, type Stamped } from "./events.ts";
-import { addWorktree, commitAll, diffStats, dirtyFiles, headCommit, repoRoot, showFile } from "./git.ts";
+import { addWorktree, commitAll, diffPatch, diffStats, dirtyFiles, headCommit, repoRoot, showFile } from "./git.ts";
 import { freshnessTest, loadTest, newDependencies, run, runTests, startApp } from "./measure.ts";
 import { renderAppendix, renderReport } from "./report.ts";
 import { decide, type OptionResult, type Verdict } from "./verdict.ts";
@@ -162,6 +162,7 @@ async function measureOption(
 ): Promise<void> {
   const appDir = join(worktree, appRel);
   result.diff = diffStats(worktree, base, appRel);
+  if (result.id !== "baseline") result.diff.patch = diffPatch(worktree, base, appRel);
   const pkg = appRel ? `${appRel.replace(/\\/g, "/")}/package.json` : "package.json";
   result.new_dependencies = newDependencies(showFile(worktree, base, pkg), showFile(worktree, "HEAD", pkg));
 

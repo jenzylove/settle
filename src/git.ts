@@ -67,6 +67,18 @@ export function diffStats(dir: string, base: string, path: string): DiffStats {
   return stats;
 }
 
+// The application code an option changed, as a unified diff: tests and lock
+// files left out, capped so one sprawling option cannot bloat the report.
+export function diffPatch(dir: string, base: string, path: string, maxLines = 400): string {
+  const NL = String.fromCharCode(10);
+  const files = git(dir, ["diff", "--name-only", base, "HEAD", "--", path])
+    .split(NL)
+    .filter((f) => f && !isTestFile(f) && !f.endsWith("package-lock.json"));
+  if (files.length === 0) return "";
+  const out = git(dir, ["diff", "--unified=2", base, "HEAD", "--", ...files]).split(NL);
+  return out.length > maxLines ? [...out.slice(0, maxLines), `… ${out.length - maxLines} more lines`].join(NL) : out.join(NL);
+}
+
 export function showFile(dir: string, rev: string, file: string): string | null {
   try {
     return git(dir, ["show", `${rev}:${file}`]);

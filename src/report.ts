@@ -2,7 +2,7 @@ import { buildSync } from "esbuild";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { RunFile } from "./engine.ts";
-import { esc, renderAppendix, renderControls, renderOptions, renderTable, renderVerdict } from "./view.ts";
+import { esc, renderAppendix, renderMap, renderOptions, renderTable, renderVerdict } from "./view.ts";
 
 export { renderAppendix };
 
@@ -41,13 +41,13 @@ export function renderReport(data: RunFile): string {
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #ffffff; --fg: #0b0b0c; --muted: #6b6b70; --line: #e4e4e7; --soft: #f5f5f6; --strong: #0b0b0c;
+  --bg: #ffffff; --fg: #0b0b0c; --muted: #6b6b70; --line: #e4e4e7; --soft: #f5f5f6; --faint: #a1a1a6; --strong: #0b0b0c;
   --sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif; --mono: "JetBrains Mono", ui-monospace, monospace;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) { --bg: #0b0b0c; --fg: #f4f4f5; --muted: #9a9aa2; --line: #26262b; --soft: #141417; --strong: #f4f4f5; }
+  :root:not([data-theme="light"]) { --bg: #0b0b0c; --fg: #f4f4f5; --muted: #9a9aa2; --line: #26262b; --soft: #141417; --faint: #5c5c62; --strong: #f4f4f5; }
 }
-:root[data-theme="dark"] { --bg: #0b0b0c; --fg: #f4f4f5; --muted: #9a9aa2; --line: #26262b; --soft: #141417; --strong: #f4f4f5; }
+:root[data-theme="dark"] { --bg: #0b0b0c; --fg: #f4f4f5; --muted: #9a9aa2; --line: #26262b; --soft: #141417; --faint: #5c5c62; --strong: #f4f4f5; }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
 .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
@@ -99,15 +99,51 @@ footer { padding: 56px 0 40px; font-size: 13px; color: var(--muted); display: fl
   .verdict { grid-template-columns: 1fr; gap: 8px; }
   .hero { padding: 48px 0 28px; }
 }
-.controls { display: grid; grid-template-columns: 200px 1fr; gap: 24px; padding: 28px 0; border-bottom: 1px solid var(--line); }
-.controls .k { font: 500 12px/1.4 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); padding-top: 6px; }
-.ctls { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px 40px; align-items: center; }
-.ctl { display: grid; grid-template-columns: 110px 1fr 88px; align-items: center; gap: 14px; font-size: 15px; }
-.ctl output { font: 600 14px/1 var(--mono); text-align: right; }
-input[type=range] { width: 100%; accent-color: var(--fg); }
-.hint { grid-column: 2; font: 400 12px/1.5 var(--mono); color: var(--muted); margin: 0; }
 button.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); margin: 0; padding: 8px 12px; font-size: 13px; }
-@media (max-width: 720px) { .controls { grid-template-columns: 1fr; gap: 8px; } .hint { grid-column: 1; } .ctl { grid-template-columns: 90px 1fr 72px; } }
+.mapsec { padding: 36px 0 12px; border-bottom: 1px solid var(--line); }
+.maphead { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; margin-bottom: 8px; }
+.maphead .k { font: 500 12px/1.4 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+.mapnote { margin: 0; color: var(--muted); max-width: 70ch; }
+.map { position: relative; touch-action: none; user-select: none; -webkit-user-select: none; }
+.map svg { width: 100%; height: auto; display: block; overflow: visible; }
+.map .zone { fill: var(--soft); }
+.map .gl { stroke: var(--line); stroke-width: 1; }
+.map .ax { stroke: var(--strong); stroke-width: 1.5; }
+.map .tk { font: 500 13px var(--mono); fill: var(--muted); }
+.map .at { font: 500 12px var(--mono); fill: var(--muted); letter-spacing: 0.04em; }
+.map .ll { stroke: var(--fg); stroke-width: 2; stroke-dasharray: 6 5; }
+.map .drag { fill: transparent; }
+.map .lim-x .drag, .map .lim-x .knob { cursor: ew-resize; }
+.map .lim-y .drag, .map .lim-y .knob { cursor: ns-resize; }
+.map .knob { fill: var(--fg); }
+.map .kt { font: 600 12px var(--mono); fill: var(--bg); pointer-events: none; }
+.map g:focus { outline: none; }
+.map .lim-x:focus-visible .knob, .map .lim-y:focus-visible .knob { stroke: var(--muted); stroke-width: 4; }
+.map .pt:focus-visible .mk { stroke-width: 4; }
+.map .hit { fill: transparent; }
+.map .ld { stroke: var(--faint); stroke-width: 1; }
+.map .mk { stroke: var(--fg); stroke-width: 2; fill: var(--bg); }
+.map .pt.win .mk { fill: var(--fg); }
+.map .pt.no .mk { stroke: var(--faint); }
+.map .pt.base .mk { stroke: var(--faint); stroke-dasharray: 3 3; }
+.map .pl { font: 700 17px var(--sans); fill: var(--fg); letter-spacing: -0.01em; }
+.map .pt.no .pl, .map .pt.base .pl { fill: var(--muted); font-weight: 600; }
+.map .pv { font: 500 12px var(--mono); fill: var(--muted); }
+.tip { position: absolute; pointer-events: none; background: var(--fg); color: var(--bg); font: 500 12px/1.5 var(--mono); padding: 8px 10px; white-space: nowrap; transform: translate(-50%, calc(-100% - 14px)); }
+.tip b { font: 700 13px var(--sans); display: block; }
+.opts { grid-template-columns: 1fr !important; }
+.opt { display: grid; grid-template-columns: 300px minmax(0, 1fr); column-gap: 40px; align-items: start; }
+.opt > * { grid-column: 1; min-width: 0; }
+.opt > .codebox { grid-column: 2; grid-row: 1 / span 12; }
+.codebox summary { cursor: pointer; font: 500 12px var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding: 4px 0 10px; }
+.codebox[open] summary { color: var(--fg); }
+pre.code { margin: 0; font: 12.5px/1.6 var(--mono); overflow: auto; max-height: 460px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 12px 0; white-space: pre; }
+pre.code .cf { display: block; font-weight: 600; color: var(--fg); padding: 10px 0 4px; }
+pre.code .ch { display: block; color: var(--faint); }
+pre.code .ca { display: block; background: var(--soft); color: var(--fg); }
+pre.code .cd { display: block; color: var(--faint); text-decoration: line-through; }
+pre.code .cc { display: block; color: var(--muted); }
+@media (max-width: 820px) { .opt { grid-template-columns: 1fr; } .opt > .codebox { grid-column: 1; grid-row: auto; } .map .pv { display: none; } }
 </style>
 </head>
 <body>
@@ -127,13 +163,17 @@ button.ghost { background: transparent; color: var(--fg); border: 1px solid var(
 ${renderVerdict(data)}
   </section>
 
-  <section class="controls">
-    <div class="k">Your constraints</div>
-    <div>
-      <div class="ctls">
-${renderControls(data)}
+  <section class="mapsec">
+    <div class="maphead">
+      <div>
+        <p class="k">Decision map</p>
+        <p class="mapnote">Each dot is one option Bob built. Drag the two lines to set your limits. Anything in the shaded corner is good enough, and the smallest change in there wins.</p>
       </div>
-      <p class="hint">Move a limit to see which option your team should pick. The measurements stay the same. <button type="button" class="ghost" id="reset" hidden>Back to recorded limits</button></p>
+      <div class="readout"><button type="button" class="ghost" id="reset" hidden>Back to recorded limits</button></div>
+    </div>
+    <div class="map" id="map">
+${renderMap(data)}
+      <div class="tip" id="tip" hidden></div>
     </div>
   </section>
 
