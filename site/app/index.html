@@ -123,79 +123,79 @@ textarea:disabled, input:disabled { color: var(--fg); -webkit-text-fill-color: v
   <main id="app"></main>
   <footer class="foot"><span>Settle · options built with IBM Bob</span><span>Recorded runs from a real machine. Run your own with <code>settle ui</code>.</span></footer>
 </div>
-<script>"use strict";(()=>{var I=document.body.dataset.mode??"local",_="https://github.com/jenzylove/settle",b=async(n,o)=>{let i=await fetch(n,o);if(!i.ok)throw new Error(await i.text()||i.statusText);return i.json()},k={mode:"local",debate:()=>b("/api/debate"),save:n=>b("/api/debate",{method:"PUT",headers:{"content-type":"application/json"},body:JSON.stringify(n)}),runs:()=>b("/api/runs"),start:async()=>(await b("/api/run",{method:"POST"})).id,watch(n,o){let i=new EventSource(`/api/events/${n}`);return i.onmessage=t=>o(JSON.parse(t.data)),i.addEventListener("end",()=>i.close()),()=>i.close()},results:n=>`/runs/${n}/`},H={mode:"static",debate:()=>b("data/debate.json"),runs:()=>b("data/runs.json"),watch(n,o,i){let t=!1;return(async()=>{let p=(await(await fetch(`../runs/${n}/events.jsonl`)).text()).split(`
-`).filter(Boolean).map(c=>JSON.parse(c));for(let c=0;c<p.length&&!t;c++){if(c>0){let r=(p[c].t-p[c-1].t)/i();await new Promise(d=>setTimeout(d,Math.min(r,1400)))}t||o(p[c])}})(),()=>t=!0},results:n=>`../runs/${n}/`},u=I==="static"?H:k,$=document.getElementById("app"),l=n=>String(n??"").replace(/[&<>"']/g,o=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[o]),y=()=>{};function f(n){document.querySelectorAll(".nav a[data-route]").forEach(o=>o.classList.toggle("on",o.dataset.route===n))}async function O(){f("debate");let n=await u.debate(),o=u.mode==="static",i=o?"disabled":"",t=(r,d)=>`
-    <div class="opt-row" data-i="${d}" data-id="${l(r.id)}">
-      <span class="opt-n mono">${String.fromCharCode(65+d)}</span>
-      <input class="opt-name" value="${l(r.name)}" placeholder="Option name" aria-label="Option name" ${i}>
-      <input class="opt-desc" value="${l(r.description)}" placeholder="What Bob should build, in one sentence" aria-label="Option description" ${i}>
+<script>"use strict";(()=>{var I=document.body.dataset.mode??"local",_="https://github.com/jenzylove/settle",h=async(n,o)=>{let l=await fetch(n,o);if(!l.ok)throw new Error(await l.text()||l.statusText);return l.json()},k={mode:"local",debate:()=>h("/api/debate"),save:n=>h("/api/debate",{method:"PUT",headers:{"content-type":"application/json"},body:JSON.stringify(n)}),runs:()=>h("/api/runs"),start:async()=>(await h("/api/run",{method:"POST"})).id,watch(n,o){let l=new EventSource(`/api/events/${n}`);return l.onmessage=t=>o(JSON.parse(t.data)),l.addEventListener("end",()=>l.close()),()=>l.close()},results:n=>`/runs/${n}/`},H={mode:"static",debate:()=>h("data/debate.json"),runs:()=>h("data/runs.json"),watch(n,o,l){let t=!1;return(async()=>{let p=(await(await fetch(`../runs/${n}/events.jsonl`)).text()).split(`
+`).filter(Boolean).map(d=>JSON.parse(d));for(let d=0;d<p.length&&!t;d++){if(d>0){let m=(p[d].t-p[d-1].t)/l();await new Promise(i=>setTimeout(i,Math.min(m,1400)))}t||o(p[d])}})(),()=>t=!0},results:n=>`../runs/${n}/`},c=I==="static"?H:k,y=document.getElementById("app"),r=n=>String(n??"").replace(/[&<>"']/g,o=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[o]),f=()=>{};function w(n){document.querySelectorAll(".nav a[data-route]").forEach(o=>o.classList.toggle("on",o.dataset.route===n))}async function O(){w("debate");let n=await c.debate(),o=c.mode==="static",l=o?(await c.runs())[0]?.id:void 0,t=o?"disabled":"",b=(i,u)=>`
+    <div class="opt-row" data-i="${u}" data-id="${r(i.id)}">
+      <span class="opt-n mono">${String.fromCharCode(65+u)}</span>
+      <input class="opt-name" value="${r(i.name)}" placeholder="Option name" aria-label="Option name" ${t}>
+      <input class="opt-desc" value="${r(i.description)}" placeholder="What Bob should build, in one sentence" aria-label="Option description" ${t}>
       ${o?"":'<button class="x" type="button" aria-label="Remove option">\u2715</button>'}
-    </div>`;if($.innerHTML=`
+    </div>`;if(y.innerHTML=`
     <section class="debate">
       <p class="eyebrow">The question</p>
-      <textarea id="q" class="q" rows="2" aria-label="Question" ${i}>${l(n.question)}</textarea>
-      <textarea id="ctx" class="ctx" rows="3" aria-label="Context" placeholder="Context Bob should know" ${i}>${l(n.context??"")}</textarea>
+      <textarea id="q" class="q" rows="2" aria-label="Question" ${t}>${r(n.question)}</textarea>
+      <textarea id="ctx" class="ctx" rows="3" aria-label="Context" placeholder="Context Bob should know" ${t}>${r(n.context??"")}</textarea>
 
       <div class="grid2">
         <div>
           <p class="eyebrow">Options Bob will build</p>
-          <div id="opts">${n.options.map(t).join("")}</div>
+          <div id="opts">${n.options.map(b).join("")}</div>
           ${o?"":'<button class="btn ghost small" id="add" type="button">Add option</button>'}
         </div>
         <div>
           <p class="eyebrow">Your limits</p>
-          <label class="lim"><span>p95 latency at most</span><span><input id="p95" type="number" min="1" value="${n.constraints.max_p95_ms??""}" ${i}> ms</span></label>
-          <label class="lim"><span>Results stale for at most</span><span><input id="stale" type="number" min="0" value="${n.constraints.max_staleness_seconds??""}" ${i}> s</span></label>
-          <label class="lim"><span>Existing tests must pass</span><span><input id="tests" type="checkbox" ${n.constraints.tests_must_pass?"checked":""} ${i}></span></label>
+          <label class="lim"><span>p95 latency at most</span><span><input id="p95" type="number" min="1" value="${n.constraints.max_p95_ms??""}" ${t}> ms</span></label>
+          <label class="lim"><span>Results stale for at most</span><span><input id="stale" type="number" min="0" value="${n.constraints.max_staleness_seconds??""}" ${t}> s</span></label>
+          <label class="lim"><span>Existing tests must pass</span><span><input id="tests" type="checkbox" ${n.constraints.tests_must_pass?"checked":""} ${t}></span></label>
         </div>
       </div>
 
       <div class="actions">
-        ${o?`<a class="btn" href="#/runs">Watch a recorded run</a><span class="muted">Runs build real code, so they happen on your machine: <code>npx settle ui</code> in your repo. <a href="${_}">How to run it</a></span>`:`<button class="btn" id="run" type="button">Build every option with Bob</button><button class="btn ghost" id="save" type="button">Save</button><span class="muted" id="msg">${l(n.path??"")}</span>`}
+        ${o?`<a class="btn" id="watch" href="${l?`#/run/${l}`:"#/runs"}">Watch Bob build it</a><span class="muted">Runs build real code, so they happen on your machine: <code>npx settle ui</code> in your repo. <a href="${_}">How to run it</a></span>`:`<button class="btn" id="run" type="button">Build every option with Bob</button><button class="btn ghost" id="save" type="button">Save</button><span class="muted" id="msg">${r(n.path??"")}</span>`}
       </div>
-    </section>`,o)return;let m=()=>({question:document.getElementById("q").value.trim(),context:document.getElementById("ctx").value.trim(),options:[...document.querySelectorAll(".opt-row")].map(r=>{let d=r.querySelector(".opt-name").value.trim();return{id:r.dataset.id||d.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"option",name:d,description:r.querySelector(".opt-desc").value.trim()}}),constraints:{max_p95_ms:Number(document.getElementById("p95").value)||void 0,max_staleness_seconds:document.getElementById("stale").value===""?void 0:Number(document.getElementById("stale").value),tests_must_pass:document.getElementById("tests").checked}}),p=r=>document.getElementById("msg").textContent=r,c=()=>document.querySelectorAll(".opt-row .x").forEach(r=>r.onclick=()=>r.closest(".opt-row").remove());c(),document.getElementById("add").onclick=()=>{let r=document.querySelectorAll(".opt-row").length;document.getElementById("opts").insertAdjacentHTML("beforeend",t({id:"",name:"",description:""},r)),c()},document.getElementById("save").onclick=async()=>{try{await u.save(m()),p("Saved to settle.yml")}catch(r){p(r.message)}},document.getElementById("run").onclick=async r=>{let d=r.currentTarget;d.disabled=!0;try{await u.save(m());let h=await u.start();location.hash=`#/run/${h}`}catch(h){p(h.message),d.disabled=!1}}}async function j(){f("runs");let n=await u.runs();$.innerHTML=`
+    </section>`,o)return;let p=()=>({question:document.getElementById("q").value.trim(),context:document.getElementById("ctx").value.trim(),options:[...document.querySelectorAll(".opt-row")].map(i=>{let u=i.querySelector(".opt-name").value.trim();return{id:i.dataset.id||u.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"option",name:u,description:i.querySelector(".opt-desc").value.trim()}}),constraints:{max_p95_ms:Number(document.getElementById("p95").value)||void 0,max_staleness_seconds:document.getElementById("stale").value===""?void 0:Number(document.getElementById("stale").value),tests_must_pass:document.getElementById("tests").checked}}),d=i=>document.getElementById("msg").textContent=i,m=()=>document.querySelectorAll(".opt-row .x").forEach(i=>i.onclick=()=>i.closest(".opt-row").remove());m(),document.getElementById("add").onclick=()=>{let i=document.querySelectorAll(".opt-row").length;document.getElementById("opts").insertAdjacentHTML("beforeend",b({id:"",name:"",description:""},i)),m()},document.getElementById("save").onclick=async()=>{try{await c.save(p()),d("Saved to settle.yml")}catch(i){d(i.message)}},document.getElementById("run").onclick=async i=>{let u=i.currentTarget;u.disabled=!0;try{await c.save(p());let g=await c.start();location.hash=`#/run/${g}`}catch(g){d(g.message),u.disabled=!1}}}async function j(){w("runs");let n=await c.runs();y.innerHTML=`
     <section class="runs">
-      <p class="eyebrow">${u.mode==="static"?"Recorded runs":"Runs"}</p>
+      <p class="eyebrow">${c.mode==="static"?"Recorded runs":"Runs"}</p>
       ${n.length===0?'<p class="muted">No runs yet.</p>':`<div class="list">${n.map(o=>`<a class="run-row" href="#/run/${o.id}">
-                  <span class="mono muted">${l((o.created_at??o.id).slice(0,16).replace("T"," "))}</span>
-                  <span class="rq">${l(o.question)}</span>
-                  <span class="rv">${o.status==="running"?"Running\u2026":l(o.headline??"")}</span>
-                  <span class="go">${u.mode==="static"?"Replay":"Open"} \u2192</span>
+                  <span class="mono muted">${r((o.created_at??o.id).slice(0,16).replace("T"," "))}</span>
+                  <span class="rq">${r(o.question)}</span>
+                  <span class="rv">${o.status==="running"?"Running\u2026":r(o.headline??"")}</span>
+                  <span class="go">${c.mode==="static"?"Replay":"Open"} \u2192</span>
                 </a>`).join("")}</div>`}
-    </section>`}function R(n){f("runs");let o=[5,10,20],i=10,t={question:"",phase:"starting",t0:0,now:0,cols:new Map,base:{id:"baseline",name:"Today (no change)",description:"",state:"waiting",feed:[],calls:0}};$.innerHTML=`
+    </section>`}function R(n){w("runs");let o=[5,10,20],l=10,t={question:"",phase:"starting",t0:0,now:0,cols:new Map,base:{id:"baseline",name:"Today (no change)",description:"",state:"waiting",feed:[],calls:0}};y.innerHTML=`
     <section class="run">
       <div class="run-head">
-        <p class="eyebrow">${u.mode==="static"?"Replay of a real run":"Live run"} <span class="mono">${l(n)}</span></p>
+        <p class="eyebrow">${c.mode==="static"?"Replay of a real run":"Live run"} <span class="mono">${r(n)}</span></p>
         <h1 id="rq">&nbsp;</h1>
         <div class="phases" id="phases"></div>
-        ${u.mode==="static"?`<div class="speed">Speed ${o.map(e=>`<button type="button" data-s="${e}" class="${e===i?"on":""}">${e}\xD7</button>`).join("")}</div>`:""}
+        ${c.mode==="static"?`<div class="speed">Speed ${o.map(e=>`<button type="button" data-s="${e}" class="${e===l?"on":""}">${e}\xD7</button>`).join("")}</div>`:""}
       </div>
       <div class="cols" id="cols"></div>
       <div class="measure" id="measure"></div>
       <div class="verdict-box" id="vbox" aria-live="polite"></div>
-    </section>`,document.querySelectorAll(".speed button").forEach(e=>e.onclick=()=>{i=Number(e.dataset.s),document.querySelectorAll(".speed button").forEach(a=>a.classList.toggle("on",a===e))});let m=e=>`${Math.floor(e/60)}m ${String(Math.floor(e%60)).padStart(2,"0")}s`,p=e=>e===void 0?"\u2014":e>=1e3?`${(e/1e3).toFixed(2)} s`:`${Math.round(e)} ms`,c=e=>{let a=e.m?.freshness;return a?a.timed_out?`over ${a.max_seconds} s`:a.max_seconds<1?"instant":`${a.max_seconds} s`:"\u2014"},r={install:"Installing",tests:"Running tests",start:"Starting app",load:"Load test",freshness:"Freshness probe"};function d(){document.getElementById("rq").textContent=t.question||"\xA0";let a=["build","measure","done"].indexOf(t.phase);document.getElementById("phases").innerHTML=["Bob builds","Measure","Verdict"].map((s,v)=>{let g=t.phase==="done"?2:a;return`<span class="ph ${v<g?"past":v===g?"now":""}">${s}</span>`}).join('<span class="ph-sep"></span>');let M=t.t0?(t.now-t.t0)/1e3:0;document.getElementById("cols").innerHTML=[...t.cols.values()].map(s=>{let v=s.state==="building"?`Building \xB7 ${m(M)}`:s.state==="failed"?`Not built${s.error?`: ${l(s.error)}`:""}`:s.state==="measuring"?l(r[s.step??""]??"Measuring"):s.state==="measured"?"Measured":s.state==="built"?`Built in ${m(s.seconds??0)}`:"Waiting",g=t.verdict?.winner===s.id;return`<article class="col ${s.state} ${g?"win":""}">
+    </section>`,document.querySelectorAll(".speed button").forEach(e=>e.onclick=()=>{l=Number(e.dataset.s),document.querySelectorAll(".speed button").forEach(a=>a.classList.toggle("on",a===e))});let b=e=>`${Math.floor(e/60)}m ${String(Math.floor(e%60)).padStart(2,"0")}s`,p=e=>e===void 0?"\u2014":e>=1e3?`${(e/1e3).toFixed(2)} s`:`${Math.round(e)} ms`,d=e=>{let a=e.m?.freshness;return a?a.timed_out?`over ${a.max_seconds} s`:a.max_seconds<1?"instant":`${a.max_seconds} s`:"\u2014"},m={install:"Installing",tests:"Running tests",start:"Starting app",load:"Load test",freshness:"Freshness probe"};function i(){document.getElementById("rq").textContent=t.question||"\xA0";let a=["build","measure","done"].indexOf(t.phase);document.getElementById("phases").innerHTML=["Bob builds","Measure","Verdict"].map((s,$)=>{let v=t.phase==="done"?2:a;return`<span class="ph ${$<v?"past":$===v?"now":""}">${s}</span>`}).join('<span class="ph-sep"></span>');let M=t.t0?(t.now-t.t0)/1e3:0;document.getElementById("cols").innerHTML=[...t.cols.values()].map(s=>{let $=s.state==="building"?`Building \xB7 ${b(M)}`:s.state==="failed"?`Not built${s.error?`: ${r(s.error)}`:""}`:s.state==="measuring"?r(m[s.step??""]??"Measuring"):s.state==="measured"?"Measured":s.state==="built"?`Built in ${b(s.seconds??0)}`:"Waiting",v=t.verdict?.winner===s.id;return`<article class="col ${s.state} ${v?"win":""}">
           <header>
-            ${g?'<span class="tag">Pick</span>':""}
-            <h3>${l(s.name)}</h3>
-            <p class="desc">${l(s.description)}</p>
-            <p class="status mono">${v}</p>
+            ${v?'<span class="tag">Pick</span>':""}
+            <h3>${r(s.name)}</h3>
+            <p class="desc">${r(s.description)}</p>
+            <p class="status mono">${$}</p>
           </header>
-          <ol class="feed">${s.feed.slice(-7).map((B,L,q)=>`<li class="${L===q.length-1&&s.state==="building"?"latest":""}">${l(B)}</li>`).join("")}</ol>
+          <ol class="feed">${s.feed.slice(-7).map((B,L,q)=>`<li class="${L===q.length-1&&s.state==="building"?"latest":""}">${r(B)}</li>`).join("")}</ol>
           <footer class="mono muted">${s.calls} Bob actions${s.cost!==void 0?` \xB7 ${s.cost} Bobcoins`:""}</footer>
-        </article>`}).join("");let w=[t.base,...t.cols.values()],S=w.some(s=>s.m||s.state==="measuring");document.getElementById("measure").innerHTML=S?`<p class="eyebrow">Same load test and freshness probe on every branch, one at a time</p>
+        </article>`}).join("");let E=[t.base,...t.cols.values()],S=E.some(s=>s.m||s.state==="measuring");document.getElementById("measure").innerHTML=S?`<p class="eyebrow">Same load test and freshness probe on every branch, one at a time</p>
         <table><thead><tr><th></th><th>p95 latency</th><th>Throughput</th><th>Staleness</th><th>Code changed</th><th>Tests</th></tr></thead><tbody>
-        ${w.map(s=>`<tr class="${s.state==="measuring"?"now":""} ${t.verdict?.winner===s.id?"win":""}">
-            <th>${l(s.name)}</th>
-            <td>${s.state==="measuring"&&!s.m?`<span class="muted">${l(r[s.step??""]??"")}\u2026</span>`:p(s.m?.load?.p95_ms)}</td>
+        ${E.map(s=>`<tr class="${s.state==="measuring"?"now":""} ${t.verdict?.winner===s.id?"win":""}">
+            <th>${r(s.name)}</th>
+            <td>${s.state==="measuring"&&!s.m?`<span class="muted">${r(m[s.step??""]??"")}\u2026</span>`:p(s.m?.load?.p95_ms)}</td>
             <td>${s.m?.load?`${s.m.load.rps} req/s`:"\u2014"}</td>
-            <td>${c(s)}</td>
+            <td>${d(s)}</td>
             <td>${s.m?.lines?`+${s.m.lines.added} \u2212${s.m.lines.removed}`:"\u2014"}</td>
             <td>${s.m?.tests?s.m.tests.ok?"pass":"fail":"\u2014"}</td>
           </tr>`).join("")}
         </tbody></table>`:"",document.getElementById("vbox").innerHTML=t.verdict?`<p class="eyebrow">Verdict</p>
-        <p class="vh">${l(t.verdict.headline)}</p>
-        <p class="muted">${l(t.verdict.reason)}</p>
-        <a class="btn" href="${u.results(n)}">Open the results and move the limits</a>`:""}let h=e=>{switch(t.now=Math.max(t.now,e.t),e.kind){case"start":t.question=e.question,t.t0=e.t;for(let a of e.options)t.cols.set(a.id,{...a,state:"waiting",feed:[],calls:0});break;case"phase":t.phase=e.phase,e.phase==="build"&&t.cols.forEach(a=>a.state="building");break;case"bob":{let a=t.cols.get(e.option);a&&(a.feed.push(e.label==="update todo list"?"Updated its plan":e.label),a.calls++);break}case"built":{let a=t.cols.get(e.option);a&&Object.assign(a,{state:e.ok?"built":"failed",seconds:e.seconds,cost:e.cost,error:e.error,calls:e.tool_calls??a.calls});break}case"measure":{let a=e.option==="baseline"?t.base:t.cols.get(e.option);a&&Object.assign(a,{state:"measuring",step:e.step});break}case"measured":{let a=e.option==="baseline"?t.base:t.cols.get(e.option);a&&Object.assign(a,{state:"measured",m:e});break}case"verdict":t.verdict=e.verdict;break}d()};d();let x=u.watch(n,h,()=>i),T=setInterval(()=>{u.mode==="local"&&t.phase==="build"&&(t.now=Date.now(),d())},1e3);y=()=>{x(),clearInterval(T)}}async function E(){y(),y=()=>{};let n=location.hash||"#/";try{n.startsWith("#/run/")?R(decodeURIComponent(n.slice(6))):n==="#/runs"?await j():await O()}catch(o){$.innerHTML=`<p class="muted">${l(o.message)}</p>`}window.scrollTo(0,0)}addEventListener("hashchange",E);E();})();
+        <p class="vh">${r(t.verdict.headline)}</p>
+        <p class="muted">${r(t.verdict.reason)}</p>
+        <a class="btn" href="${c.results(n)}">Open the results and move the limits</a>`:""}let u=e=>{switch(t.now=Math.max(t.now,e.t),e.kind){case"start":t.question=e.question,t.t0=e.t;for(let a of e.options)t.cols.set(a.id,{...a,state:"waiting",feed:[],calls:0});break;case"phase":t.phase=e.phase,e.phase==="build"&&t.cols.forEach(a=>a.state="building");break;case"bob":{let a=t.cols.get(e.option);a&&(a.feed.push(e.label==="update todo list"?"Updated its plan":e.label),a.calls++);break}case"built":{let a=t.cols.get(e.option);a&&Object.assign(a,{state:e.ok?"built":"failed",seconds:e.seconds,cost:e.cost,error:e.error,calls:e.tool_calls??a.calls});break}case"measure":{let a=e.option==="baseline"?t.base:t.cols.get(e.option);a&&Object.assign(a,{state:"measuring",step:e.step});break}case"measured":{let a=e.option==="baseline"?t.base:t.cols.get(e.option);a&&Object.assign(a,{state:"measured",m:e});break}case"verdict":t.verdict=e.verdict;break}i()};i();let g=c.watch(n,u,()=>l),T=setInterval(()=>{c.mode==="local"&&t.phase==="build"&&(t.now=Date.now(),i())},1e3);f=()=>{g(),clearInterval(T)}}async function x(){f(),f=()=>{};let n=location.hash||"#/";try{n.startsWith("#/run/")?R(decodeURIComponent(n.slice(6))):n==="#/runs"?await j():await O()}catch(o){y.innerHTML=`<p class="muted">${r(o.message)}</p>`}window.scrollTo(0,0)}addEventListener("hashchange",x);x();})();
 </script>
 </body>
 </html>

@@ -94,6 +94,8 @@ async function debateView() {
   nav("debate");
   const d = await src.debate();
   const ro = src.mode === "static";
+  // On the hosted site the button opens the newest recorded run directly.
+  const latest = ro ? (await src.runs())[0]?.id : undefined;
   const dis = ro ? "disabled" : "";
   const optRow = (o: Opt, i: number) => `
     <div class="opt-row" data-i="${i}" data-id="${esc(o.id)}">
@@ -125,7 +127,7 @@ async function debateView() {
       <div class="actions">
         ${
           ro
-            ? `<a class="btn" href="#/runs">Watch a recorded run</a><span class="muted">Runs build real code, so they happen on your machine: <code>npx settle ui</code> in your repo. <a href="${REPO}">How to run it</a></span>`
+            ? `<a class="btn" id="watch" href="${latest ? `#/run/${latest}` : "#/runs"}">Watch Bob build it</a><span class="muted">Runs build real code, so they happen on your machine: <code>npx settle ui</code> in your repo. <a href="${REPO}">How to run it</a></span>`
             : `<button class="btn" id="run" type="button">Build every option with Bob</button><button class="btn ghost" id="save" type="button">Save</button><span class="muted" id="msg">${esc(d.path ?? "")}</span>`
         }
       </div>
