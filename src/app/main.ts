@@ -360,7 +360,8 @@ function runView(id: string) {
       case "bob": {
         const c = st.cols.get(e.option);
         if (c) {
-          c.feed.push(e.label);
+          // Runs recorded before the label existed say "update todo list".
+          c.feed.push(e.label === "update todo list" ? "Updated its plan" : e.label);
           c.calls++;
         }
         break;

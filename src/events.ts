@@ -54,6 +54,8 @@ export function describeTool(tool: string, params: Record<string, any>, workspac
     case "search_files":
     case "codebase_search":
       return `Searched for ${short(String(params.regex ?? params.query ?? ""), 40)}`;
+    case "update_todo_list":
+      return "Updated its plan";
     case "list_code_definition_names":
       return `Mapped ${rel(params.path)}`;
     default:

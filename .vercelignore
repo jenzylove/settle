@@ -1,6 +1,8 @@
-.settle/
-node_modules/
-demo/
-src/
-runs/
-docs/
+/.settle/
+/node_modules/
+/demo/
+/src/
+/runs/
+/docs/
+/test/
+/bob_sessions/

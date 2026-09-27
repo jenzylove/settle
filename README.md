@@ -2,7 +2,7 @@
 
 **When your team argues about how to build something, Settle builds each option and shows you the numbers.**
 
-Live results from a real run: **https://settle-blush.vercel.app**
+Live site, with a replay of a real run and its results: **https://settle-blush.vercel.app**
 
 Teams make design calls every week. Cache or materialized view. Queue or direct call. Library A or library B. Today those calls are settled by whoever argues best, or by one engineer spending days on a throwaway version of one option. The numbers that would end the argument only exist once every option is actually built, in your codebase, on your data.
 
@@ -21,13 +21,13 @@ The question: *How do we make the top customers endpoint fast?* on a small order
 
 | | Today | Cache | Materialized view | Index and rewrite |
 |---|---|---|---|---|
-| p95 latency | 1.01 s | 3 ms | 7 ms | 409 ms |
-| Throughput | 11 req/s | 4,955 req/s | 1,704 req/s | 24.5 req/s |
-| Staleness (worst) | instant | 60.1 s | 10 s | instant |
-| Code changed | | +45 −2 | +45 −13 | +10 −0 |
-| Built by Bob in | | 2m 13s | 2m 22s | 2m 4s |
+| p95 latency | 1.98 s | 7 ms | 47 ms | 236 ms |
+| Throughput | 6.9 req/s | 1,684 req/s | 329 req/s | 37.6 req/s |
+| Staleness (worst) | instant | 60 s | 5 s | instant |
+| Code changed | | +20 −0 | +48 −13 | +9 −0 |
+| Built by Bob in | | 2m 2s | 2m 27s | 2m 2s |
 
-The fastest option is not automatically the right one. With the recorded limits (p95 at most 50 ms, results at most 15 s stale) the materialized view wins. Allow 90 seconds of staleness and the cache wins with less code. Accept 500 ms and the index wins with ten lines. The results page lets you move those limits and watch the pick change; the measurements never change.
+The fastest option is not automatically the right one. With the recorded limits (p95 at most 50 ms, results at most 15 s stale) the materialized view wins. Allow 90 seconds of staleness and the cache wins with less code. Accept 500 ms and the index wins with nine lines. The results page lets you move those limits and watch the pick change; the measurements never change.
 
 ## Run it
 
@@ -36,6 +36,7 @@ Requirements: Node 24, git, and [IBM Bob Shell](https://bob.ibm.com/docs/shell/g
 ```bash
 npm install
 cd demo/orders-api && npm install
+node ../../bin/settle.mjs ui             # the Settle app: edit the debate, press Build, watch Bob live
 node ../../bin/settle.mjs run            # build every option with Bob, measure, decide
 node ../../bin/settle.mjs run --baseline-only   # measure today's code only, no Bob calls
 node ../../bin/settle.mjs report ../../runs/<id> --set max_staleness_seconds=90
@@ -106,7 +107,10 @@ The full example is [demo/orders-api/settle.yml](demo/orders-api/settle.yml).
 | Load test, freshness probe, tests, dependency diff | [src/measure.ts](src/measure.ts) |
 | Verdict rules | [src/verdict.ts](src/verdict.ts) |
 | Results page and appendix | [src/view.ts](src/view.ts), [src/report.ts](src/report.ts), [src/client.ts](src/client.ts) |
-| Orchestration | [src/cli.ts](src/cli.ts) |
+| Run engine and event stream | [src/engine.ts](src/engine.ts), [src/events.ts](src/events.ts) |
+| The Settle app (`settle ui`) | [src/ui.ts](src/ui.ts), [src/app/](src/app/) |
+| Hosted site and replay (`settle site`) | [src/site.ts](src/site.ts), [src/app/landing.ts](src/app/landing.ts) |
+| Command line | [src/cli.ts](src/cli.ts) |
 
 **Fair comparison.** Every option starts from the same commit. Options are measured one at a time so they never compete for CPU. The same seeded data, load and probe apply to every branch. Tests are counted apart from application code so an option is never penalised for being better tested.
 
@@ -118,6 +122,10 @@ The full example is [demo/orders-api/settle.yml](demo/orders-api/settle.yml).
 
 - **Inside the product:** every option is built by its own Bob Shell session (`bob run`, headless) in its own worktree, in parallel. Session stats (duration, tool calls, cost) are saved with each run.
 - **Building Settle:** Bob IDE sessions wrote the verdict tests, the Settle custom mode and a fairness review of the harness. Session summaries are in [bob_sessions/](bob_sessions/).
+
+## Tests
+
+`npm test` runs 59 tests, including an end to end run of the whole pipeline (worktrees, parallel builds, install, tests, load test, freshness probe, verdict, report, event log) on a small fixture app with a stand in for Bob Shell. GitHub Actions runs typecheck and tests on every push.
 
 ## Limits
 
