@@ -300,11 +300,31 @@ jobs:
     <div class="fine"><span>Built for the IBM Bob 2.0 Hackathon</span><span>MIT license</span></div>
   </footer>
 </div>
+<script>
+// Scroll reveal: sections and cards rise in as they enter the view.
+(function () {
+  var sel = ".shead, .grid3 > .card, .fstep, .topt, .bobide, .ustep, .vs > .card, .faq details, .cta-big, .wordmark";
+  var els = [].slice.call(document.querySelectorAll(sel));
+  if (!("IntersectionObserver" in window)) return;
+  els.forEach(function (el) {
+    var sibs = el.parentElement ? [].slice.call(el.parentElement.children).filter(function (c) { return c.matches(sel); }) : [];
+    el.style.setProperty("--rd", Math.min(sibs.indexOf(el), 6) * 90 + "ms");
+    el.classList.add("rv");
+  });
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+  }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
+  els.forEach(function (el) { io.observe(el); });
+})();
+</script>
 </body>
 </html>`;
 }
 
 const ACCENT_CSS = `
+.rv { opacity: 0; transform: translateY(28px); transition: opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1); transition-delay: var(--rd, 0ms); }
+.rv.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .rv { opacity: 1; transform: none; transition: none; } }
 .bobide { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: center; background: var(--accent); color: #fff; border-radius: 28px; padding: 32px; margin-bottom: 18px; box-shadow: 0 30px 60px -30px rgba(47,91,255,.6); }
 .bobide .tag { background: rgba(255,255,255,.16); color: #fff; box-shadow: none; }
 .bobide h3 { font: 400 clamp(26px, 3vw, 36px)/1.15 var(--serif); margin: 14px 0 10px; }
