@@ -19,6 +19,7 @@ if (prompt.includes("settle-plan.json")) {
     { id: "answers-fast", assumption: "The value endpoint answers within one second.", why_risky: "Slow reads would need a cache.", experiment: "Time one request.", plain: "Reading the value is quick." },
     { id: "has-currency", assumption: "The value endpoint already returns a currency field.", why_risky: "Adding it means a schema change.", experiment: "Read the response shape.", plain: "Values already say which currency they are in." },
     { id: "edits-code", assumption: "The server can be changed freely.", why_risky: "Used to prove that edits to existing files are distrusted.", experiment: "Edit server.mjs.", plain: "A deliberately untrustworthy experiment." },
+    { id: "no-import", assumption: "Arithmetic works.", why_risky: "Used to prove that a test which never touches the app is not trusted.", experiment: "Assert 1 + 1.", plain: "A test that ignores the app." },
   ]));
 } else if (prompt.includes("Assumption to test")) {
   const file = prompt.match(/Write exactly one test file at (\S+)\./)[1];

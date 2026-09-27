@@ -254,6 +254,11 @@ export async function prove(configPath: string, listen: (e: StampedProve) => voi
     if (!x.test_file) {
       x.status = "unknown";
       x.evidence = "Bob did not produce an experiment file.";
+    } else if (x.test_code && !/from\s+["']\.\.\/|require\(\s*["']\.\.\//.test(x.test_code)) {
+      // A test that never imports the application cannot tell us anything
+      // about it, so it cannot count as a pass or a blocker.
+      x.status = "unknown";
+      x.evidence = "The experiment does not import any of the application's code, so its result says nothing about the app.";
     } else if (x.touched_existing_tests.length) {
       x.status = "unknown";
       x.evidence = `The experiment changed existing files (${x.touched_existing_tests.join(", ")}), so its result cannot be trusted.`;

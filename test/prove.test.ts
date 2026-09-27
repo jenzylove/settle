@@ -32,7 +32,9 @@ test("settle prove sorts assumptions into proven, blocked and untrusted", { time
     assert.equal(by["edits-code"].status, "unknown", "an experiment that changes an existing file is not trusted");
     assert.match(by["edits-code"].evidence, /changed existing files/);
     assert.equal(by["edits-code"].bob_claim, "holds", "even though Bob claimed it holds");
-    assert.deepEqual(proof.summary, { proven: 1, blocked: 1, unknown: 1 });
+    assert.equal(by["no-import"].status, "unknown", "a test that never imports the app cannot pass");
+    assert.match(by["no-import"].evidence, /does not import any of the application/);
+    assert.deepEqual(proof.summary, { proven: 1, blocked: 1, unknown: 2 });
     assert.match(proof.plan, /Add the currency field first/);
 
     const dir = join(repo, "runs", proof.id);
