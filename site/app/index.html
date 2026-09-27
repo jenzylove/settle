@@ -88,13 +88,29 @@ textarea:disabled, input:disabled { color: var(--fg); -webkit-text-fill-color: v
 .col footer { margin-top: 14px; font-size: 12px; }
 .tag { display: inline-block; font: 600 10px/1 var(--mono); letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid var(--strong); padding: 4px 6px; margin-bottom: 10px; }
 
-.measure { padding-top: 32px; overflow-x: auto; }
-.measure table { width: 100%; min-width: 680px; border-collapse: collapse; margin-top: 12px; }
-.measure th, .measure td { text-align: left; padding: 14px 12px; border-bottom: 1px solid var(--line); font: 500 14px/1.4 var(--mono); }
-.measure thead th { font: 500 12px var(--mono); color: var(--muted); letter-spacing: 0.04em; border-bottom: 2px solid var(--strong); }
-.measure tbody th { font: 600 15px var(--sans); }
-.measure tr.now { background: var(--soft); }
-.measure tr.win td, .measure tr.win th { font-weight: 700; }
+.measure { padding-top: 36px; }
+.mhead { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+.mkey { font-size: 12px; color: var(--muted); margin: 0; }
+.mrows { margin-top: 14px; border-top: 2px solid var(--strong); }
+.mrow { display: grid; grid-template-columns: 220px 1fr 1fr 130px 80px; gap: 24px; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--line); transition: background .3s ease; }
+.mrow.mlabels { font: 500 12px var(--mono); color: var(--muted); padding: 10px 0; }
+.mrow.now { background: var(--soft); }
+.mrow.base .mn { color: var(--muted); }
+.mn { font: 600 16px var(--sans); }
+.mrow.win .mn { font-weight: 800; }
+.mrow .tag { margin: 0 0 0 6px; vertical-align: 2px; }
+.mbar { display: grid; grid-template-columns: 1fr 84px; gap: 12px; align-items: center; }
+.track { position: relative; height: 10px; background: var(--soft); }
+.track .fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--fg); transform-origin: left; }
+.track .fill.over { background: var(--faint); }
+.track .fill.grow { animation: grow .9s cubic-bezier(.2,.7,.2,1) both; }
+@keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.track .limit { position: absolute; top: -6px; bottom: -6px; width: 0; border-left: 2px dashed var(--fg); z-index: 1; }
+.bv { font: 600 14px var(--mono); text-align: right; }
+.verdict-box .vh, .verdict-box .muted, .verdict-box .btn { animation: rise .7s ease both; }
+.verdict-box .muted { animation-delay: .15s; } .verdict-box .btn { animation-delay: .3s; }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (max-width: 820px) { .mrow { grid-template-columns: 1fr; gap: 8px; } .mrow.mlabels { display: none; } }
 .verdict-box { padding-top: 40px; }
 .verdict-box .vh { font: 700 clamp(24px, 3vw, 36px)/1.15 var(--sans); letter-spacing: -0.02em; margin: 10px 0; }
 .verdict-box .muted { max-width: 90ch; margin: 0 0 24px; }
@@ -123,37 +139,37 @@ textarea:disabled, input:disabled { color: var(--fg); -webkit-text-fill-color: v
   <main id="app"></main>
   <footer class="foot"><span>Settle · options built with IBM Bob</span><span>Recorded runs from a real machine. Run your own with <code>settle ui</code>.</span></footer>
 </div>
-<script>"use strict";(()=>{var I=document.body.dataset.mode??"local",_="https://github.com/jenzylove/settle",h=async(n,o)=>{let l=await fetch(n,o);if(!l.ok)throw new Error(await l.text()||l.statusText);return l.json()},k={mode:"local",debate:()=>h("/api/debate"),save:n=>h("/api/debate",{method:"PUT",headers:{"content-type":"application/json"},body:JSON.stringify(n)}),runs:()=>h("/api/runs"),start:async()=>(await h("/api/run",{method:"POST"})).id,watch(n,o){let l=new EventSource(`/api/events/${n}`);return l.onmessage=t=>o(JSON.parse(t.data)),l.addEventListener("end",()=>l.close()),()=>l.close()},results:n=>`/runs/${n}/`},H={mode:"static",debate:()=>h("data/debate.json"),runs:()=>h("data/runs.json"),watch(n,o,l){let t=!1;return(async()=>{let p=(await(await fetch(`../runs/${n}/events.jsonl`)).text()).split(`
-`).filter(Boolean).map(d=>JSON.parse(d));for(let d=0;d<p.length&&!t;d++){if(d>0){let m=(p[d].t-p[d-1].t)/l();await new Promise(i=>setTimeout(i,Math.min(m,1400)))}t||o(p[d])}})(),()=>t=!0},results:n=>`../runs/${n}/`},c=I==="static"?H:k,y=document.getElementById("app"),r=n=>String(n??"").replace(/[&<>"']/g,o=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[o]),f=()=>{};function w(n){document.querySelectorAll(".nav a[data-route]").forEach(o=>o.classList.toggle("on",o.dataset.route===n))}async function O(){w("debate");let n=await c.debate(),o=c.mode==="static",l=o?(await c.runs())[0]?.id:void 0,t=o?"disabled":"",b=(i,u)=>`
-    <div class="opt-row" data-i="${u}" data-id="${r(i.id)}">
-      <span class="opt-n mono">${String.fromCharCode(65+u)}</span>
-      <input class="opt-name" value="${r(i.name)}" placeholder="Option name" aria-label="Option name" ${t}>
-      <input class="opt-desc" value="${r(i.description)}" placeholder="What Bob should build, in one sentence" aria-label="Option description" ${t}>
+<script>"use strict";(()=>{var R=document.body.dataset.mode??"local",A="https://github.com/jenzylove/settle",w=async(n,o)=>{let l=await fetch(n,o);if(!l.ok)throw new Error(await l.text()||l.statusText);return l.json()},C={mode:"local",debate:()=>w("/api/debate"),save:n=>w("/api/debate",{method:"PUT",headers:{"content-type":"application/json"},body:JSON.stringify(n)}),runs:()=>w("/api/runs"),start:async()=>(await w("/api/run",{method:"POST"})).id,watch(n,o){let l=new EventSource(`/api/events/${n}`);return l.onmessage=e=>o(JSON.parse(e.data)),l.addEventListener("end",()=>l.close()),()=>l.close()},results:n=>`/runs/${n}/`},P={mode:"static",debate:()=>w("data/debate.json"),runs:()=>w("data/runs.json"),watch(n,o,l){let e=!1;return(async()=>{let g=(await(await fetch(`../runs/${n}/events.jsonl`)).text()).split(`
+`).filter(Boolean).map(u=>JSON.parse(u));for(let u=0;u<g.length&&!e;u++){if(u>0){let h=(g[u].t-g[u-1].t)/l();await new Promise(i=>setTimeout(i,Math.min(h,1400)))}e||o(g[u])}})(),()=>e=!0},results:n=>`../runs/${n}/`},c=R==="static"?P:C,x=document.getElementById("app"),r=n=>String(n??"").replace(/[&<>"']/g,o=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[o]),M=()=>{};function S(n){document.querySelectorAll(".nav a[data-route]").forEach(o=>o.classList.toggle("on",o.dataset.route===n))}async function N(){S("debate");let n=await c.debate(),o=c.mode==="static",l=o?(await c.runs())[0]?.id:void 0,e=o?"disabled":"",f=(i,b)=>`
+    <div class="opt-row" data-i="${b}" data-id="${r(i.id)}">
+      <span class="opt-n mono">${String.fromCharCode(65+b)}</span>
+      <input class="opt-name" value="${r(i.name)}" placeholder="Option name" aria-label="Option name" ${e}>
+      <input class="opt-desc" value="${r(i.description)}" placeholder="What Bob should build, in one sentence" aria-label="Option description" ${e}>
       ${o?"":'<button class="x" type="button" aria-label="Remove option">\u2715</button>'}
-    </div>`;if(y.innerHTML=`
+    </div>`;if(x.innerHTML=`
     <section class="debate">
       <p class="eyebrow">The question</p>
-      <textarea id="q" class="q" rows="2" aria-label="Question" ${t}>${r(n.question)}</textarea>
-      <textarea id="ctx" class="ctx" rows="3" aria-label="Context" placeholder="Context Bob should know" ${t}>${r(n.context??"")}</textarea>
+      <textarea id="q" class="q" rows="2" aria-label="Question" ${e}>${r(n.question)}</textarea>
+      <textarea id="ctx" class="ctx" rows="3" aria-label="Context" placeholder="Context Bob should know" ${e}>${r(n.context??"")}</textarea>
 
       <div class="grid2">
         <div>
           <p class="eyebrow">Options Bob will build</p>
-          <div id="opts">${n.options.map(b).join("")}</div>
+          <div id="opts">${n.options.map(f).join("")}</div>
           ${o?"":'<button class="btn ghost small" id="add" type="button">Add option</button>'}
         </div>
         <div>
           <p class="eyebrow">Your limits</p>
-          <label class="lim"><span>p95 latency at most</span><span><input id="p95" type="number" min="1" value="${n.constraints.max_p95_ms??""}" ${t}> ms</span></label>
-          <label class="lim"><span>Results stale for at most</span><span><input id="stale" type="number" min="0" value="${n.constraints.max_staleness_seconds??""}" ${t}> s</span></label>
-          <label class="lim"><span>Existing tests must pass</span><span><input id="tests" type="checkbox" ${n.constraints.tests_must_pass?"checked":""} ${t}></span></label>
+          <label class="lim"><span>p95 latency at most</span><span><input id="p95" type="number" min="1" value="${n.constraints.max_p95_ms??""}" ${e}> ms</span></label>
+          <label class="lim"><span>Results stale for at most</span><span><input id="stale" type="number" min="0" value="${n.constraints.max_staleness_seconds??""}" ${e}> s</span></label>
+          <label class="lim"><span>Existing tests must pass</span><span><input id="tests" type="checkbox" ${n.constraints.tests_must_pass?"checked":""} ${e}></span></label>
         </div>
       </div>
 
       <div class="actions">
-        ${o?`<a class="btn" id="watch" href="${l?`#/run/${l}`:"#/runs"}">Watch Bob build it</a><span class="muted">Runs build real code, so they happen on your machine with <code>settle ui</code>. <a href="${_}">How to run it</a></span>`:`<button class="btn" id="run" type="button">Build every option with Bob</button><button class="btn ghost" id="save" type="button">Save</button><span class="muted" id="msg">${r(n.path??"")}</span>`}
+        ${o?`<a class="btn" id="watch" href="${l?`#/run/${l}`:"#/runs"}">Watch Bob build it</a><span class="muted">Runs build real code, so they happen on your machine with <code>settle ui</code>. <a href="${A}">How to run it</a></span>`:`<button class="btn" id="run" type="button">Build every option with Bob</button><button class="btn ghost" id="save" type="button">Save</button><span class="muted" id="msg">${r(n.path??"")}</span>`}
       </div>
-    </section>`,o)return;let p=()=>({question:document.getElementById("q").value.trim(),context:document.getElementById("ctx").value.trim(),options:[...document.querySelectorAll(".opt-row")].map(i=>{let u=i.querySelector(".opt-name").value.trim();return{id:i.dataset.id||u.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"option",name:u,description:i.querySelector(".opt-desc").value.trim()}}),constraints:{max_p95_ms:Number(document.getElementById("p95").value)||void 0,max_staleness_seconds:document.getElementById("stale").value===""?void 0:Number(document.getElementById("stale").value),tests_must_pass:document.getElementById("tests").checked}}),d=i=>document.getElementById("msg").textContent=i,m=()=>document.querySelectorAll(".opt-row .x").forEach(i=>i.onclick=()=>i.closest(".opt-row").remove());m(),document.getElementById("add").onclick=()=>{let i=document.querySelectorAll(".opt-row").length;document.getElementById("opts").insertAdjacentHTML("beforeend",b({id:"",name:"",description:""},i)),m()},document.getElementById("save").onclick=async()=>{try{await c.save(p()),d("Saved to settle.yml")}catch(i){d(i.message)}},document.getElementById("run").onclick=async i=>{let u=i.currentTarget;u.disabled=!0;try{await c.save(p());let g=await c.start();location.hash=`#/run/${g}`}catch(g){d(g.message),u.disabled=!1}}}async function j(){w("runs");let n=await c.runs();y.innerHTML=`
+    </section>`,o)return;let g=()=>({question:document.getElementById("q").value.trim(),context:document.getElementById("ctx").value.trim(),options:[...document.querySelectorAll(".opt-row")].map(i=>{let b=i.querySelector(".opt-name").value.trim();return{id:i.dataset.id||b.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"option",name:b,description:i.querySelector(".opt-desc").value.trim()}}),constraints:{max_p95_ms:Number(document.getElementById("p95").value)||void 0,max_staleness_seconds:document.getElementById("stale").value===""?void 0:Number(document.getElementById("stale").value),tests_must_pass:document.getElementById("tests").checked}}),u=i=>document.getElementById("msg").textContent=i,h=()=>document.querySelectorAll(".opt-row .x").forEach(i=>i.onclick=()=>i.closest(".opt-row").remove());h(),document.getElementById("add").onclick=()=>{let i=document.querySelectorAll(".opt-row").length;document.getElementById("opts").insertAdjacentHTML("beforeend",f({id:"",name:"",description:""},i)),h()},document.getElementById("save").onclick=async()=>{try{await c.save(g()),u("Saved to settle.yml")}catch(i){u(i.message)}},document.getElementById("run").onclick=async i=>{let b=i.currentTarget;b.disabled=!0;try{await c.save(g());let y=await c.start();location.hash=`#/run/${y}`}catch(y){u(y.message),b.disabled=!1}}}async function V(){S("runs");let n=await c.runs();x.innerHTML=`
     <section class="runs">
       <p class="eyebrow">${c.mode==="static"?"Recorded runs":"Runs"}</p>
       ${n.length===0?'<p class="muted">No runs yet.</p>':`<div class="list">${n.map(o=>`<a class="run-row" href="#/run/${o.id}">
@@ -162,40 +178,41 @@ textarea:disabled, input:disabled { color: var(--fg); -webkit-text-fill-color: v
                   <span class="rv">${o.status==="running"?"Running\u2026":r(o.headline??"")}</span>
                   <span class="go">${c.mode==="static"?"Replay":"Open"} \u2192</span>
                 </a>`).join("")}</div>`}
-    </section>`}function R(n){w("runs");let o=[5,10,20],l=10,t={question:"",phase:"starting",t0:0,now:0,cols:new Map,base:{id:"baseline",name:"Today (no change)",description:"",state:"waiting",feed:[],calls:0}};y.innerHTML=`
+    </section>`}function D(n){S("runs");let o=[5,10,20],l=10,e={question:"",phase:"starting",t0:0,now:0,cols:new Map,base:{id:"baseline",name:"Today (no change)",description:"",state:"waiting",feed:[],calls:0},limits:{}};c.debate().then(s=>{e.limits.max_p95_ms===void 0&&e.limits.max_staleness_seconds===void 0&&(e.limits=s.constraints,i())}).catch(()=>{}),x.innerHTML=`
     <section class="run">
       <div class="run-head">
         <p class="eyebrow">${c.mode==="static"?"Replay of a real run":"Live run"} <span class="mono">${r(n)}</span></p>
         <h1 id="rq">&nbsp;</h1>
         <div class="phases" id="phases"></div>
-        ${c.mode==="static"?`<div class="speed">Speed ${o.map(e=>`<button type="button" data-s="${e}" class="${e===l?"on":""}">${e}\xD7</button>`).join("")}</div>`:""}
+        ${c.mode==="static"?`<div class="speed">Speed ${o.map(s=>`<button type="button" data-s="${s}" class="${s===l?"on":""}">${s}\xD7</button>`).join("")}</div>`:""}
       </div>
       <div class="cols" id="cols"></div>
       <div class="measure" id="measure"></div>
       <div class="verdict-box" id="vbox" aria-live="polite"></div>
-    </section>`,document.querySelectorAll(".speed button").forEach(e=>e.onclick=()=>{l=Number(e.dataset.s),document.querySelectorAll(".speed button").forEach(a=>a.classList.toggle("on",a===e))});let b=e=>`${Math.floor(e/60)}m ${String(Math.floor(e%60)).padStart(2,"0")}s`,p=e=>e===void 0?"\u2014":e>=1e3?`${(e/1e3).toFixed(2)} s`:`${Math.round(e)} ms`,d=e=>{let a=e.m?.freshness;return a?a.timed_out?`over ${a.max_seconds} s`:a.max_seconds<1?"instant":`${a.max_seconds} s`:"\u2014"},m={install:"Installing",tests:"Running tests",start:"Starting app",load:"Load test",freshness:"Freshness probe"};function i(){document.getElementById("rq").textContent=t.question||"\xA0";let a=["build","measure","done"].indexOf(t.phase);document.getElementById("phases").innerHTML=["Bob builds","Measure","Verdict"].map((s,$)=>{let v=t.phase==="done"?2:a;return`<span class="ph ${$<v?"past":$===v?"now":""}">${s}</span>`}).join('<span class="ph-sep"></span>');let M=t.t0?(t.now-t.t0)/1e3:0;document.getElementById("cols").innerHTML=[...t.cols.values()].map(s=>{let $=s.state==="building"?`Building \xB7 ${b(M)}`:s.state==="failed"?`Not built${s.error?`: ${r(s.error)}`:""}`:s.state==="measuring"?r(m[s.step??""]??"Measuring"):s.state==="measured"?"Measured":s.state==="built"?`Built in ${b(s.seconds??0)}`:"Waiting",v=t.verdict?.winner===s.id;return`<article class="col ${s.state} ${v?"win":""}">
+    </section>`,document.querySelectorAll(".speed button").forEach(s=>s.onclick=()=>{l=Number(s.dataset.s),document.querySelectorAll(".speed button").forEach(a=>a.classList.toggle("on",a===s))});let f=s=>`${Math.floor(s/60)}m ${String(Math.floor(s%60)).padStart(2,"0")}s`,g=s=>s===void 0?"\u2014":s>=1e3?`${(s/1e3).toFixed(2)} s`:`${Math.round(s)} ms`,u=s=>{let a=s.m?.freshness;return a?a.timed_out?`over ${a.max_seconds} s`:a.max_seconds<1?"instant":`${a.max_seconds} s`:"\u2014"},h={install:"Installing",tests:"Running tests",start:"Starting app",load:"Load test",freshness:"Freshness probe"};function i(){document.getElementById("rq").textContent=e.question||"\xA0";let a=["build","measure","done"].indexOf(e.phase);document.getElementById("phases").innerHTML=["Bob builds","Measure","Verdict"].map((t,d)=>{let m=e.phase==="done"?2:a;return`<span class="ph ${d<m?"past":d===m?"now":""}">${t}</span>`}).join('<span class="ph-sep"></span>');let q=e.t0?(e.now-e.t0)/1e3:0;document.getElementById("cols").innerHTML=[...e.cols.values()].map(t=>{let d=t.state==="building"?`Building \xB7 ${f(q)}`:t.state==="failed"?`Not built${t.error?`: ${r(t.error)}`:""}`:t.state==="measuring"?r(h[t.step??""]??"Measuring"):t.state==="measured"?"Measured":t.state==="built"?`Built in ${f(t.seconds??0)}`:"Waiting",m=e.verdict?.winner===t.id;return`<article class="col ${t.state} ${m?"win":""}">
           <header>
-            ${v?'<span class="tag">Pick</span>':""}
-            <h3>${r(s.name)}</h3>
-            <p class="desc">${r(s.description)}</p>
-            <p class="status mono">${$}</p>
+            ${m?'<span class="tag">Pick</span>':""}
+            <h3>${r(t.name)}</h3>
+            <p class="desc">${r(t.description)}</p>
+            <p class="status mono">${d}</p>
           </header>
-          <ol class="feed">${s.feed.slice(-7).map((B,L,q)=>`<li class="${L===q.length-1&&s.state==="building"?"latest":""}">${r(B)}</li>`).join("")}</ol>
-          <footer class="mono muted">${s.calls} Bob actions${s.cost!==void 0?` \xB7 ${s.cost} Bobcoins`:""}</footer>
-        </article>`}).join("");let E=[t.base,...t.cols.values()],S=E.some(s=>s.m||s.state==="measuring");document.getElementById("measure").innerHTML=S?`<p class="eyebrow">Same load test and freshness probe on every branch, one at a time</p>
-        <table><thead><tr><th></th><th>p95 latency</th><th>Throughput</th><th>Staleness</th><th>Code changed</th><th>Tests</th></tr></thead><tbody>
-        ${E.map(s=>`<tr class="${s.state==="measuring"?"now":""} ${t.verdict?.winner===s.id?"win":""}">
-            <th>${r(s.name)}</th>
-            <td>${s.state==="measuring"&&!s.m?`<span class="muted">${r(m[s.step??""]??"")}\u2026</span>`:p(s.m?.load?.p95_ms)}</td>
-            <td>${s.m?.load?`${s.m.load.rps} req/s`:"\u2014"}</td>
-            <td>${d(s)}</td>
-            <td>${s.m?.lines?`+${s.m.lines.added} \u2212${s.m.lines.removed}`:"\u2014"}</td>
-            <td>${s.m?.tests?s.m.tests.ok?"pass":"fail":"\u2014"}</td>
-          </tr>`).join("")}
-        </tbody></table>`:"",document.getElementById("vbox").innerHTML=t.verdict?`<p class="eyebrow">Verdict</p>
-        <p class="vh">${r(t.verdict.headline)}</p>
-        <p class="muted">${r(t.verdict.reason)}</p>
-        <a class="btn" href="${c.results(n)}">Open the results and move the limits</a>`:""}let u=e=>{switch(t.now=Math.max(t.now,e.t),e.kind){case"start":t.question=e.question,t.t0=e.t;for(let a of e.options)t.cols.set(a.id,{...a,state:"waiting",feed:[],calls:0});break;case"phase":t.phase=e.phase,e.phase==="build"&&t.cols.forEach(a=>a.state="building");break;case"bob":{let a=t.cols.get(e.option);a&&(a.feed.push(e.label==="update todo list"?"Updated its plan":e.label),a.calls++);break}case"built":{let a=t.cols.get(e.option);a&&Object.assign(a,{state:e.ok?"built":"failed",seconds:e.seconds,cost:e.cost,error:e.error,calls:e.tool_calls??a.calls});break}case"measure":{let a=e.option==="baseline"?t.base:t.cols.get(e.option);a&&Object.assign(a,{state:"measuring",step:e.step});break}case"measured":{let a=e.option==="baseline"?t.base:t.cols.get(e.option);a&&Object.assign(a,{state:"measured",m:e});break}case"verdict":t.verdict=e.verdict;break}i()};i();let g=c.watch(n,u,()=>l),T=setInterval(()=>{c.mode==="local"&&t.phase==="build"&&(t.now=Date.now(),i())},1e3);f=()=>{g(),clearInterval(T)}}async function x(){f(),f=()=>{};let n=location.hash||"#/";try{n.startsWith("#/run/")?R(decodeURIComponent(n.slice(6))):n==="#/runs"?await j():await O()}catch(o){y.innerHTML=`<p class="muted">${r(o.message)}</p>`}window.scrollTo(0,0)}addEventListener("hashchange",x);x();})();
+          <ol class="feed">${t.feed.slice(-7).map((v,$,_)=>`<li class="${$===_.length-1&&t.state==="building"?"latest":""}">${r(v)}</li>`).join("")}</ol>
+          <footer class="mono muted">${t.calls} Bob actions${t.cost!==void 0?` \xB7 ${t.cost} Bobcoins`:""}</footer>
+        </article>`}).join("");let E=[e.base,...e.cols.values()],H=E.some(t=>t.m||t.state==="measuring"),O=Math.log10(3e3),T=t=>Math.max(2,Math.min(100,Math.log10(Math.max(t,1))/O*100)),B=t=>Math.max(t<1?0:2,Math.min(100,t/75*100)),p=e.limits,L=(t,d,m,v,$)=>`<div class="mbar"><div class="track">${m!==void 0?`<i class="limit" style="left:${m}%"></i>`:""}<b class="fill ${d?"over":""} ${v?"grow":""}" style="width:${t}%"></b></div><span class="bv">${$}</span></div>`;document.getElementById("measure").innerHTML=H?`<div class="mhead"><p class="eyebrow">Same load test and freshness probe on every branch, one at a time</p>
+          <p class="mkey mono">${p.max_p95_ms!==void 0?`\u2506 limit \u2264 ${p.max_p95_ms} ms`:""}${p.max_staleness_seconds!==void 0?` \xB7 \u2264 ${p.max_staleness_seconds} s stale`:""}</p></div>
+        <div class="mrows">
+        <div class="mrow mlabels"><span></span><span>p95 latency</span><span>Staleness</span><span>Code changed</span><span>Tests</span></div>
+        ${E.map(t=>{let d=t.m,m=d?.load?.p95_ms,v=d?.freshness,$=v?v.timed_out?75:v.max_seconds:void 0,_=!!t.grow,j=t.state==="measuring"&&!d?`<span class="muted mono">${r(h[t.step??""]??"")}\u2026</span>`:'<span class="muted mono">\u2014</span>';return`<div class="mrow ${t.state==="measuring"?"now":""} ${e.verdict?.winner===t.id?"win":""} ${t.id==="baseline"?"base":""}">
+              <span class="mn">${r(t.name)}${e.verdict?.winner===t.id?' <span class="tag">Pick</span>':""}</span>
+              ${m!==void 0?L(T(m),p.max_p95_ms!==void 0&&m>p.max_p95_ms,p.max_p95_ms!==void 0?T(p.max_p95_ms):void 0,_,g(m)):j}
+              ${$!==void 0?L(B($),p.max_staleness_seconds!==void 0&&$>p.max_staleness_seconds,p.max_staleness_seconds!==void 0?B(p.max_staleness_seconds):void 0,_,u(t)):'<span class="muted mono">\u2014</span>'}
+              <span class="mono">${d?.lines&&t.id!=="baseline"?`+${d.lines.added} \u2212${d.lines.removed}`:"\u2014"}</span>
+              <span class="mono">${d?.tests?d.tests.timed_out?"hung":d.tests.ok?"pass":"fail":"\u2014"}</span>
+            </div>`}).join("")}
+        </div>`:"",E.forEach(t=>t.grow=!1),document.getElementById("vbox").innerHTML=e.verdict?`<p class="eyebrow">Verdict</p>
+        <p class="vh">${r(e.verdict.headline)}</p>
+        <p class="muted">${r(e.verdict.reason)}</p>
+        <a class="btn" href="${c.results(n)}">Open the results and move the limits</a>`:""}let b=s=>{switch(e.now=Math.max(e.now,s.t),s.kind){case"start":e.question=s.question,e.t0=s.t,s.constraints&&(e.limits=s.constraints);for(let a of s.options)e.cols.set(a.id,{...a,state:"waiting",feed:[],calls:0});break;case"phase":e.phase=s.phase,s.phase==="build"&&e.cols.forEach(a=>a.state="building");break;case"bob":{let a=e.cols.get(s.option);a&&(a.feed.push(s.label==="update todo list"?"Updated its plan":s.label),a.calls++);break}case"built":{let a=e.cols.get(s.option);a&&Object.assign(a,{state:s.ok?"built":"failed",seconds:s.seconds,cost:s.cost,error:s.error,calls:s.tool_calls??a.calls});break}case"measure":{let a=s.option==="baseline"?e.base:e.cols.get(s.option);a&&Object.assign(a,{state:"measuring",step:s.step});break}case"measured":{let a=s.option==="baseline"?e.base:e.cols.get(s.option);a&&Object.assign(a,{state:"measured",m:s,grow:!0});break}case"verdict":e.verdict=s.verdict;break}i()};i();let y=c.watch(n,b,()=>l),I=setInterval(()=>{c.mode==="local"&&e.phase==="build"&&(e.now=Date.now(),i())},1e3);M=()=>{y(),clearInterval(I)}}async function k(){M(),M=()=>{};let n=location.hash||"#/";try{n.startsWith("#/run/")?D(decodeURIComponent(n.slice(6))):n==="#/runs"?await V():await N()}catch(o){x.innerHTML=`<p class="muted">${r(o.message)}</p>`}window.scrollTo(0,0)}addEventListener("hashchange",k);k();})();
 </script>
 </body>
 </html>

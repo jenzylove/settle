@@ -222,6 +222,7 @@ interface Col {
   error?: string;
   step?: string;
   m?: Extract<Stamped, { kind: "measured" }>;
+  grow?: boolean;
 }
 
 function runView(id: string) {
@@ -236,6 +237,7 @@ function runView(id: string) {
     cols: Map<string, Col>;
     base: Col;
     verdict?: Verdict;
+    limits: { max_p95_ms?: number; max_staleness_seconds?: number };
   } = {
     question: "",
     phase: "starting",
@@ -243,7 +245,10 @@ function runView(id: string) {
     now: 0,
     cols: new Map(),
     base: { id: "baseline", name: "Today (no change)", description: "", state: "waiting", feed: [], calls: 0 },
+    limits: {},
   };
+  // Runs recorded before the start event carried limits fall back to the debate's.
+  src.debate().then((d) => { if (st.limits.max_p95_ms === undefined && st.limits.max_staleness_seconds === undefined) { st.limits = d.constraints; paint(); } }).catch(() => {});
 
   app.innerHTML = `
     <section class="run">
@@ -321,23 +326,39 @@ function runView(id: string) {
 
     const rows = [st.base, ...st.cols.values()];
     const measuredAny = rows.some((c) => c.m || c.state === "measuring");
+    // Bars: latency on a log scale up to 3 s, staleness up to 75 s. The limit
+    // is a line through every bar, so "over" and "under" read at a glance.
+    const LMAX = Math.log10(3000);
+    const latPct = (v: number) => Math.max(2, Math.min(100, (Math.log10(Math.max(v, 1)) / LMAX) * 100));
+    const stPct = (v: number) => Math.max(v < 1 ? 0 : 2, Math.min(100, (v / 75) * 100));
+    const lim = st.limits;
+    const bar = (pct: number, over: boolean, limitPct: number | undefined, grow: boolean, label: string) =>
+      `<div class="mbar"><div class="track">${limitPct !== undefined ? `<i class="limit" style="left:${limitPct}%"></i>` : ""}<b class="fill ${over ? "over" : ""} ${grow ? "grow" : ""}" style="width:${pct}%"></b></div><span class="bv">${label}</span></div>`;
     document.getElementById("measure")!.innerHTML = !measuredAny
       ? ""
-      : `<p class="eyebrow">Same load test and freshness probe on every branch, one at a time</p>
-        <table><thead><tr><th></th><th>p95 latency</th><th>Throughput</th><th>Staleness</th><th>Code changed</th><th>Tests</th></tr></thead><tbody>
+      : `<div class="mhead"><p class="eyebrow">Same load test and freshness probe on every branch, one at a time</p>
+          <p class="mkey mono">${lim.max_p95_ms !== undefined ? `┆ limit ≤ ${lim.max_p95_ms} ms` : ""}${lim.max_staleness_seconds !== undefined ? ` · ≤ ${lim.max_staleness_seconds} s stale` : ""}</p></div>
+        <div class="mrows">
+        <div class="mrow mlabels"><span></span><span>p95 latency</span><span>Staleness</span><span>Code changed</span><span>Tests</span></div>
         ${rows
-          .map(
-            (c) => `<tr class="${c.state === "measuring" ? "now" : ""} ${st.verdict?.winner === c.id ? "win" : ""}">
-            <th>${esc(c.name)}</th>
-            <td>${c.state === "measuring" && !c.m ? `<span class="muted">${esc(stepName[c.step ?? ""] ?? "")}…</span>` : ms(c.m?.load?.p95_ms)}</td>
-            <td>${c.m?.load ? `${c.m.load.rps} req/s` : "—"}</td>
-            <td>${stale(c)}</td>
-            <td>${c.m?.lines ? `+${c.m.lines.added} −${c.m.lines.removed}` : "—"}</td>
-            <td>${c.m?.tests ? (c.m.tests.ok ? "pass" : "fail") : "—"}</td>
-          </tr>`,
-          )
+          .map((c) => {
+            const m = c.m;
+            const p95 = m?.load?.p95_ms;
+            const f = m?.freshness;
+            const staleSec = f ? (f.timed_out ? 75 : f.max_seconds) : undefined;
+            const grow = !!c.grow;
+            const waiting = c.state === "measuring" && !m ? `<span class="muted mono">${esc(stepName[c.step ?? ""] ?? "")}…</span>` : `<span class="muted mono">—</span>`;
+            return `<div class="mrow ${c.state === "measuring" ? "now" : ""} ${st.verdict?.winner === c.id ? "win" : ""} ${c.id === "baseline" ? "base" : ""}">
+              <span class="mn">${esc(c.name)}${st.verdict?.winner === c.id ? ` <span class="tag">Pick</span>` : ""}</span>
+              ${p95 !== undefined ? bar(latPct(p95), lim.max_p95_ms !== undefined && p95 > lim.max_p95_ms, lim.max_p95_ms !== undefined ? latPct(lim.max_p95_ms) : undefined, grow, ms(p95)) : waiting}
+              ${staleSec !== undefined ? bar(stPct(staleSec), lim.max_staleness_seconds !== undefined && staleSec > lim.max_staleness_seconds, lim.max_staleness_seconds !== undefined ? stPct(lim.max_staleness_seconds) : undefined, grow, stale(c)) : `<span class="muted mono">—</span>`}
+              <span class="mono">${m?.lines && c.id !== "baseline" ? `+${m.lines.added} −${m.lines.removed}` : "—"}</span>
+              <span class="mono">${m?.tests ? (m.tests.timed_out ? "hung" : m.tests.ok ? "pass" : "fail") : "—"}</span>
+            </div>`;
+          })
           .join("")}
-        </tbody></table>`;
+        </div>`;
+    rows.forEach((c) => (c.grow = false));
 
     document.getElementById("vbox")!.innerHTML = !st.verdict
       ? ""
@@ -353,6 +374,7 @@ function runView(id: string) {
       case "start":
         st.question = e.question;
         st.t0 = e.t;
+        if (e.constraints) st.limits = e.constraints;
         for (const o of e.options) st.cols.set(o.id, { ...o, state: "waiting", feed: [], calls: 0 });
         break;
       case "phase":
@@ -380,7 +402,7 @@ function runView(id: string) {
       }
       case "measured": {
         const c = e.option === "baseline" ? st.base : st.cols.get(e.option);
-        if (c) Object.assign(c, { state: "measured", m: e });
+        if (c) Object.assign(c, { state: "measured", m: e, grow: true });
         break;
       }
       case "verdict":

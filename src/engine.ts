@@ -82,7 +82,7 @@ export async function executeRun(p: Prepared, opts: RunOptions, listen: Listener
 
   const baselineOnly = !!opts.baselineOnly;
   const results = baselineOnly ? [] : config.options.map((o) => blankResult(o, `settle/${id}/${o.id}`));
-  emit({ kind: "start", id, question: config.question, base, options: results.map(({ id, name, description }) => ({ id, name, description })) });
+  emit({ kind: "start", id, question: config.question, base, options: results.map(({ id, name, description }) => ({ id, name, description })), constraints: config.constraints });
 
   const baseline = blankResult({ id: "baseline", name: "Today (no change)", description: "The code as it is now." }, `settle/${id}/baseline`);
   addWorktree(root, join(treeDir, "baseline"), baseline.branch, base);

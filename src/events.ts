@@ -5,7 +5,7 @@ import type { Verdict } from "./verdict.ts";
 // streams them to the browser, and each run saves them to events.jsonl so the
 // hosted site can replay a real run.
 export type RunEvent =
-  | { kind: "start"; id: string; question: string; base: string; options: { id: string; name: string; description: string }[] }
+  | { kind: "start"; id: string; question: string; base: string; options: { id: string; name: string; description: string }[]; constraints?: { max_p95_ms?: number; max_staleness_seconds?: number } }
   | { kind: "phase"; phase: "build" | "measure" | "done" }
   | { kind: "bob"; option: string; tool: string; label: string }
   | { kind: "built"; option: string; ok: boolean; error?: string; seconds: number; tool_calls?: number; cost?: number }

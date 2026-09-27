@@ -38,7 +38,26 @@ pre.code { font: 14px/1.7 var(--mono); background: var(--soft); padding: 22px 24
 footer.end { border-top: 1px solid var(--line); padding: 72px 0 40px; }
 footer.end .big { font: 800 clamp(32px, 5vw, 64px)/1 var(--sans); letter-spacing: -0.04em; margin: 0 0 28px; }
 footer.end .fine { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-top: 56px; font-size: 13px; color: var(--muted); }
+.race { border-top: 1px solid var(--line); padding: 28px 0 56px; }
+.race-head { display: flex; justify-content: space-between; margin-bottom: 14px; }
+.race-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 2px solid var(--strong); }
+.rc { padding: 18px 20px 16px 0; min-width: 0; }
+.rc + .rc { border-left: 1px solid var(--line); padding-left: 20px; }
+.rc h3 { margin: 0 0 4px; font-size: 18px; letter-spacing: -0.01em; }
+.rc .st { font: 500 12px var(--mono); color: var(--muted); margin: 0 0 12px; }
+.rc .st.live { color: var(--fg); }
+.rc ol { list-style: none; margin: 0; padding: 0; height: 96px; overflow: hidden; font: 13px/1.5 var(--mono); color: var(--muted); display: flex; flex-direction: column; justify-content: flex-end; }
+.rc li { padding: 4px 0; border-top: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; animation: tick .35s ease both; }
+.rc li:last-child { color: var(--fg); }
+@keyframes tick { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.rc .meter { height: 4px; background: var(--soft); margin-top: 12px; position: relative; overflow: hidden; }
+.rc .meter b { position: absolute; inset: 0 auto 0 0; background: var(--fg); transition: width .4s linear; }
+.rc.win h3 { text-decoration: underline; text-underline-offset: 5px; text-decoration-thickness: 2px; }
+.race-verdict { margin: 18px 0 0; font: 700 clamp(18px, 2.2vw, 24px)/1.3 var(--sans); letter-spacing: -0.01em; min-height: 1.3em; }
+.race-verdict.in { animation: tick .6s ease both; }
 @media (max-width: 820px) {
+  .race-cols { grid-template-columns: 1fr; }
+  .rc + .rc { border-left: 0; border-top: 1px solid var(--line); padding-left: 0; }
   section.band { grid-template-columns: 1fr; gap: 16px; padding: 48px 0; }
   .row, .step { grid-template-columns: 1fr; gap: 4px; }
   .step::before { padding: 0; }
@@ -88,6 +107,12 @@ ${FONTS}
       <a class="btn ghost" href="runs/${esc(runId)}/">See the results</a>
     </div>
     <p class="by">Built with IBM Bob</p>
+  </section>
+
+  <section class="race" aria-label="A real recorded run, replaying">
+    <div class="race-head"><span class="eyebrow">Replaying a real run</span><span class="eyebrow" id="race-clock">Bob builds</span></div>
+    <div class="race-cols" id="race"></div>
+    <p class="race-verdict" id="race-verdict">&nbsp;</p>
   </section>
 
   <section class="band">
@@ -163,6 +188,66 @@ settle run                       # or straight from the terminal</pre>
     <div class="fine"><span>Settle · built with IBM Bob for the IBM Bob 2.0 Hackathon</span><span><a href="https://github.com/jenzylove/settle">github.com/jenzylove/settle</a></span></div>
   </footer>
 </div>
+<script>
+// Replays the recorded run's real event log on a loop: three Bob sessions
+// building at once, then the verdict. Plain JS, no dependencies.
+(function () {
+  var race = document.getElementById("race"), clock = document.getElementById("race-clock"), verdict = document.getElementById("race-verdict");
+  var SPEED = 30, MAXGAP = 900;
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function label(e) { return e.label === "update todo list" ? "Updated its plan" : e.label; }
+  fetch("runs/${esc(runId)}/events.jsonl").then(function (r) { return r.text(); }).then(function (text) {
+    var events = text.split("\\n").filter(Boolean).map(function (l) { return JSON.parse(l); });
+    var start = events[0];
+    if (!start || start.kind !== "start") return;
+    var cut = events.findIndex(function (e) { return e.kind === "phase" && e.phase === "measure"; });
+    var build = events.slice(0, cut < 0 ? events.length : cut);
+    var v = events.find(function (e) { return e.kind === "verdict"; });
+    var names = {};
+    start.options.forEach(function (o) { names[o.id] = o.name; });
+    function play() {
+      race.innerHTML = ""; verdict.textContent = "\\u00a0"; verdict.className = "race-verdict"; clock.textContent = "Bob builds";
+      var cols = {};
+      start.options.forEach(function (o) {
+        var c = el("div", "rc"); c.appendChild(el("h3", null, o.name));
+        var st = el("p", "st live", "Building"); c.appendChild(st);
+        var ol = el("ol"); c.appendChild(ol);
+        var meter = el("div", "meter"); var fill = el("b"); fill.style.width = "0%"; meter.appendChild(fill); c.appendChild(meter);
+        race.appendChild(c); cols[o.id] = { c: c, st: st, ol: ol, fill: fill, n: 0 };
+      });
+      var i = 1;
+      (function step() {
+        if (i >= build.length) {
+          setTimeout(function () {
+            if (v) {
+              clock.textContent = "Measured · verdict";
+              if (v.verdict.winner && cols[v.verdict.winner]) cols[v.verdict.winner].c.classList.add("win");
+              verdict.textContent = v.verdict.headline; verdict.className = "race-verdict in";
+            }
+            setTimeout(play, 5200);
+          }, 700);
+          return;
+        }
+        var e = build[i], prev = build[i - 1];
+        var col = cols[e.option];
+        if (e.kind === "bob" && col) {
+          var li = el("li", null, label(e)); col.ol.appendChild(li);
+          while (col.ol.children.length > 4) col.ol.removeChild(col.ol.firstChild);
+          col.n++; col.fill.style.width = Math.min(92, col.n * 6) + "%";
+        } else if (e.kind === "built" && col) {
+          col.st.textContent = (e.ok ? "Built in " : "Not built after ") + Math.floor(e.seconds / 60) + "m " + String(e.seconds % 60).padStart(2, "0") + "s";
+          col.st.className = "st"; col.fill.style.width = "100%";
+        }
+        var secs = Math.round((e.t - start.t) / 1000);
+        clock.textContent = "Bob builds · " + Math.floor(secs / 60) + "m " + String(secs % 60).padStart(2, "0") + "s";
+        i++;
+        setTimeout(step, Math.min((e.t - prev.t) / SPEED, MAXGAP));
+      })();
+    }
+    play();
+  }).catch(function () { document.querySelector(".race").hidden = true; });
+})();
+</script>
 </body>
 </html>`;
 }
