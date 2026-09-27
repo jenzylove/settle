@@ -39,7 +39,7 @@ test("settle run builds, measures and decides end to end", { timeout: 240_000 },
     // Removing the delay is measurably faster, so it is the only option under the limit.
     const [fast, note] = run.options;
     assert.ok(fast.load!.p95_ms < note.load!.p95_ms, `fast p95 ${fast.load!.p95_ms} < note p95 ${note.load!.p95_ms}`);
-    assert.equal(run.verdict.winner, "fast");
+    assert.equal(run.verdict.winner, "fast", JSON.stringify(run.verdict.checks));
 
     // The run left its evidence behind.
     for (const f of ["results.json", "index.html", "appendix.md", "events.jsonl", "bob-fast.log", "bob-note.log"]) {

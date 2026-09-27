@@ -18,6 +18,9 @@ export interface OptionResult {
   diff?: { added: number; removed: number; files: string[]; test_added?: number; test_files?: string[]; patch?: string };
   new_dependencies?: string[];
   measure_error?: string;
+  // Existing test files the option modified or deleted, and test/start
+  // scripts it changed. Anything here means the yardstick moved.
+  integrity?: { touched: string[] };
 }
 
 export interface Check {
@@ -40,6 +43,22 @@ export function checksFor(r: OptionResult, c: Constraints): Check[] {
     checks.push({ label: "Built and measured", limit: "yes", actual: "no", pass: false });
     return checks;
   }
+  // A candidate that errors is never "fast": latency only counts successful
+  // requests, so failures must disqualify on their own.
+  const ok = r.load.requests - r.load.errors;
+  const errorRate = r.load.requests > 0 ? r.load.errors / r.load.requests : 1;
+  checks.push({
+    label: "Measured cleanly",
+    limit: "no errors, ≤ 1% failed requests",
+    actual: r.measure_error ? "measurement failed" : ok <= 0 ? "no successful requests" : `${r.load.errors} of ${r.load.requests} failed`,
+    pass: !r.measure_error && ok > 0 && errorRate <= 0.01,
+  });
+  checks.push({
+    label: "Existing tests untouched",
+    limit: "unchanged",
+    actual: r.integrity?.touched.length ? `changed ${r.integrity.touched.join(", ")}` : "unchanged",
+    pass: !r.integrity?.touched.length,
+  });
   if (c.max_p95_ms !== undefined) {
     checks.push({
       label: "p95 latency",
@@ -48,12 +67,13 @@ export function checksFor(r: OptionResult, c: Constraints): Check[] {
       pass: r.load.p95_ms <= c.max_p95_ms,
     });
   }
-  if (c.max_staleness_seconds !== undefined && r.freshness) {
+  if (c.max_staleness_seconds !== undefined) {
+    const f = r.freshness;
     checks.push({
       label: "Staleness",
       limit: `≤ ${c.max_staleness_seconds} s`,
-      actual: r.freshness.timed_out > 0 ? `over ${r.freshness.max_seconds} s` : `${r.freshness.max_seconds} s`,
-      pass: r.freshness.timed_out === 0 && r.freshness.max_seconds <= c.max_staleness_seconds,
+      actual: !f ? "not measured" : f.timed_out > 0 ? `over ${f.max_seconds} s` : `${f.max_seconds} s`,
+      pass: !!f && f.timed_out === 0 && f.max_seconds <= c.max_staleness_seconds,
     });
   }
   if (c.max_new_dependencies !== undefined) {

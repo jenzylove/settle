@@ -51,6 +51,7 @@ export interface SettleConfig {
     duration_seconds: number;
     concurrency: number;
     warmup_seconds: number;
+    repeats: number;
   };
   freshness?: Freshness;
   constraints: Constraints;
@@ -102,6 +103,7 @@ export function parseConfig(text: string): SettleConfig {
       duration_seconds: load.duration_seconds ?? 15,
       concurrency: load.concurrency ?? 8,
       warmup_seconds: load.warmup_seconds ?? 3,
+      repeats: Math.max(1, Math.min(10, load.repeats ?? 3)),
     },
     freshness: raw.freshness
       ? {

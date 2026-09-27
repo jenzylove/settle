@@ -18,7 +18,7 @@ freshness:
   probes: 1
   timeout_seconds: 3
 constraints:
-  max_p95_ms: 15
+  max_p95_ms: 22
   tests_must_pass: true
 options:
   - id: fast

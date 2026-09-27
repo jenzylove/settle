@@ -3,8 +3,9 @@ import { dirname, join, relative } from "node:path";
 import { runBob } from "./bob.ts";
 import { loadConfig, type Constraints, type Option, type SettleConfig } from "./config.ts";
 import { describeTool, type Listener, type RunEvent, type Stamped } from "./events.ts";
-import { addWorktree, commitAll, diffPatch, diffStats, dirtyFiles, headCommit, repoRoot, showFile } from "./git.ts";
-import { freshnessTest, loadTest, newDependencies, run, runTests, startApp } from "./measure.ts";
+import { addWorktree, commitAll, diffPatch, diffStats, dirtyFiles, git, headCommit, isTestFile, repoRoot, showFile } from "./git.ts";
+import { cpus, platform, release, totalmem } from "node:os";
+import { combineLoad, freshnessTest, loadTest, newDependencies, run, runTests, startApp, type LoadResult } from "./measure.ts";
 import { renderAppendix, renderReport } from "./report.ts";
 import { decide, type OptionResult, type Verdict } from "./verdict.ts";
 
@@ -16,8 +17,10 @@ export interface RunFile {
   base_commit: string;
   app_path: string;
   constraints: Constraints;
-  load: SettleConfig["load"];
+  load: Omit<SettleConfig["load"], "repeats"> & { repeats?: number };
   baseline: OptionResult;
+  // Where the numbers came from, so a reader can judge how far to trust them.
+  environment?: { node: string; platform: string; cpus: number; cpu: string; memory_gb: number };
   options: OptionResult[];
   verdict: Verdict;
 }
@@ -61,9 +64,15 @@ export function prepareRun(configPath: string, opts: RunOptions = {}): Prepared 
   const appDirAbs = dirname(configPath);
   const root = repoRoot(appDirAbs);
   const appRel = relative(root, appDirAbs);
-  // settle.yml itself may be edited (the UI saves it); options are built from
-  // the parsed config, not from the file in the worktree.
-  const dirty = dirtyFiles(root, appDirAbs).filter((l) => !l.trim().endsWith("settle.yml"));
+  // Worktrees are built from the last commit, so any uncommitted change in the
+  // repository (a sibling package the app imports, say) would silently be left
+  // out. settle.yml may be edited (the UI saves it) since options are built
+  // from the parsed config, and Settle's own output folders do not count.
+  const dirty = dirtyFiles(root, root).filter((l) => {
+    const path = l.slice(3).trim().split(String.fromCharCode(92)).join("/");
+    const own = ["runs/", ".settle/", "site/"].some((dir) => path === dir || path.startsWith(dir));
+    return !path.endsWith("settle.yml") && !own;
+  });
   if (dirty.length) throw new Error(`commit your changes first; these would be missing from every option:\n${dirty.join("\n")}`);
   const id = stamp();
   const out = opts.outRoot ?? root;
@@ -144,6 +153,7 @@ export async function executeRun(p: Prepared, opts: RunOptions, listen: Listener
     baseline,
     options: results,
     verdict: decide(results, config.constraints),
+    environment: { node: process.version, platform: `${platform()} ${release()}`, cpus: cpus().length, cpu: cpus()[0]?.model.trim() ?? "", memory_gb: Math.round(totalmem() / 2 ** 30) },
   };
   writeRun(runDir, data);
   emit({ kind: "verdict", verdict: data.verdict });
@@ -162,7 +172,10 @@ async function measureOption(
 ): Promise<void> {
   const appDir = join(worktree, appRel);
   result.diff = diffStats(worktree, base, appRel);
-  if (result.id !== "baseline") result.diff.patch = diffPatch(worktree, base, appRel);
+  if (result.id !== "baseline") {
+    result.diff.patch = diffPatch(worktree, base, appRel);
+    result.integrity = { touched: touchedYardstick(worktree, base, appRel) };
+  }
   const pkg = appRel ? `${appRel.replace(/\\/g, "/")}/package.json` : "package.json";
   result.new_dependencies = newDependencies(showFile(worktree, base, pkg), showFile(worktree, "HEAD", pkg));
 
@@ -187,7 +200,9 @@ async function measureOption(
   }
   try {
     emit({ kind: "measure", option: result.id, step: "load" });
-    result.load = await loadTest(app.base, config);
+    const runs: LoadResult[] = [];
+    for (let i = 0; i < config.load.repeats; i++) runs.push(await loadTest(app.base, config));
+    result.load = combineLoad(runs);
     if (config.freshness) {
       emit({ kind: "measure", option: result.id, step: "freshness" });
       result.freshness = await freshnessTest(app.base, config.freshness);
@@ -197,4 +212,22 @@ async function measureOption(
   } finally {
     await app.stop();
   }
+}
+
+// Files that define the yardstick: existing tests (modified or deleted, new
+// tests are welcome) and the app's test and start scripts. If an option
+// changes these, its green checks no longer mean the same thing.
+export function touchedYardstick(worktree: string, base: string, appRel: string): string[] {
+  const touched: string[] = [];
+  const status = git(worktree, ["diff", "--name-status", base, "HEAD", "--", appRel || "."]);
+  for (const line of status.split(String.fromCharCode(10)).filter(Boolean)) {
+    const [code, file] = line.split(String.fromCharCode(9));
+    if ((code.startsWith("M") || code.startsWith("D") || code.startsWith("R")) && isTestFile(file)) touched.push(file);
+  }
+  const pkg = appRel ? `${appRel.split(String.fromCharCode(92)).join("/")}/package.json` : "package.json";
+  const scripts = (text: string | null) => (text ? (JSON.parse(text).scripts ?? {}) : {});
+  const before = scripts(showFile(worktree, base, pkg));
+  const after = scripts(showFile(worktree, "HEAD", pkg));
+  for (const name of ["test", "start"]) if (before[name] !== after[name]) touched.push(`package.json scripts.${name}`);
+  return touched;
 }

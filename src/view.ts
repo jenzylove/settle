@@ -27,7 +27,18 @@ interface Row {
 function rows(data: RunFile): Row[] {
   const c = data.constraints;
   return [
-    { label: "p95 latency", note: c.max_p95_ms !== undefined ? `needs ≤ ${c.max_p95_ms} ms` : undefined, value: (r) => ms(r.load?.p95_ms), check: "p95 latency" },
+    {
+      label: "p95 latency",
+      note: c.max_p95_ms !== undefined ? `needs ≤ ${c.max_p95_ms} ms${data.load.repeats && data.load.repeats > 1 ? `, median of ${data.load.repeats} runs` : ""}` : undefined,
+      value: (r) => (r.load?.p95_range ? `${ms(r.load.p95_ms)} (${ms(r.load.p95_range[0])}–${ms(r.load.p95_range[1])})` : ms(r.load?.p95_ms)),
+      check: "p95 latency",
+    },
+    {
+      label: "Requests",
+      note: "failed requests disqualify",
+      value: (r) => (r.load ? `${r.load.requests.toLocaleString("en-US")} · ${r.load.errors} failed` : dash),
+      check: "Measured cleanly",
+    },
     { label: "Median latency", value: (r) => ms(r.load?.p50_ms) },
     { label: "Throughput", value: (r) => (r.load ? `${r.load.rps} req/s` : dash) },
     {
@@ -49,6 +60,12 @@ function rows(data: RunFile): Row[] {
       label: "Tests",
       value: (r) => (r.tests ? (r.tests.timed_out ? "hung, never exited" : `${r.tests.ok ? "pass" : "fail"}${r.tests.passed !== null ? ` · ${r.tests.passed}` : ""}`) : dash),
       check: "Tests",
+    },
+    {
+      label: "Existing tests",
+      note: "must be left untouched",
+      value: (r) => (r.id === "baseline" ? dash : !r.integrity ? "not checked" : r.integrity.touched.length ? `changed ${r.integrity.touched.length}` : "untouched"),
+      check: "Existing tests untouched",
     },
     { label: "Built by Bob in", value: (r) => (r.bob ? `${Math.floor(r.bob.duration_seconds / 60)}m ${r.bob.duration_seconds % 60}s` : dash) },
   ];
@@ -298,4 +315,34 @@ export function renderCode(patch: string | undefined, appPath: string): string {
   }
   // Each line is a block span, so no newlines between them.
   return `<pre class="code">${out.join("")}</pre>`;
+}
+
+// ---------- Trust this comparison ----------
+// Everything a skeptical reviewer would ask before believing the verdict.
+
+export function renderTrust(data: RunFile): string {
+  const all = [data.baseline, ...data.options];
+  const env = data.environment;
+  const reps = data.load.repeats ?? 1;
+  const row = (k: string, v: string) => `<div class="trow"><span class="tk2">${esc(k)}</span><span>${v}</span></div>`;
+  const perOption = data.options
+    .map((o) => {
+      const checks = data.verdict.checks[o.id] ?? [];
+      const clean = checks.find((c) => c.label === "Measured cleanly");
+      const integ = checks.find((c) => c.label === "Existing tests untouched");
+      const runs = o.load?.runs?.map((r) => `${Math.round(r.p95_ms)}`).join(" / ");
+      return `<div class="trow"><span class="tk2">${esc(o.name)}</span><span>${
+        !o.built ? `not built${o.build_error ? `: ${esc(o.build_error)}` : ""}` :
+        `${clean ? (clean.pass ? "✓ " : "✕ ") + esc(clean.actual) : "—"} · ${integ ? (integ.pass ? "✓ tests untouched" : "✕ " + esc(integ.actual)) : "—"}${runs ? ` · p95 per run ${runs} ms` : ""}`
+      }</span></div>`;
+    })
+    .join("");
+  return `<div class="trust">
+  ${row("Base commit", `<code>${esc(data.base_commit.slice(0, 12))}</code>, every option branched from it`)}
+  ${row("Load test", `${data.load.duration_seconds} s at concurrency ${data.load.concurrency}, ${reps > 1 ? `${reps} runs per option, median reported` : "one run per option"}, options measured one at a time`)}
+  ${row("Disqualifiers", "measurement errors, no successful requests, more than 1% failed requests, a missing freshness result, or changed existing tests")}
+  ${perOption}
+  ${row("Today's code", all[0].load ? `${all[0].load.requests.toLocaleString("en-US")} requests, ${all[0].load.errors} failed` : "not measured")}
+  ${env ? row("Machine", `${esc(env.cpu)} · ${env.cpus} cores · ${env.memory_gb} GB · ${esc(env.platform)} · Node ${esc(env.node)}`) : row("Machine", "not recorded for this run")}
+</div>`;
 }

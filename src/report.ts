@@ -2,7 +2,7 @@ import { buildSync } from "esbuild";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { RunFile } from "./engine.ts";
-import { esc, renderAppendix, renderMap, renderOptions, renderTable, renderVerdict } from "./view.ts";
+import { esc, renderAppendix, renderMap, renderOptions, renderTable, renderTrust, renderVerdict } from "./view.ts";
 
 export { renderAppendix };
 
@@ -131,6 +131,11 @@ button.ghost { background: transparent; color: var(--fg); border: 1px solid var(
 .map .pv { font: 500 12px var(--mono); fill: var(--muted); }
 .tip { position: absolute; pointer-events: none; background: var(--fg); color: var(--bg); font: 500 12px/1.5 var(--mono); padding: 8px 10px; white-space: nowrap; transform: translate(-50%, calc(-100% - 14px)); }
 .tip b { font: 700 13px var(--sans); display: block; }
+.trust { border-top: 1px solid var(--line); }
+.trow { display: grid; grid-template-columns: 220px 1fr; gap: 24px; padding: 14px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.trow > span:last-child { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+.tk2 { font-weight: 600; }
+@media (max-width: 720px) { .trow { grid-template-columns: 1fr; gap: 4px; } }
 .opts { grid-template-columns: 1fr !important; }
 .opt { display: grid; grid-template-columns: 300px minmax(0, 1fr); column-gap: 40px; align-items: start; }
 .opt > * { grid-column: 1; min-width: 0; }
@@ -181,6 +186,11 @@ ${renderMap(data)}
 ${renderTable(data)}
   </div>
   <p class="legend">✓ meets the constraint · ✕ misses it · first column is today's code, for reference</p>
+
+  <h2>Trust this comparison</h2>
+  <div id="trust">
+${renderTrust(data)}
+  </div>
 
   <h2>The options</h2>
   <div class="opts" id="options">

@@ -3,7 +3,7 @@
 // Measurements never change; only the constraints do.
 import type { RunFile } from "./engine.ts";
 import { decide } from "./verdict.ts";
-import { invX, invY, renderAppendix, renderMap, renderOptions, renderTable, renderVerdict, type MapScale } from "./view.ts";
+import { invX, invY, renderAppendix, renderMap, renderOptions, renderTable, renderTrust, renderVerdict, type MapScale } from "./view.ts";
 
 const data: RunFile = JSON.parse(document.getElementById("run-data")!.textContent!);
 const recorded = { ...data.constraints };
@@ -24,6 +24,7 @@ function render(focus?: string) {
   document.getElementById("verdict")!.innerHTML = renderVerdict(data);
   document.getElementById("table")!.innerHTML = renderTable(data);
   document.getElementById("options")!.innerHTML = renderOptions(data);
+  document.getElementById("trust")!.innerHTML = renderTrust(data);
   document.getElementById("appendix")!.textContent = renderAppendix(data);
   map.querySelector("svg")!.outerHTML = renderMap(data);
   reset.hidden = JSON.stringify(recorded) === JSON.stringify(data.constraints);

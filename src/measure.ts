@@ -8,7 +8,14 @@ export interface LoadResult {
   p50_ms: number;
   p95_ms: number;
   p99_ms: number;
+  // With repeats: every run, and the spread of p95 across them. The headline
+  // numbers are then medians, so one noisy run cannot decide the verdict.
+  runs?: { requests: number; errors: number; rps: number; p50_ms: number; p95_ms: number }[];
+  p95_range?: [number, number];
 }
+
+// No single request may stall a comparison: past this it counts as failed.
+export const REQUEST_TIMEOUT_MS = 10_000;
 
 export interface FreshnessResult {
   probes: number;
@@ -97,7 +104,7 @@ export async function startApp(config: SettleConfig, appDir: string, port: numbe
   while (Date.now() < deadline) {
     if (child.exitCode !== null) throw new Error(`app exited during startup:\n${log.slice(-2000)}`);
     try {
-      const res = await fetch(base + config.app.health);
+      const res = await fetch(base + config.app.health, { signal: AbortSignal.timeout(2000) });
       if (res.ok) return { base, stop: () => killTree(child), log: () => log };
     } catch {}
     await sleep(250);
@@ -117,7 +124,29 @@ async function send(base: string, req: Request, body?: unknown): Promise<Respons
     method: req.method,
     headers: body === undefined ? undefined : { "content-type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body),
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
+}
+
+const median = (xs: number[]) => {
+  const s = [...xs].sort((a, b) => a - b);
+  return s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2;
+};
+
+export function combineLoad(runs: LoadResult[]): LoadResult {
+  if (runs.length === 1) return runs[0];
+  const round = (n: number) => Math.round(n * 10) / 10;
+  const p95s = runs.map((r) => r.p95_ms);
+  return {
+    requests: runs.reduce((a, r) => a + r.requests, 0),
+    errors: runs.reduce((a, r) => a + r.errors, 0),
+    rps: round(median(runs.map((r) => r.rps))),
+    p50_ms: round(median(runs.map((r) => r.p50_ms))),
+    p95_ms: round(median(p95s)),
+    p99_ms: round(median(runs.map((r) => r.p99_ms))),
+    runs: runs.map(({ requests, errors, rps, p50_ms, p95_ms }) => ({ requests, errors, rps, p50_ms, p95_ms })),
+    p95_range: [Math.min(...p95s), Math.max(...p95s)],
+  };
 }
 
 export async function loadTest(base: string, config: SettleConfig): Promise<LoadResult> {
