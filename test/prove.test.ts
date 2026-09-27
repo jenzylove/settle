@@ -34,7 +34,13 @@ test("settle prove sorts assumptions into proven, blocked and untrusted", { time
     assert.equal(by["edits-code"].bob_claim, "holds", "even though Bob claimed it holds");
     assert.equal(by["no-import"].status, "unknown", "a test that never imports the app cannot pass");
     assert.match(by["no-import"].evidence, /does not import any of the application/);
-    assert.deepEqual(proof.summary, { proven: 1, blocked: 1, unknown: 2 });
+    assert.equal(by["crashes"].status, "unknown", "a test that crashes before testing is not a blocker");
+    assert.match(by["crashes"].evidence, /crashed before it could test anything/);
+    const team = proof.experiments.find((x) => x.id.startsWith("team-"))!;
+    assert.ok(team, "the team's own check was tested alongside Bob's");
+    assert.equal(team.why_risky, "Added by your team.");
+    assert.equal(team.status, "proven", team.evidence);
+    assert.deepEqual(proof.summary, { proven: 2, blocked: 1, unknown: 3 });
     assert.match(proof.plan, /Add the currency field first/);
 
     const dir = join(repo, "runs", proof.id);

@@ -291,7 +291,8 @@ jobs:
     <div class="shead"><div><span class="tag dotted">FAQ</span><h2>Questions, <em>answered.</em></h2></div></div>
     <details><summary>Is this a chatbot?</summary><p>No. You name a feature and Settle runs experiments on your code. What you get back is tests that passed or failed, the exact errors, and a plan written from them.</p></details>
     <details><summary>Can I run it on my code from this website?</summary><p>No, and that is on purpose: Settle has to run next to your code, with your Bob. The Try it page replays real runs on our demo store so you can see exactly what you would get.</p></details>
-    <details><summary>Why trust what Bob found?</summary><p>You don't have to. Settle reruns every test itself, and any test that changes an existing file is marked untrusted. Each finding shows the rerun output, Bob's own read, and the test code.</p></details>
+    <details><summary>Why trust what Bob found?</summary><p>You don't have to. Settle reruns every test itself. A test that crashed before testing, never imported your app, or changed an existing file is marked unsure, never a blocker. Each finding shows the rerun output, Bob's own read, and the test code.</p></details>
+    <details><summary>What if Bob misses a risk?</summary><p>Add your own. List them under checks: in prove.yml and Settle tests them alongside Bob's, the same way.</p></details>
     <details><summary>Does it change my code?</summary><p>No. Experiments run in separate git worktrees and may only add files. Nothing is merged.</p></details>
     <details><summary>What does it cost?</summary><p>About four minutes and about three Bobcoins per feature: one Bob session to find the risks, one per risk, and one to write the plan.</p></details>
   </section>

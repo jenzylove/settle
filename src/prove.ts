@@ -17,6 +17,8 @@ export interface ProveConfig {
   app: { install: string; test: string };
   experiment: { command: string; timeout_seconds: number };
   assumptions: number;
+  // Checks the team adds by hand, tested alongside the ones Bob names.
+  checks: string[];
   bob: { max_turns: number; timeout_minutes: number };
 }
 
@@ -84,6 +86,7 @@ export function parseProveConfig(text: string): ProveConfig {
       timeout_seconds: raw.experiment?.timeout_seconds ?? 120,
     },
     assumptions: Math.max(1, Math.min(5, raw.assumptions ?? 3)),
+    checks: Array.isArray(raw.checks) ? raw.checks.map((c: unknown) => String(c).trim()).filter(Boolean).slice(0, 5) : [],
     bob: { max_turns: raw.bob?.max_turns ?? 30, timeout_minutes: raw.bob?.timeout_minutes ?? 15 },
   };
 }
@@ -148,6 +151,13 @@ function writePlanPrompt(c: ProveConfig, results: Experiment[], app: string): st
   ].join("\n");
 }
 
+// Failures that mean the test itself is broken (it could not load or set up),
+// as opposed to an assertion or an application error, which are findings.
+export function crashedBeforeTesting(output: string): boolean {
+  if (/AssertionError|ERR_ASSERTION/.test(output)) return false;
+  return /ERR_MODULE_NOT_FOUND|Cannot find module|SyntaxError|ReferenceError: \w+ is not defined|is not a function|ERR_UNKNOWN_FILE_EXTENSION|Unexpected token/.test(output);
+}
+
 // Last lines of a test run that explain a failure: assertion messages and errors.
 function evidenceFrom(output: string): string {
   const lines = output.split("\n").map((l) => l.replace(/\r$/, ""));
@@ -199,6 +209,13 @@ export async function prove(configPath: string, listen: (e: StampedProve) => voi
       return { id: aid, assumption: String(a.assumption ?? ""), why_risky: String(a.why_risky ?? ""), experiment: String(a.experiment ?? ""), plain: String(a.plain ?? a.assumption ?? "") };
     })
     .filter((a: Assumption) => a.assumption);
+  // The team's own checks join Bob's, so nobody is limited to what Bob thought of.
+  for (const c of config.checks) {
+    let cid = `team-${slug(c)}`.slice(0, 32);
+    while (seen.has(cid)) cid += "-x";
+    seen.add(cid);
+    assumptions.push({ id: cid, assumption: c, why_risky: "Added by your team.", experiment: `Write the smallest test that shows whether this holds today: ${c}`, plain: c });
+  }
   if (assumptions.length === 0) throw new Error("Bob's plan had no assumptions");
   emit({ kind: "assumptions", assumptions });
 
@@ -273,6 +290,11 @@ export async function prove(configPath: string, listen: (e: StampedProve) => voi
       } else if (res.code === 0 && passed && Number(passed[1]) > 0) {
         x.status = "proven";
         x.evidence = `${passed[1]} check${passed[1] === "1" ? "" : "s"} passed against today's code.`;
+      } else if (failed && Number(failed[1]) > 0 && crashedBeforeTesting(res.output)) {
+        // A test that never reached its checks is a broken experiment, not a finding.
+        x.status = "unknown";
+        x.evidence = `The experiment crashed before it could test anything:
+${evidenceFrom(res.output)}`;
       } else if (failed && Number(failed[1]) > 0) {
         x.status = "blocked";
         x.evidence = evidenceFrom(res.output);

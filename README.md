@@ -69,6 +69,8 @@ context: Customers want a "delete my account" button.
 experiment:
   command: node --import tsx --test {file}
 assumptions: 3
+checks:                      # optional: your own, tested alongside Bob's
+  - Deleting a customer keeps their invoices for accounting.
 ```
 
 Each proof writes `runs/prove-<time>/proof.json`, `index.html` (the evidence board), `events.jsonl` and one log per Bob session.
@@ -96,11 +98,11 @@ Settle also includes `settle run`, which builds competing designs for the same c
 
 `npm test` runs 73 tests, including end to end runs of `settle prove` (proven, blocked, and an experiment that edits an existing file being distrusted even though Bob claimed it held) and of the comparison pipeline, both on a fixture app with a stand in for Bob Shell. GitHub Actions runs typecheck and tests on every push.
 
-## Good to know
+## Built so you can trust the answer
 
-- **It checks, it does not build.** Settle tests what a feature depends on in today's code. Writing the feature is still your team's job, now with the blockers known up front.
-- **Every result can be checked.** Each finding shows the test Bob wrote and Settle's rerun output, so a badly written test is easy to spot rather than silently trusted. Tests that never touch your app or change existing files are marked unsure.
-- **Bob picks what to check.** The results page lists exactly what was tested, so the team can add anything Bob missed.
-- **It runs next to your code.** Locally, in Bob IDE or in CI, with your Bob. There is no hosted service that takes your repository.
+- **Your team decides what gets checked, not only Bob.** Bob names the risks it sees, and you add your own under `checks:` in `prove.yml`. Every check is tested the same way.
+- **A broken test can never become a blocker.** Settle reruns every test itself and sorts the outcome: failed on its assertion or an application error means blocker; crashed before testing (missing import, syntax error, broken setup), never imported the app, or changed an existing file means unsure. Each finding shows the test and the rerun output.
+- **Answers, then a plan.** Settle does the spike your team would otherwise spend days on; building the feature starts from Bob's plan with the blockers first.
+- **Runs where your code lives.** In Bob IDE, in the terminal or in CI, with your Bob. Your repository never leaves your machine.
 
 Built for the IBM Bob 2.0 Hackathon. MIT license.

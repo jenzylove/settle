@@ -20,6 +20,7 @@ if (prompt.includes("settle-plan.json")) {
     { id: "has-currency", assumption: "The value endpoint already returns a currency field.", why_risky: "Adding it means a schema change.", experiment: "Read the response shape.", plain: "Values already say which currency they are in." },
     { id: "edits-code", assumption: "The server can be changed freely.", why_risky: "Used to prove that edits to existing files are distrusted.", experiment: "Edit server.mjs.", plain: "A deliberately untrustworthy experiment." },
     { id: "no-import", assumption: "Arithmetic works.", why_risky: "Used to prove that a test which never touches the app is not trusted.", experiment: "Assert 1 + 1.", plain: "A test that ignores the app." },
+    { id: "crashes", assumption: "A helper module exists.", why_risky: "Used to prove that a broken test is not reported as a blocker.", experiment: "Import a missing helper.", plain: "A test that cannot even load." },
   ]));
 } else if (prompt.includes("Assumption to test")) {
   const file = prompt.match(/Write exactly one test file at (\S+)\./)[1];
@@ -30,6 +31,17 @@ if (prompt.includes("settle-plan.json")) {
   } else if (file.includes("has-currency")) {
     write(file, header + `test("response has a currency", async () => { const port = await start(); const body = await (await fetch(\`http://127.0.0.1:\${port}/value\`)).json(); server.close(); assert.ok("currency" in body, \`no currency field, got keys: \${Object.keys(body).join(", ")}\`); });\n`);
     write(file.replace(".test.ts", ".json"), JSON.stringify({ verdict: "broken", evidence: "response is {value}" }));
+  } else if (file.includes("crashes")) {
+    write(file, `import { test } from "node:test";
+import { server } from "../server.mjs";
+import { helper } from "../missing-helper.mjs";
+test("uses helper", () => helper(server));
+`);
+    write(file.replace(".test.ts", ".json"), JSON.stringify({ verdict: "broken", evidence: "helper missing" }));
+  } else if (file.includes("team-")) {
+    write(file, header + `test("value is a number", async () => { const port = await start(); const body = await (await fetch(\`http://127.0.0.1:\${port}/value\`)).json(); server.close(); assert.equal(typeof body.value, "number"); });
+`);
+    write(file.replace(".test.ts", ".json"), JSON.stringify({ verdict: "holds", evidence: "value is a number" }));
   } else if (file.includes("no-import")) {
     write(file, `import { test } from "node:test";\nimport assert from "node:assert/strict";\ntest("math", () => assert.equal(1 + 1, 2));\n`);
     write(file.replace(".test.ts", ".json"), JSON.stringify({ verdict: "holds", evidence: "1 + 1 is 2" }));

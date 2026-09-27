@@ -5,7 +5,9 @@ app:
 experiment:
   command: node --test {file}
   timeout_seconds: 60
-assumptions: 4
+assumptions: 5
+checks:
+  - The value endpoint returns a numeric value.
 bob:
   max_turns: 5
   timeout_minutes: 1
